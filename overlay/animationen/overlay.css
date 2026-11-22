@@ -4,6 +4,7 @@ html, body { margin: 0; width: 100%; height: 100%; background: transparent; over
 body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb347; --b1: #ff3d7f; --b2: #7c4dff; --b3: #ffd54f; }
 #fx { z-index: 1; position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #clip { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+#clip.direkt { inset: 0; width: 100%; height: 100%; opacity: 1; z-index: 1; object-fit: cover; }
 #fx.fallback { mix-blend-mode: screen; }
 
 /* Banner oben */

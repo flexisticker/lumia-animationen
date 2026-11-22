@@ -35,6 +35,7 @@ add('bereich', { type: 'dropdown', label: 'Einstellungen für', value: 'allgemei
 const vis = b => ({ visibleIf: { key: 'bereich', equals: [b] } });
 add('lautstaerke', { type: 'slider', label: 'Lautstärke gesamt', value: 80, options: { min: 0, max: 100, step: 5, suffix: '%' }, ...vis('allgemein') });
 add('medienAdresse', { type: 'input', label: 'Adresse der Videos (Ordner, endet mit /)', value: '', placeholder: 'leer = nur hochgeladene Videos', ...vis('allgemein') });
+add('alphaVideos', { type: 'checkbox', label: 'Fertig freigestellte Videos verwenden (flüssiger im Live; „Schwarz entfernen“ gilt dann nur für eigene Videos)', value: true, ...vis('allgemein') });
 add('schwarzStaerke', { type: 'slider', label: 'Schwarz entfernen – Stärke', value: 12, options: { min: 0, max: 60, step: 1 }, ...vis('allgemein') });
 add('minMuenzen', { type: 'number', label: 'Geschenke erst ab … Münzen zeigen', value: 1, ...vis('allgemein') });
 add('comboZusammen', { type: 'checkbox', label: 'Gleiche Geschenke zusammenfassen (× Zähler)', value: true, ...vis('allgemein') });

@@ -91,3 +91,7 @@
 - 22.11.2026: **Hängt weiter im Live** → Zeichnen nicht mehr über `requestVideoFrameCallback` (meldet OBS/CEF unter Last nicht zuverlässig: Bild stand, Ton + Zeit liefen weiter, Wächter griff nicht),
   sondern eine dauerhafte rAF-Schleife `schleife()` + zusätzlich `setInterval` 40 ms (falls OBS rAF drosselt); hochgeladen wird nur bei geänderter Videozeit. WebGL-Kontextverlust wird abgefangen und neu aufgebaut.
   **Fehlerprotokoll:** Overlay meldet Stillstand, Kontextverlust, Videofehler, Notaus, Pausen der Browserquelle > 700 ms per `POST /api/diag` → Studio „Letzte Ereignisse“ mit ⚠️. Geprüft (Headless): normal und mit abgeschaltetem rAF läuft die Animation durch.
+- 22.11.2026: **„Läuft, aber hakt“** → mitgelieferte Animationen zusätzlich als **WebM mit Alphakanal** (`medien/animationen/<id>(-quer).webm`, VP9 + Opus, ffmpeg
+  `lumakey=threshold=0:tolerance=0.13:softness=0.12`, `-b:v 1800k -maxrate 2500k -crf 34 -cpu-used 5 -auto-alt-ref 0`; 126 MB). Overlay spielt sie direkt als `<video class="direkt">`
+  (object-fit cover/contain je Format) – kein WebGL-Hochladen je Bild mehr (gemessen 0 texImage2D). Einstellung `alphaVideos` (Standard an); eigene hochgeladene Videos (v_/vq_) laufen weiter über WebGL + „Schwarz entfernen“.
+  Neue Animationen: MP4 (wie oben) **und** WebM erzeugen. Geprüft (Headless): hoch + quer durchsichtig, Namenskarte darüber, Ende sauber.

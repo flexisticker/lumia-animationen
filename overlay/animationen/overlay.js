@@ -71,7 +71,7 @@ addEventListener('resize', resize); resize(); initGL();
 // (Vorher requestVideoFrameCallback – das meldet OBS im Live unter Last nicht zuverlässig → Bild blieb stehen, Ton lief weiter.)
 let letzteZeit = -1, letzterTick = 0;
 function drawFrame() {
-  if (!playing || video.paused || video.ended || video.readyState < 2) return;
+  if (!playing || playing.direkt || video.paused || video.ended || video.readyState < 2) return;
   if (video.currentTime === letzteZeit) return;
   letzteZeit = video.currentTime;
   if (gl && !gl.isContextLost()) {
@@ -123,8 +123,10 @@ function entryById(id) { return LIST.find(a => a.id === id); }
 const FORMAT = /-quer\b|format=quer/.test(location.pathname + location.search) ? 'quer' : /-hoch\b|format=hoch/.test(location.pathname + location.search) ? 'hoch' : (innerWidth > innerHeight ? 'quer' : 'hoch');
 function videoUrl(a) {
   const m = D.medienAdresse || '';
-  if (FORMAT === 'quer') { if (D['vq_' + a.id]) return D['vq_' + a.id]; if (!D['v_' + a.id] && a.quer) return m + a.quer; }
-  return D['v_' + a.id] || (a.datei && m + a.datei) || '';
+  // Mitgelieferte Animationen gibt es zusätzlich fertig freigestellt (WebM mit Alphakanal) → Browser spielt sie direkt ab, ohne Rechenarbeit je Bild
+  const alpha = f => (D.alphaVideos !== false && /\.mp4$/i.test(f) ? f.replace(/\.mp4$/i, '.webm') : f);
+  if (FORMAT === 'quer') { if (D['vq_' + a.id]) return D['vq_' + a.id]; if (!D['v_' + a.id] && a.quer) return m + alpha(a.quer); }
+  return D['v_' + a.id] || (a.datei && m + alpha(a.datei)) || '';
 }
 // Vorladen: alle Animationen dieses Formats einmal in den Speicher holen → beim Abspielen kein Nachladen übers Netz
 // (im Live ist das Netz durch den Stream-Upload belegt, dann blieb das Video beim Puffern stehen)
@@ -174,6 +176,11 @@ function next() {
   if (item.user && on('nameAn')) showCard(item);
   if (item.alert) setTimeout(() => sayThanks(item), num(D.ttsVerzoegerung, 1500));
   if (src) {
+    // WebM mit Alphakanal: Video direkt zeigen; sonst (eigene MP4) Schwarz per WebGL herausrechnen
+    item.direkt = /\.webm$/i.test(videoUrl(item.anim));
+    video.classList.toggle('direkt', item.direkt);
+    if (item.direkt && gl) gl.clear(gl.COLOR_BUFFER_BIT);
+    video.onloadedmetadata = () => { const va = video.videoWidth / video.videoHeight, ca = innerWidth / innerHeight; video.style.objectFit = (va > 1) === (ca > 1) ? 'cover' : 'contain'; };
     video.src = src;
     video.volume = videoVol(item) * duck();
     video.currentTime = 0;
@@ -235,7 +242,7 @@ function nextSpeech() {
 }
 function stopNow(item) {
   video.onended = video.onerror = null;
-  video.pause();
+  video.pause(); video.classList.remove('direkt');
   if (item.card) item.card.remove();
   if (gl) gl.clear(gl.COLOR_BUFFER_BIT);
   playing = null;
@@ -245,6 +252,7 @@ function finish(item) {
   video.onended = video.onerror = video.ontimeupdate = null;
   clearInterval(item.wache); clearTimeout(item.notaus);
   if (!video.paused) video.pause();
+  video.classList.remove('direkt');
   if (gl) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
   if (item.card) { const c = item.card; c.classList.add('out'); setTimeout(() => c.remove(), 500); }
   setTimeout(() => { playing = null; next(); }, num(D.pauseMs, 250));
