@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MichaModus – Medien</title><link rel="icon" href="icon.png">
+<style>
+:root{--bg:#120c1f;--card:#1e1631;--line:#3a2d5c;--text:#fff;--muted:#b9a8e6;--c1:#ff3d7f;--c2:#7c4dff;--c3:#ffd54f}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1200px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap}header img{width:56px;height:56px;border-radius:14px}
+h1{margin:0;font-size:28px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));-webkit-background-clip:text;background-clip:text;color:transparent}
+h2{margin:30px 0 12px;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+p{color:var(--muted);margin:6px 0}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}nav a{color:var(--text);text-decoration:none;padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:var(--card)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.item video{display:block;width:100%;aspect-ratio:9/16;object-fit:cover;background:#000;cursor:pointer}
+.item .meta{padding:8px 10px}.item b{display:block}.item code{color:var(--muted);font-size:12px}
+button{font:inherit;cursor:pointer;color:var(--text);background:#2a1f45;border:1px solid var(--line);border-radius:10px;padding:6px 10px;margin-top:6px}
+button:hover{border-color:var(--c2)}button.ok{border-color:#2f7a52;color:#7dffb0}
+.rows{display:grid;gap:8px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.row span{flex:1;min-width:200px}.row code{word-break:break-all;color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+</style></head><body><div class="wrap">
+<header><img src="icon.png" alt=""><div><h1>MichaModus – Medien</h1><p>Videos, Musik und Lumia-Overlays. Vorschau: Klick auf ein Video (mit Ton).</p></div></header>
+<nav><a href="#lumia">Lumia einrichten</a><a href="#hintergrund">Hintergrund & Musik</a><a href="#geschenk">Geschenke</a><a href="#stufe">Stufen</a><a href="#ereignis">Ereignisse</a><a href="#knopf">Knöpfe</a></nav>
+
+<h2 id="lumia">Lumia einrichten – Inhalt je Reiter kopieren</h2>
+<div class="rows" id="lumiaRows"></div>
+<div class="rows" style="margin-top:8px"><div class="row"><span><b>Adresse der Videos</b> (Animationen → Allgemein & Ton)<br><code class="base"></code></span><button data-copy-base="animationen/">Kopieren</button></div></div>
+
+<h2 id="hintergrund">Hintergrund & Musik</h2>
+<div class="grid" id="bg"></div>
+<div id="groups"></div>
+</div>
+<script>window.MM_LIST = [{"id":"rose","gruppe":"geschenk","match":["Rose","Rosa"],"datei":"rose.mp4","label":"Rose"},{"id":"gg","gruppe":"geschenk","match":["GG"],"datei":"gg.mp4","label":"GG"},{"id":"tiktok","gruppe":"geschenk","match":["TikTok"],"datei":"tiktok.mp4","label":"TikTok"},{"id":"fingerherz","gruppe":"geschenk","match":["Finger Heart","Fingerherz"],"datei":"fingerherz.mp4","label":"Fingerherz"},{"id":"teamherz","gruppe":"geschenk","match":["Team Heart","Teamherz","Heart Me"],"datei":"teamherz.mp4","label":"Teamherz"},{"id":"donut","gruppe":"geschenk","match":["Doughnut","Donut"],"datei":"donut.mp4","label":"Donut"},{"id":"parfuem","gruppe":"geschenk","match":["Perfume","Parfüm"],"datei":"parfuem.mp4","label":"Parfüm"},{"id":"handherzen","gruppe":"geschenk","match":["Hand Hearts","Hand-Herzen"],"datei":"handherzen.mp4","label":"Hand-Herzen"},{"id":"sonnenbrille","gruppe":"geschenk","match":["Sunglasses","Sonnenbrille"],"datei":"sonnenbrille.mp4","label":"Sonnenbrille"},{"id":"kanone","gruppe":"geschenk","match":["Money Gun","Confetti","Kanone","Konfetti"],"datei":"kanone.mp4","label":"Konfetti-Kanone"},{"id":"corgi","gruppe":"geschenk","match":["Corgi"],"datei":"corgi.mp4","label":"Corgi"},{"id":"kueken","gruppe":"geschenk","match":["Baby Chicks","Küken"],"datei":"kueken.mp4","label":"Küken"},{"id":"galaxie","gruppe":"geschenk","match":["Galaxy","Galaxie"],"datei":"galaxie.mp4","label":"Galaxie"},{"id":"loewe","gruppe":"geschenk","match":["Lion","Löwe"],"datei":"loewe.mp4","label":"Löwe"},{"id":"universum","gruppe":"geschenk","match":["Universe","Universum"],"datei":"universum.mp4","label":"Universum"},{"id":"stufe-klein","gruppe":"stufe","ab":1,"datei":"stufe-klein.mp4","label":"Stufe klein"},{"id":"stufe-mittel","gruppe":"stufe","ab":100,"datei":"stufe-mittel.mp4","label":"Stufe mittel"},{"id":"stufe-gross","gruppe":"stufe","ab":1000,"datei":"stufe-gross.mp4","label":"Stufe groß"},{"id":"stufe-episch","gruppe":"stufe","ab":10000,"datei":"stufe-episch.mp4","label":"Stufe episch"},{"id":"folgen","gruppe":"ereignis","datei":"folgen.mp4","label":"Neuer Follower"},{"id":"teilen","gruppe":"ereignis","datei":"teilen.mp4","label":"Live geteilt"},{"id":"superfan","gruppe":"ereignis","datei":"superfan.mp4","label":"Superfan"},{"id":"schatzkiste","gruppe":"ereignis","datei":"schatzkiste.mp4","label":"Schatzkiste"},{"id":"likeziel","gruppe":"ereignis","datei":"likeziel.mp4","label":"Like-Ziel"},{"id":"battle-sieg","gruppe":"ereignis","datei":"battle-sieg.mp4","label":"Battle-Ende"},{"id":"airhorn","gruppe":"knopf","datei":"airhorn.mp4","label":"Airhorn"},{"id":"torjubel","gruppe":"knopf","datei":"torjubel.mp4","label":"Torjubel"},{"id":"trommelwirbel","gruppe":"knopf","datei":"trommelwirbel.mp4","label":"Trommelwirbel"},{"id":"applaus","gruppe":"knopf","datei":"applaus.mp4","label":"Applaus"},{"id":"konfetti","gruppe":"knopf","datei":"konfetti.mp4","label":"Konfetti"},{"id":"verlosung","gruppe":"knopf","datei":"verlosung.mp4","label":"Verlosung"},{"id":"fanfare","gruppe":"knopf","datei":"fanfare.mp4","label":"Fanfare"},{"id":"lacher","gruppe":"knopf","datei":"lacher.mp4","label":"Lacher"},{"id":"wow","gruppe":"knopf","datei":"wow.mp4","label":"Wow"},{"id":"rimshot","gruppe":"knopf","datei":"rimshot.mp4","label":"Ba-dum-tss"},{"id":"herzregen","gruppe":"knopf","datei":"herzregen.mp4","label":"Herzregen"},{"id":"partyalarm","gruppe":"knopf","datei":"partyalarm.mp4","label":"Party-Alarm"}];</script>
+<script>
+const LIST = window.MM_LIST || [];
+const base = location.origin + location.pathname.replace(/[^/]*$/, '');
+function copy(text, btn) {
+  const done = () => { const t = btn.textContent; btn.textContent = 'Kopiert ✓'; btn.classList.add('ok'); setTimeout(() => { btn.textContent = t; btn.classList.remove('ok'); }, 1500); };
+  const old = () => { const ta = document.createElement('textarea'); ta.value = text; document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, old); else old();
+}
+document.querySelectorAll('.base').forEach(e => e.textContent = base + 'animationen/');
+document.querySelector('[data-copy-base]').onclick = e => copy(base + 'animationen/', e.target);
+function card(box, label, id, src) {
+  const d = document.createElement('div'); d.className = 'item';
+  const v = document.createElement('video'); v.src = src; v.preload = 'metadata'; v.muted = true; v.playsInline = true; v.loop = true;
+  v.onmouseenter = () => v.play().catch(() => {}); v.onmouseleave = () => { if (v.muted) { v.pause(); } };
+  v.onclick = () => { v.muted = !v.muted; v.currentTime = 0; v.play(); };
+  const m = document.createElement('div'); m.className = 'meta';
+  const b = document.createElement('b'); b.textContent = label; const c = document.createElement('code'); c.textContent = id;
+  const btn = document.createElement('button'); btn.textContent = 'Adresse kopieren'; btn.onclick = () => copy(base + src, btn);
+  m.append(b, c, btn); d.append(v, m); box.append(d);
+}
+const bg = document.getElementById('bg');
+card(bg, 'Party-Hintergrund', 'party-schleife', 'hintergrund/party-schleife.mp4');
+card(bg, 'Zockerbude', 'zockerbude', 'hintergrund/zockerbude.mp4');
+const mus = document.createElement('div'); mus.className = 'item';
+mus.innerHTML = '<div class="meta"><b>Musik-Schleife</b><code>party-schleife-1.mp3</code><audio controls preload="none" style="width:100%;margin-top:8px" src="musik/party-schleife-1.mp3"></audio><button>Adresse kopieren</button></div>';
+mus.querySelector('button').onclick = e => copy(base + 'musik/party-schleife-1.mp3', e.target); bg.append(mus);
+const NAMES = { geschenk: 'Geschenke', stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe' };
+for (const g of Object.keys(NAMES)) {
+  const items = LIST.filter(a => a.gruppe === g); if (!items.length) continue;
+  const h = document.createElement('h2'); h.id = g; h.textContent = NAMES[g] + ' (' + items.length + ')';
+  const box = document.createElement('div'); box.className = 'grid';
+  items.forEach(a => card(box, a.label, a.id, 'animationen/' + a.datei));
+  document.getElementById('groups').append(h, box);
+}
+const OVERLAYS = [['animationen', 'MichaModus – Animationen (vor dir)'], ['hintergrund', 'MichaModus – Hintergrund (hinter dir)'], ['aktionszentrale', 'MichaModus – Aktionszentrale (Tablet)']];
+const TABS = [['1-html.html', 'HTML'], ['2-css.css', 'CSS'], ['3-js.js', 'JS'], ['4-configs.json', 'Configs'], ['5-data.json', 'Data']];
+const rows = document.getElementById('lumiaRows');
+OVERLAYS.forEach(([dir, label]) => {
+  const r = document.createElement('div'); r.className = 'row';
+  const s = document.createElement('span'); s.innerHTML = '<b></b>'; s.firstChild.textContent = label;
+  const t = document.createElement('div'); t.className = 'tabs';
+  TABS.forEach(([f, name]) => { const b = document.createElement('button'); b.textContent = name + ' kopieren';
+    b.onclick = async () => copy(await (await fetch('lumia/' + dir + '/' + f, { cache: 'no-store' })).text(), b); t.append(b); });
+  r.append(s, t); rows.append(r);
+});
+</script></body></html>

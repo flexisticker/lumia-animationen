@@ -114,4 +114,5 @@ for (const [i, f] of [['1-html.html', 'overlay.html'], ['2-css.css', 'overlay.cs
   fs.writeFileSync(out + 'hintergrund/' + i, read('overlay/hintergrund/' + f));
 const hcfg = JSON.parse(read('overlay/hintergrund/configs.json'));
 fs.writeFileSync(out + 'hintergrund/5-data.json', JSON.stringify(Object.fromEntries(Object.entries(hcfg).map(([k, f]) => [k, f.value ?? ''])), null, 2));
+fs.writeFileSync(out + 'index.html', read('overlay/startseite/index.html').replace('<script>', '<script>window.MM_LIST = ' + JSON.stringify(mmList) + ';</script>\n<script>'));
 console.log(`Fertig: ${items.length} Animationen, ${Object.keys(cfg).length} Einstellungen`);
