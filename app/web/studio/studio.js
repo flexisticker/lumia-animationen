@@ -296,6 +296,8 @@ async function reload() { S = await fetch('/api/settings', { cache: 'no-store' }
 const es = new EventSource('/api/events?rolle=studio');
 es.addEventListener('lumia', e => { if (!S) return; S.status = JSON.parse(e.data); if (['start', 'lumia'].includes(page.id)) render(); });
 es.addEventListener('log', e => { if (!S) return; const l = JSON.parse(e.data); S.log = [l, ...(S.log || [])].slice(0, 50); const box = $('#log'); if (box) box.prepend(logLine(l)); });
+es.addEventListener('quellen', e => { if (!S) return; S.quellenListe = JSON.parse(e.data);
+  if ((page.id === 'hinten' || page.id === 'vorne') && !document.activeElement.matches('input,select,textarea')) { const y = scrollY; render(); scrollTo(0, y); } });
 es.addEventListener('obs', e => { if (!S) return; S.obsStatus = JSON.parse(e.data); if (page.id === 'spiele' && !document.activeElement.matches('input,select')) render(); });
 es.addEventListener('profil', async () => { if (!S) return; await reload(); renderNav(); });
 es.addEventListener('modus', e => { if (!S) return; S.modus = JSON.parse(e.data).modus; if (page.id === 'start') render(); });

@@ -158,6 +158,7 @@ const cur = () => saved.profile[saved.profil];
 const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), ...saved.profile[profil][k] });
 const profilListe = () => Object.entries(PRESETS).map(([id, p]) => ({ id, name: p.name }));
 const saveSettings = () => writeJson(SETTINGS_FILE, saved);
+const quellenListe = () => [...clients].filter(c => c.role === 'vorne' || c.role === 'hinten').map(c => ({ rolle: c.role, format: c.format, pfad: c.pfad, groesse: c.groesse }));
 function broadcastAll() { for (const k of BEREICHE) broadcast('settings', { bereich: k, werte: settingsFor(k) }, [k]); }
 
 // ---------- Live-Verteilung (SSE) ----------
@@ -397,7 +398,10 @@ const server = http.createServer(async (req, res) => {
       const role = ROLES.includes(url.searchParams.get('rolle')) ? url.searchParams.get('rolle') : 'studio';
       res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive', 'x-accel-buffering': 'no' });
       const c = { res, role, format: ['hoch', 'quer'].includes(url.searchParams.get('format')) ? url.searchParams.get('format') : '', pfad: String(url.searchParams.get('pfad') || '').slice(0, 60),
-        groesse: (Number(url.searchParams.get('w')) || 0) + '×' + (Number(url.searchParams.get('h')) || 0) }; clients.add(c); req.on('close', () => clients.delete(c));
+        groesse: (Number(url.searchParams.get('w')) || 0) + '×' + (Number(url.searchParams.get('h')) || 0) }; clients.add(c);
+      // Studio live informieren, welche Quellen (mit Format) gerade verbunden sind
+      const quellenMelden = () => { if (role === 'vorne' || role === 'hinten') broadcast('quellen', quellenListe(), ['studio']); };
+      req.on('close', () => { clients.delete(c); quellenMelden(); }); quellenMelden();
       res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo() })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
@@ -407,7 +411,7 @@ const server = http.createServer(async (req, res) => {
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, tts: { ...saved.tts, schluessel: !!secret.elevenlabsKey }, status: lumia, log,
       datenDauerhaft,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}),
-      quellenListe: [...clients].filter(c => c.role === 'vorne' || c.role === 'hinten').map(c => ({ rolle: c.role, format: c.format, pfad: c.pfad, groesse: c.groesse })) });
+      quellenListe: quellenListe() });
     if (p === '/api/settings' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       for (const k of ['vorne', 'hinten', 'aktion']) if (b[k] && typeof b[k] === 'object') {
