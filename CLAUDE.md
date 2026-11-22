@@ -78,3 +78,5 @@
   Weitere Titel: einfach `medien/musik/<genre>-4.mp3` usw. ablegen.
 - 22.11.2026: „Spielfenster ändert sich nicht“: lokal geprüft – Breite ändert sich sofort. Ursache bei Michael vermutlich Format-Verwechslung (OBS-Quelle quer bzw. ohne -hoch → nimmt Twitch-Reiter) oder alte Version. Studio warnt jetzt im Fenster-Reiter, wenn keine Quelle dieses Formats verbunden ist, und nennt den richtigen Reiter/Adresse.
 - 22.11.2026: Quellen-Adressen tippfehler-tolerant (Groß/klein, _ statt -, / am Ende, .html → 302 auf richtige Adresse); unbekannte `/quelle/...` zeigen eine sichtbare Hilfeseite mit allen gültigen Adressen statt leerer 404.
+- 22.11.2026: **Modus, Spiel und Musik je Kanal:** beim Kanalwechsel (`/api/profil`) wird `{modus, spiel, musik}` im alten Profil unter `zustand` gemerkt und der Stand des neuen Kanals geladen (Standard: Party, kein Spiel, Standardmusik), dann `modus` + `musik` gesendet. Vorher waren sie global → 3dbymicha zeigte sofort den MichaModus-Spielhintergrund.
+  **Spiele-Leiste je Kanal abschaltbar:** Steuerungs-Einstellung `spieleAn` (Studio → Tablet-Steuerung), 3dbymicha-Vorgabe aus.

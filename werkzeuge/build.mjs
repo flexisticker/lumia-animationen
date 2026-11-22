@@ -169,6 +169,7 @@ aadd('modus1Name', { type: 'input', label: 'Name Modus 1', value: 'Party' });
 aadd('modus2Name', { type: 'input', label: 'Name Modus 2', value: 'Zockmodus' });
 aadd('knoepfe', { type: 'textarea', rows: 14, label: 'Knöpfe (je Zeile: Animation | Beschriftung | Symbol)', value:
   knoepfe.filter(a => a.gruppe === 'knopf').map(a => `${a.id} | ${a.label} | ${ICON[a.id] || '✨'}`).join('\n') });
+aadd('spieleAn', { type: 'checkbox', label: 'Spiele-Leiste „Was läuft gerade?“ zeigen', value: true });
 aadd('testKnoepfe', { type: 'checkbox', label: 'Test-Knöpfe für Geschenke und Ereignisse zeigen', value: true });
 aadd('nameFeld', { type: 'checkbox', label: 'Feld für Namen (z. B. Gewinner) zeigen', value: true });
 fs.writeFileSync(out + 'aktionszentrale/1-html.html', read('overlay/aktionszentrale/overlay.html'));

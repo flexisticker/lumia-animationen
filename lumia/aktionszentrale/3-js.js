@@ -103,7 +103,7 @@ if ((window.MM_PROFILE || []).length > 1) {
 }
 
 // Spiel wählen (Live-Studio): schaltet Zockmodus, OBS-Szene und Spiel-Hintergrund
-if ((window.MM_SPIELE || []).length) {
+if (D.spieleAn !== false && (window.MM_SPIELE || []).length) {
   const box = document.getElementById('spiele'); box.style.display = ''; document.getElementById('spielTitel').style.display = '';
   window.MM_SPIELE.forEach(sp => {
     const b = document.createElement('button'); b.className = 'btn' + (window.MM_MODUS === 'zocken' && sp.id === window.MM_SPIEL ? ' active' : '');

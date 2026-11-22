@@ -37,7 +37,7 @@ const PRESETS = {
       'Like-Herzen an – wir drucken weiter!', 'Hier wird gedruckt, getüftelt & gelacht 😄', 'Wünsch dir ein Modell im Chat 💬', 'Jede Rose zählt 🌹', 'Neu hier? Sag Hallo 👋'].join('\n'),
       bannerFarbe1: '#ff7a00', bannerFarbe2: '#00c2ff', bannerFarbe3: '#ffd54f' },
     hinten: { video: '/hintergrund/werkstatt.mp4', videoQuer: '/hintergrund/werkstatt-quer.mp4', f2Wann: 'immer', f1Y: 56, f1Hoehe: 30 },
-    aktion: { titel: '3dbymicha · Steuerung', modus1Name: 'Werkstatt', modus2Name: 'Zockmodus' } },
+    aktion: { titel: '3dbymicha · Steuerung', modus1Name: 'Werkstatt', modus2Name: 'Zockmodus', spieleAn: false } },
 };
 const BEREICHE = ['vorne', 'hinten', 'aktion'];
 const defaultsFor = (profil, k) => ({ ...DEFAULTS[k], ...((PRESETS[profil] || {})[k] || {}) });
@@ -446,7 +446,19 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/profil' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       if (!PRESETS[b.profil]) return json(res, 400, { fehler: 'Unbekannter Kanal' });
-      if (b.profil !== saved.profil) { saved.profil = b.profil; saveSettings(); broadcastAll(); broadcast('profil', { profil: saved.profil, name: PRESETS[saved.profil].name }); remember({ art: 'modus', quelle: 'knopf', text: 'Kanal: ' + PRESETS[saved.profil].name }); }
+      if (b.profil !== saved.profil) {
+        // Modus, Spiel und Musik gehören zum Kanal: beim Wechsel merken und den Stand des neuen Kanals zurückholen
+        // (sonst zeigte 3dbymicha sofort wieder den Spiel-Hintergrund/die Musik von MichaModus)
+        saved.profile[saved.profil].zustand = { modus: saved.modus, spiel: saved.spiel, musik: { ...saved.musik } };
+        saved.profil = b.profil;
+        const z = saved.profile[saved.profil].zustand || { modus: 'party', spiel: '', musik: { titel: 'standard', lautstaerke: saved.musik.lautstaerke, vonSpiel: false } };
+        saved.modus = z.modus === 'zocken' ? 'zocken' : 'party';
+        saved.spiel = saved.spiele.some(x => x.id === z.spiel) ? z.spiel : '';
+        saved.musik = { ...saved.musik, ...(z.musik || {}) };
+        saveSettings(); broadcastAll(); broadcast('profil', { profil: saved.profil, name: PRESETS[saved.profil].name });
+        broadcast('modus', { modus: saved.modus, spiel: spielInfo() }); broadcast('musik', musikInfo());
+        remember({ art: 'modus', quelle: 'knopf', text: 'Kanal: ' + PRESETS[saved.profil].name });
+      }
       return json(res, 200, { ok: true });
     }
     if (p === '/api/modus' && req.method === 'POST') {
