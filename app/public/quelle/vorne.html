@@ -240,11 +240,16 @@ function initGL() {
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 }
-function resize() { canvas.width = innerWidth * devicePixelRatio; canvas.height = innerHeight * devicePixelRatio; }
+function resize() { const f = Math.min(devicePixelRatio || 1, 1920 / Math.max(innerWidth, innerHeight)); canvas.width = Math.round(innerWidth * Math.max(f, 0.5)); canvas.height = Math.round(innerHeight * Math.max(f, 0.5)); }
 addEventListener('resize', resize); resize(); initGL();
 
+// Leistung: neues Bild nur hochladen, wenn das Video wirklich ein neues Bild hat (25 statt 60 Mal pro Sekunde)
+let letzteZeit = -1;
+const naechstesBild = () => (video.requestVideoFrameCallback ? video.requestVideoFrameCallback(() => drawFrame()) : requestAnimationFrame(drawFrame));
 function drawFrame() {
-  if (video.paused || video.ended) { if (gl) gl.clear(gl.COLOR_BUFFER_BIT); return; }
+  if (video.paused || video.ended) { if (gl) gl.clear(gl.COLOR_BUFFER_BIT); letzteZeit = -1; return; }
+  if (!video.requestVideoFrameCallback && video.currentTime === letzteZeit) return requestAnimationFrame(drawFrame);
+  letzteZeit = video.currentTime;
   if (gl) {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -264,7 +269,7 @@ function drawFrame() {
     const c = canvas.getContext('2d'); c.clearRect(0, 0, canvas.width, canvas.height);
     c.drawImage(video, 0, 0, canvas.width, canvas.height);
   }
-  requestAnimationFrame(drawFrame);
+  naechstesBild();
 }
 
 // ---------- Warteschlange ----------
@@ -315,7 +320,7 @@ function next() {
     video.src = src;
     video.volume = videoVol(item) * duck();
     video.currentTime = 0;
-    video.play().then(() => requestAnimationFrame(drawFrame)).catch(() => finish(item));
+    video.play().then(() => { letzteZeit = -1; requestAnimationFrame(drawFrame); }).catch(() => finish(item));
     video.onended = () => finish(item);
     video.onerror = () => finish(item);
     // Absicherung: in OBS kommt „ended“ nicht immer (Ton minimal länger als Bild) → Bild blieb kurz vor Schluss stehen und die Warteschlange hing

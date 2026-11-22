@@ -79,8 +79,13 @@ function rect(w) {
   return { x: cv.width * num(w.g('X'), 50) / 100 - W / 2, y: cv.height * num(w.g('Y'), 40) / 100 - H / 2, w: W, h: H };
 }
 let last = performance.now();
+let letztesZeichnen = 0;
 function draw(now) {
-  const dt = now - last; last = now;
+  // Leistung: die Hintergrund-Videos haben 25 Bilder/s – öfter als ~30× pro Sekunde zu zeichnen kostet nur Rechenzeit
+  const imUebergang = t !== (mode === 'zocken' ? 1 : 0) || WIN.some(w => w.t !== (want(w) ? 1 : 0));
+  if (!imUebergang && now - letztesZeichnen < 32) { requestAnimationFrame(draw); return; }
+  letztesZeichnen = now;
+  const dt = Math.min(100, now - last); last = now;
   const target = mode === 'zocken' ? 1 : 0;
   if (t !== target) t = target > t ? Math.min(1, t + dt / DUR) : Math.max(0, t - dt / DUR);
   const e = ease(t);
