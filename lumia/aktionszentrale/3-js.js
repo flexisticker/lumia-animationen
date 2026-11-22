@@ -31,13 +31,13 @@ function button(box, { id, label, ico }, extra = {}) {
 }
 
 const SCENES = [['szene:start', 'Startet gleich', '⏳'], ['szene:pause', 'Kurze Pause', '☕'], ['szene:gleich', 'Gleich weiter', '⏱️'],
-  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾']];
+  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾']];
 const sceneBox = document.getElementById('scenes');
 SCENES.forEach(([id, label, ico]) => {
   const b = button(sceneBox, { id, label, ico });
   b.addEventListener('click', () => {
     sceneBox.querySelectorAll('.btn').forEach(x => x.classList.remove('active'));
-    if (['szene:start', 'szene:pause', 'szene:gleich', 'szene:ende'].includes(id)) b.classList.add('active');
+    if (['szene:start', 'szene:pause', 'szene:gleich', 'szene:ende', 'szene:brb', 'szene:technik'].includes(id)) b.classList.add('active');
   });
 });
 

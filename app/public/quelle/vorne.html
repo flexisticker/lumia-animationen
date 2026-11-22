@@ -96,13 +96,15 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
 .scene-box { position: relative; z-index: 1; }
 .scene-spiel { display: inline-block; margin-bottom: 2.2vh; padding: .35em 1.1em; border-radius: 999px; font-size: 3.4vh; font-weight: 800; color: #fff;
   background: linear-gradient(90deg, var(--b1), var(--b2)); box-shadow: 0 .6vh 2vh rgba(0,0,0,.45); }
+.scene-uhr { margin-top: 2.5vh; font-size: 8vh; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 .5vh 2vh rgba(0,0,0,.6); }
+.scene-uhr:empty { display: none; }
 </style></head>
 <body><div id="banner" class="banner"><span id="bannerText">MichaModus</span></div>
 <canvas id="fx"></canvas>
 <video id="clip" playsinline preload="auto" crossorigin="anonymous"></video>
 <div id="cards"></div>
 <canvas id="likes"></canvas>
-<div id="scene" class="scene"><video id="sceneBg" class="scene-bg" muted loop playsinline></video><div class="scene-box"><div class="scene-spiel" id="sceneSpiel"></div><div class="scene-title" id="sceneTitle"></div><div class="scene-sub" id="sceneSub"></div></div></div>
+<div id="scene" class="scene"><video id="sceneBg" class="scene-bg" muted loop playsinline></video><div class="scene-box"><div class="scene-spiel" id="sceneSpiel"></div><div class="scene-title" id="sceneTitle"></div><div class="scene-sub" id="sceneSub"></div><div class="scene-uhr" id="sceneUhr"></div></div></div>
 <div id="sp" class="sp"><div class="sp-glow"></div><iframe id="spFrame" title="StreamPrint" allow="autoplay"></iframe></div>
 
 <script>// MichaModus Studio – Verbindung der Browserquellen/Seiten zum Programm (ersetzt die Lumia-Overlay-Schnittstelle)
@@ -526,15 +528,22 @@ const SCENES = {
   gleich: ['szeneGleich', 'Gleich geht\'s weiter', 'Nicht weggehen', 0],
   weiter: ['szeneWeiter', 'Weiter geht\'s!', 'Schön, dass du noch da bist', 5],
   ende: ['szeneEnde', 'Danke & bis bald!', 'Folg MichaModus, dann verpasst du nichts', 0],
+  brb: ['szeneBrb', 'Bin gleich zurück!', 'Nicht weggehen – es geht gleich weiter', 0],
+  technik: ['szeneTechnik', 'Technische Störung', 'Wir sind gleich wieder da', 0],
 };
+const VOLLBILD = ['start', 'ende', 'brb', 'technik'];
+let countdown = null;
 const scene = document.getElementById('scene');
 let sceneTimer = null, curSpiel = null;
 const sceneBg = document.getElementById('sceneBg'), sceneSpiel = document.getElementById('sceneSpiel');
 // Start/Ende passend zum eingestellten Spiel: eigener Text am Spiel › Vorlage mit {SPIEL}, dahinter der Spiel-Hintergrund im Vollbild
 function sceneGame(id) {
   const sp = curSpiel && curSpiel.id !== 'standard' ? curSpiel : null;
-  const voll = (id === 'start' || id === 'ende') && sp && D.szeneSpielVollbild !== false;
-  const src = voll ? (FORMAT === 'quer' && sp.videoQuer) || sp.video || sp.videoQuer : '';
+  // BRB/Technik: eigenes Video aus den Einstellungen, sonst Spiel-Hintergrund; Start/Ende: Spiel-Hintergrund
+  const eigenVid = { brb: [D.brbVideo, D.brbVideoQuer], technik: [D.technikVideo, D.technikVideoQuer] }[id];
+  const ev = eigenVid && ((FORMAT === 'quer' && eigenVid[1]) || eigenVid[0] || eigenVid[1]);
+  const voll = VOLLBILD.includes(id) && D.szeneSpielVollbild !== false;
+  const src = !voll ? '' : ev || (sp ? (FORMAT === 'quer' && sp.videoQuer) || sp.video || sp.videoQuer : '');
   if (src) { if (sceneBg.getAttribute('src') !== src) sceneBg.src = src; sceneBg.play().catch(() => {}); } else { sceneBg.pause(); sceneBg.removeAttribute('src'); }
   scene.classList.toggle('voll', !!src);
   const zeile = !sp || !(id === 'start' || id === 'ende') ? '' : String(id === 'start' ? (D.szeneStartSpiel ?? 'Heute: {SPIEL}') : (D.szeneEndeSpiel ?? 'Danke fürs Zuschauen bei {SPIEL}!')).replace(/\{SPIEL\}/g, sp.name);
@@ -551,6 +560,12 @@ function showScene(id) {
   document.getElementById('sceneTitle').textContent = title;
   const subEl = document.getElementById('sceneSub'); subEl.textContent = sub || '';
   if (!secs) { const d = document.createElement('span'); d.className = 'dots'; d.innerHTML = '<span>.</span><span>.</span><span>.</span>'; subEl.append(d); }
+  // Countdown bei BRB (Minuten aus den Einstellungen, 0 = aus)
+  clearInterval(countdown); document.getElementById('sceneUhr').textContent = '';
+  const min = id === 'brb' ? num(D.szeneBrbMinuten, 0) : 0;
+  if (min > 0) { const ende = Date.now() + min * 60000, uhr = document.getElementById('sceneUhr');
+    const tick = () => { const r = Math.max(0, Math.round((ende - Date.now()) / 1000)); uhr.textContent = r ? Math.floor(r / 60) + ':' + String(r % 60).padStart(2, '0') : 'gleich!'; if (!r) clearInterval(countdown); };
+    tick(); countdown = setInterval(tick, 1000); }
   scene.classList.toggle('dim', on('szeneAbdunkeln') && !secs);
   scene.classList.add('show'); bannerHype();
   if (id === 'weiter') likeBurst(40);

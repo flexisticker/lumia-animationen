@@ -24,6 +24,10 @@ const DEFAULTS = {
 };
 DEFAULTS.vorne.medienAdresse = '/animationen/';
 Object.assign(DEFAULTS.vorne, { likeSound: '/sounds/likes.mp3', sound_start: '/sounds/start.mp3', sound_pause: '/sounds/pause.mp3', sound_gleich: '/sounds/gleich.mp3', sound_weiter: '/sounds/weiter.mp3', sound_ende: '/sounds/ende.mp3' });
+// BRB/Technik: eigene Sounds und Schleifen, sobald sie im Image liegen (sonst Pause-Sound bzw. Spiel-Hintergrund)
+{ const ex = f => fs.existsSync(path.join(MEDIA, f)) ? '/' + f : '';
+  Object.assign(DEFAULTS.vorne, { sound_brb: ex('sounds/brb.mp3') || '/sounds/pause.mp3', sound_technik: ex('sounds/technik.mp3') || '/sounds/gleich.mp3',
+    brbVideo: ex('hintergrund/brb.mp4'), brbVideoQuer: ex('hintergrund/brb-quer.mp4'), technikVideo: ex('hintergrund/technik.mp4'), technikVideoQuer: ex('hintergrund/technik-quer.mp4') }); }
 Object.assign(DEFAULTS.hinten, { video: '/hintergrund/party-schleife.mp4', zockVideo: '/hintergrund/zockerbude.mp4', videoQuer: '/hintergrund/party-schleife-quer.mp4', zockVideoQuer: '/hintergrund/zockerbude-quer.mp4', modusSound: '/sounds/modus.mp3', musik: '/musik/party-schleife-1.mp3' });
 // Kanäle (Profile): ein Programm, umschaltbar in Verwaltung und Steuerung; jeder Kanal hat eigene Einstellungen
 const PRESETS = {

@@ -94,3 +94,5 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
 .scene-box { position: relative; z-index: 1; }
 .scene-spiel { display: inline-block; margin-bottom: 2.2vh; padding: .35em 1.1em; border-radius: 999px; font-size: 3.4vh; font-weight: 800; color: #fff;
   background: linear-gradient(90deg, var(--b1), var(--b2)); box-shadow: 0 .6vh 2vh rgba(0,0,0,.45); }
+.scene-uhr { margin-top: 2.5vh; font-size: 8vh; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 .5vh 2vh rgba(0,0,0,.6); }
+.scene-uhr:empty { display: none; }

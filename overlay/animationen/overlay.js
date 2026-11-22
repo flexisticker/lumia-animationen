@@ -369,15 +369,22 @@ const SCENES = {
   gleich: ['szeneGleich', 'Gleich geht\'s weiter', 'Nicht weggehen', 0],
   weiter: ['szeneWeiter', 'Weiter geht\'s!', 'Schön, dass du noch da bist', 5],
   ende: ['szeneEnde', 'Danke & bis bald!', 'Folg MichaModus, dann verpasst du nichts', 0],
+  brb: ['szeneBrb', 'Bin gleich zurück!', 'Nicht weggehen – es geht gleich weiter', 0],
+  technik: ['szeneTechnik', 'Technische Störung', 'Wir sind gleich wieder da', 0],
 };
+const VOLLBILD = ['start', 'ende', 'brb', 'technik'];
+let countdown = null;
 const scene = document.getElementById('scene');
 let sceneTimer = null, curSpiel = null;
 const sceneBg = document.getElementById('sceneBg'), sceneSpiel = document.getElementById('sceneSpiel');
 // Start/Ende passend zum eingestellten Spiel: eigener Text am Spiel › Vorlage mit {SPIEL}, dahinter der Spiel-Hintergrund im Vollbild
 function sceneGame(id) {
   const sp = curSpiel && curSpiel.id !== 'standard' ? curSpiel : null;
-  const voll = (id === 'start' || id === 'ende') && sp && D.szeneSpielVollbild !== false;
-  const src = voll ? (FORMAT === 'quer' && sp.videoQuer) || sp.video || sp.videoQuer : '';
+  // BRB/Technik: eigenes Video aus den Einstellungen, sonst Spiel-Hintergrund; Start/Ende: Spiel-Hintergrund
+  const eigenVid = { brb: [D.brbVideo, D.brbVideoQuer], technik: [D.technikVideo, D.technikVideoQuer] }[id];
+  const ev = eigenVid && ((FORMAT === 'quer' && eigenVid[1]) || eigenVid[0] || eigenVid[1]);
+  const voll = VOLLBILD.includes(id) && D.szeneSpielVollbild !== false;
+  const src = !voll ? '' : ev || (sp ? (FORMAT === 'quer' && sp.videoQuer) || sp.video || sp.videoQuer : '');
   if (src) { if (sceneBg.getAttribute('src') !== src) sceneBg.src = src; sceneBg.play().catch(() => {}); } else { sceneBg.pause(); sceneBg.removeAttribute('src'); }
   scene.classList.toggle('voll', !!src);
   const zeile = !sp || !(id === 'start' || id === 'ende') ? '' : String(id === 'start' ? (D.szeneStartSpiel ?? 'Heute: {SPIEL}') : (D.szeneEndeSpiel ?? 'Danke fürs Zuschauen bei {SPIEL}!')).replace(/\{SPIEL\}/g, sp.name);
@@ -394,6 +401,12 @@ function showScene(id) {
   document.getElementById('sceneTitle').textContent = title;
   const subEl = document.getElementById('sceneSub'); subEl.textContent = sub || '';
   if (!secs) { const d = document.createElement('span'); d.className = 'dots'; d.innerHTML = '<span>.</span><span>.</span><span>.</span>'; subEl.append(d); }
+  // Countdown bei BRB (Minuten aus den Einstellungen, 0 = aus)
+  clearInterval(countdown); document.getElementById('sceneUhr').textContent = '';
+  const min = id === 'brb' ? num(D.szeneBrbMinuten, 0) : 0;
+  if (min > 0) { const ende = Date.now() + min * 60000, uhr = document.getElementById('sceneUhr');
+    const tick = () => { const r = Math.max(0, Math.round((ende - Date.now()) / 1000)); uhr.textContent = r ? Math.floor(r / 60) + ':' + String(r % 60).padStart(2, '0') : 'gleich!'; if (!r) clearInterval(countdown); };
+    tick(); countdown = setInterval(tick, 1000); }
   scene.classList.toggle('dim', on('szeneAbdunkeln') && !secs);
   scene.classList.add('show'); bannerHype();
   if (id === 'weiter') likeBurst(40);
