@@ -84,7 +84,8 @@ function draw(now) {
     const s = ease(w.t), r = rect(w);
     if (s > 0.02) {
       const ww = r.w * s, hh = r.h * Math.min(1, s * 1.15);
-      cx.globalCompositeOperation = 'destination-out';
+      // Loch immer voll deckend ausschneiden (vorher erbte es die halbtransparente Abdunkel-Farbe → Schleier über dem Spiel)
+      cx.globalCompositeOperation = 'destination-out'; cx.globalAlpha = 1; cx.fillStyle = '#000';
       cx.beginPath(); cx.roundRect(r.x + (r.w - ww) / 2, r.y + (r.h - hh) / 2, ww, hh, num(w.g('Rund'), 24)); cx.fill();
       cx.globalCompositeOperation = 'source-over';
     }
