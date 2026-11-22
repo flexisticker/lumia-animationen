@@ -197,7 +197,7 @@ const page = (rolle, titel, dir, tests) => tpl.replace('__ROLLE__', rolle).repla
 fs.writeFileSync(A + 'quelle/vorne.html', page('vorne', 'MichaModus – vorne', 'animationen'));
 fs.writeFileSync(A + 'quelle/hinten.html', page('hinten', 'MichaModus – hinten', 'hintergrund'));
 fs.writeFileSync(A + 'aktion/index.html', page('aktion', 'MichaModus – Steuerung', 'aktionszentrale',
-  knoepfe.filter(a => a.gruppe !== 'knopf').map(a => ({ id: a.id, label: a.label })))
+  knoepfe.filter(a => a.gruppe !== 'knopf').map(a => ({ id: a.id, label: a.label, gruppe: a.gruppe, ab: a.ab, geschenk: (a.match || [])[0] || a.label })))
   .replace('<head>', '<head><link rel="icon" href="/icon.png"><link rel="manifest" href="/aktion/manifest.json"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#120c1f"><link rel="apple-touch-icon" href="/icon.png">'));
 fs.writeFileSync(A + 'aktion/manifest.json', JSON.stringify({ name: 'MichaModus Steuerung', short_name: 'MichaModus', start_url: '/aktion', display: 'standalone', background_color: '#120c1f', theme_color: '#120c1f', icons: [{ src: '/icon.png', sizes: '256x256', type: 'image/png' }] }));
 for (const f of ['index.html', 'studio.js']) fs.writeFileSync(A + 'studio/' + f, read('app/web/studio/' + f));

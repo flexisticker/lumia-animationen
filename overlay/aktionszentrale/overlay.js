@@ -45,7 +45,26 @@ lines.forEach(([id, label, ico]) => button(btnBox, { id, label: label || id, ico
 
 const tests = window.MM_TESTS || [];
 if (D.testKnoepfe === false || !tests.length) { document.getElementById('testTitle').style.display = 'none'; }
-else tests.forEach(t => button(document.getElementById('tests'), { id: t.id, label: t.label, ico: '🧪' }, { text: 'Test' }));
+else tests.forEach(t => {
+  const b = button(document.getElementById('tests'), { id: t.id, label: t.label, ico: '🧪' }, { text: 'Test' });
+  // Live-Studio: Test läuft wie ein echtes Ereignis (Name, Profilbild, Plattform-Schild, Text, Danke-Sprache)
+  if (window.MM_START && t.gruppe) b.onclick = () => testEreignis(t, b);
+});
+const TEST_NAMEN = ['Anna_Star', 'GamerJoe', 'Lisa💖', 'MichaFan99', 'Kevin_der_Große', 'SuperSandra', 'Tom aus Berlin', 'PixelPaul'];
+const EREIGNIS_ALERT = { folgen: 'tiktok-follower', teilen: 'tiktok-share', superfan: 'tiktok-superFan', schatzkiste: 'tiktok-treasureChest', likeziel: 'tiktok-totalLikes', 'battle-sieg': 'tiktok-battleEnd' };
+async function testEreignis(t, btn) {
+  btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit');
+  const name = nameIn.value.trim() || TEST_NAMEN[Math.floor(Math.random() * TEST_NAMEN.length)];
+  const alert = t.gruppe === 'ereignis' ? EREIGNIS_ALERT[t.id] : 'tiktok-gift';
+  if (!alert) return send({ id: t.id, label: t.label, name, text: 'Test' }, btn);
+  const extra = { username: name, avatar: '/icon.png' };
+  if (alert === 'tiktok-gift') Object.assign(extra, { giftName: t.geschenk, coins: Math.max(1, Number(t.ab) || 1), giftAmount: 1 });
+  try {
+    const r = await fetch('/api/test', { method: 'POST', headers: { 'content-type': 'application/json', 'x-mm': '1' }, body: JSON.stringify({ alert, extraSettings: extra }) });
+    if (!r.ok) throw new Error();
+    setStatus('Test: ' + t.label + ' von ' + name, 'ok');
+  } catch (e) { setStatus('Test fehlgeschlagen', 'err'); }
+}
 
 // Modus: Party / Zockmodus (Hintergrund-Overlay liest die Lumia-Variable „mm_modus“)
 const modeBox = document.getElementById('modes');
