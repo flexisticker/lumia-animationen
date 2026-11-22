@@ -45,3 +45,18 @@ lines.forEach(([id, label, ico]) => button(btnBox, { id, label: label || id, ico
 const tests = window.MM_TESTS || [];
 if (D.testKnoepfe === false || !tests.length) { document.getElementById('testTitle').style.display = 'none'; }
 else tests.forEach(t => button(document.getElementById('tests'), { id: t.id, label: t.label, ico: '🧪' }, { text: 'Test' }));
+
+// Modus: Party / Zockmodus (Hintergrund-Overlay liest die Lumia-Variable „mm_modus“)
+const modeBox = document.getElementById('modes');
+async function setMode(m, b) {
+  modeBox.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x === b));
+  try {
+    if (window.Overlay) await Overlay.setVariable('mm_modus', m); else if (window.TEST_SEND) window.TEST_SEND('modus:' + m);
+    setStatus(m === 'zocken' ? 'Zockmodus an' : 'Party-Modus an', 'ok');
+  } catch (e) { setStatus('Modus konnte nicht gesetzt werden', 'err'); }
+}
+[['party', 'Party', '🎉'], ['zocken', 'Zockmodus', '🎮']].forEach(([m, label, ico]) => {
+  const b = document.createElement('button'); b.className = 'btn';
+  b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = ico; b.lastChild.textContent = label;
+  b.onclick = () => setMode(m, b); modeBox.append(b);
+});

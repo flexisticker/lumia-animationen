@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>michamodus-medien</Name>
+  <Repository>halverneus/static-file-server:latest</Repository>
+  <Registry>https://hub.docker.com/r/halverneus/static-file-server</Registry>
+  <Network>bridge</Network>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Overview>Stellt die MichaModus-Videos und die Musik für die Lumia-Overlays bereit (nur lesen, mit CORS für das Herausrechnen des Schwarz).</Overview>
+  <Category>Tools:</Category>
+  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+  <Config Name="Port" Target="8080" Default="8099" Mode="tcp" Description="Port im Heimnetz" Type="Port" Display="always" Required="true">8099</Config>
+  <Config Name="Medien" Target="/web" Default="/mnt/user/appdata/michamodus/medien" Mode="ro" Description="Ordner mit animationen/, hintergrund/, musik/" Type="Path" Display="always" Required="true">/mnt/user/appdata/michamodus/medien</Config>
+  <Config Name="CORS" Target="CORS" Default="true" Mode="" Description="Muss an sein" Type="Variable" Display="advanced" Required="true">true</Config>
+  <Config Name="Ordnerliste" Target="SHOW_LISTING" Default="false" Mode="" Description="Dateiliste im Browser anzeigen" Type="Variable" Display="advanced" Required="false">false</Config>
+</Container>

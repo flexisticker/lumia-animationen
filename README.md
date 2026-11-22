@@ -52,3 +52,12 @@ Weitere Geschenke ohne eigene Animation: *Allgemein & Ton → Eigene Zuordnung* 
 - Lokaler Test: `python3 -m http.server` im Repo, dann `test/harness-animationen.html` bzw. `test/harness-aktion.html`.
 
 Videos und Musik: erzeugt mit fal.ai (MiniMax H3 Max, LTX 2.5, ElevenLabs Music), eigene Motive ohne TikTok-Logos.
+
+## Videos auf Unraid bereitstellen (statt einzeln in Lumia hochladen)
+
+1. Ordner `medien/` dieses Repos nach `\\PowerServer\appdata\michamodus\medien` kopieren.
+2. Vorlage `unraid/michamodus-medien.xml` als Container anlegen (Befehl siehe unten), Port 8099.
+3. Weil Lumia-Overlays über **https** laufen, braucht der Container eine https-Adresse: in NPM einen Proxy-Host
+   (z. B. `medien.flexisticker.de` → `192.168.1.10:8099`, Let's Encrypt, Access List „Nur Heimnetz“) anlegen.
+4. In Lumia (Animationen → Allgemein & Ton) **Adresse der Videos** = `https://medien.flexisticker.de/animationen/`;
+   Hintergrund-Video/Musik: `https://medien.flexisticker.de/hintergrund/party-schleife.mp4`, `…/musik/party-schleife-1.mp3`.

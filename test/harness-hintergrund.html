@@ -1,0 +1,12 @@
+<!doctype html><meta charset="utf-8"><title>Test Hintergrund</title>
+<style>body{margin:0;width:768px;height:1344px;background:repeating-linear-gradient(45deg,#0a5 0 40px,#083 40px 80px)}</style>
+<link rel="stylesheet" href="../lumia/hintergrund/2-css.css"><body><div id="host"></div>
+<script>
+window.Overlay = { data: null, on: () => {}, getVariable: async () => window.modus || null };
+(async () => {
+  Overlay.data = await (await fetch('../lumia/hintergrund/5-data.json')).json();
+  Overlay.data.video = '../medien/hintergrund/party-schleife.mp4';
+  document.getElementById('host').innerHTML = await (await fetch('../lumia/hintergrund/1-html.html')).text();
+  const s = document.createElement('script'); s.src = '../lumia/hintergrund/3-js.js'; document.body.append(s);
+})();
+</script>
