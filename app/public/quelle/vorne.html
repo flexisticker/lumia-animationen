@@ -98,6 +98,18 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
   background: linear-gradient(90deg, var(--b1), var(--b2)); box-shadow: 0 .6vh 2vh rgba(0,0,0,.45); }
 .scene-uhr { margin-top: 2.5vh; font-size: 8vh; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; text-shadow: 0 .5vh 2vh rgba(0,0,0,.6); }
 .scene-uhr:empty { display: none; }
+
+/* Chat-Einblendung */
+.chat { position: fixed; z-index: 3; display: flex; flex-direction: column; justify-content: flex-end; gap: .45em; overflow: hidden; pointer-events: none;
+  opacity: 0; transition: opacity .5s; -webkit-mask: linear-gradient(transparent, #000 18%); mask: linear-gradient(transparent, #000 18%); }
+.chat.show { opacity: 1; }
+.chat-msg { display: block; color: #fff; line-height: 1.3; font-weight: 700; text-shadow: 0 .15em .5em rgba(0,0,0,.8); animation: chatIn .4s cubic-bezier(.2,1.4,.4,1); transition: opacity .6s; overflow-wrap: anywhere; }
+.chat.blasen .chat-msg { align-self: flex-start; background: rgba(15,8,30,.62); border-radius: 1em; padding: .35em .8em; backdrop-filter: blur(4px); }
+.chat-msg .pf { font-size: .62em; margin: 0 .5em 0 0; vertical-align: .15em; padding: .2em .65em; }
+.chat-name { color: var(--b3, #ffd54f); margin-right: .45em; }
+.chat-msg.weg { opacity: 0; }
+@keyframes chatIn { from { opacity: 0; transform: translateX(-1em); } }
+.pf-youtube { background: #ff0033; } .pf-kick { background: #1fcf4a; color: #000; } .pf-facebook { background: #1877f2; } .pf-trovo { background: #19d65c; color: #000; } .pf-chat { background: #555; }
 </style></head>
 <body><div id="banner" class="banner"><span id="bannerText">MichaModus</span></div>
 <canvas id="fx"></canvas>
@@ -105,6 +117,7 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
 <div id="cards"></div>
 <canvas id="likes"></canvas>
 <div id="scene" class="scene"><video id="sceneBg" class="scene-bg" muted loop playsinline></video><div class="scene-box"><div class="scene-spiel" id="sceneSpiel"></div><div class="scene-title" id="sceneTitle"></div><div class="scene-sub" id="sceneSub"></div><div class="scene-uhr" id="sceneUhr"></div></div></div>
+<div id="chat" class="chat"></div>
 <div id="sp" class="sp"><div class="sp-glow"></div><iframe id="spFrame" title="StreamPrint" allow="autoplay"></iframe></div>
 
 <script>// MichaModus Studio – Verbindung der Browserquellen/Seiten zum Programm (ersetzt die Lumia-Overlay-Schnittstelle)
@@ -139,6 +152,7 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
       const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
       es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); });
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
+      es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
       es.addEventListener('modus', e => modusMsg(JSON.parse(e.data)));
@@ -467,8 +481,9 @@ function handleAlert(data) {
 // optional JSON {"id":"airhorn","name":"Sandra","text":"gewinnt!"}
 function handleContent(raw) {
   let c = raw; try { c = JSON.parse(raw); } catch (e) { c = { id: String(raw).trim() }; }
-  if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); return; }
+  if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); chatUpdate(); return; }
   if (String(raw).startsWith('spiel:')) { try { curSpiel = JSON.parse(String(raw).slice(6)); } catch (e) {} return; }
+  if (c.id === 'chat') { chatManual = c.an === undefined ? !chatManual : !!c.an; chatUpdate(); return; }
   if (c.id === 'streamprint') { spManual = c.an === undefined ? !spManual : !!c.an; spUpdate(); return; }
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
   if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
@@ -574,6 +589,31 @@ function showScene(id) {
 
 window.MM = { handleAlert, handleContent, likeBurst, showScene, busy: () => !!playing || queue.length > 0 || scene.classList.contains('show') };
 
+// ---------- Chat-Einblendung ----------
+let chatManual = false;
+const chatBox = document.getElementById('chat');
+const PF_NAME = { tiktok: 'TikTok', twitch: 'Twitch', youtube: 'YouTube', kick: 'Kick', facebook: 'Facebook', trovo: 'Trovo' };
+function chatUpdate() {
+  const wann = D.chatWann || 'party';
+  const show = wann === 'immer' || (wann === 'knopf' ? chatManual : wann === curMode);
+  Object.assign(chatBox.style, { left: num(D.chatX, 4) + 'vw', top: num(D.chatY, 52) + 'vh', width: num(D.chatBreite, 60) + 'vw', height: num(D.chatHoehe, 30) + 'vh', fontSize: num(D.chatGroesse, 2.2) + 'vh' });
+  chatBox.classList.toggle('blasen', D.chatHintergrund !== false);
+  chatBox.classList.toggle('show', show);
+}
+function chatAdd(m) {
+  if (m.entfernen) { const x = chatBox.querySelector(`[data-id="${CSS.escape(m.entfernen)}"]`); if (x) x.remove(); return; }
+  if (on('chatBefehleWeg', true) && /^\s*!/.test(m.text)) return;
+  const row = el('div', 'chat-msg'); row.dataset.id = m.id;
+  const pf = el('span', 'pf pf-' + (PF_NAME[m.plattform] ? m.plattform : 'chat'), PF_NAME[m.plattform] || m.plattform || 'Chat');
+  const name = el('b', 'chat-name', m.name); if (m.farbe) name.style.color = m.farbe;
+  row.append(pf, name, el('span', 'chat-text', m.text));
+  chatBox.append(row);
+  while (chatBox.children.length > Math.max(1, num(D.chatMax, 8))) chatBox.firstChild.remove();
+  const s = num(D.chatAusblenden, 45);
+  if (s > 0) setTimeout(() => { row.classList.add('weg'); setTimeout(() => row.remove(), 600); }, s * 1000);
+}
+if (window.Overlay) Overlay.on('chat', chatAdd);
+
 // ---------- StreamPrint (virtueller Bondrucker) ----------
 let curMode = D.modusStart || 'party', spManual = false;
 const sp = document.getElementById('sp'), spFrame = document.getElementById('spFrame');
@@ -586,7 +626,7 @@ function spUpdate() {
   sp.classList.toggle('rahmen', D.spRahmen !== false);
   sp.classList.toggle('show', show);
 }
-spUpdate();
+spUpdate(); chatUpdate();
 
 // ---------- Sounds für Like-Fontäne und Ansagen ----------
 let lastLikeSfx = 0;

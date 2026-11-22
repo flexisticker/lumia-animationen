@@ -310,8 +310,9 @@ function handleAlert(data) {
 // optional JSON {"id":"airhorn","name":"Sandra","text":"gewinnt!"}
 function handleContent(raw) {
   let c = raw; try { c = JSON.parse(raw); } catch (e) { c = { id: String(raw).trim() }; }
-  if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); return; }
+  if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); chatUpdate(); return; }
   if (String(raw).startsWith('spiel:')) { try { curSpiel = JSON.parse(String(raw).slice(6)); } catch (e) {} return; }
+  if (c.id === 'chat') { chatManual = c.an === undefined ? !chatManual : !!c.an; chatUpdate(); return; }
   if (c.id === 'streamprint') { spManual = c.an === undefined ? !spManual : !!c.an; spUpdate(); return; }
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
   if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
@@ -417,6 +418,31 @@ function showScene(id) {
 
 window.MM = { handleAlert, handleContent, likeBurst, showScene, busy: () => !!playing || queue.length > 0 || scene.classList.contains('show') };
 
+// ---------- Chat-Einblendung ----------
+let chatManual = false;
+const chatBox = document.getElementById('chat');
+const PF_NAME = { tiktok: 'TikTok', twitch: 'Twitch', youtube: 'YouTube', kick: 'Kick', facebook: 'Facebook', trovo: 'Trovo' };
+function chatUpdate() {
+  const wann = D.chatWann || 'party';
+  const show = wann === 'immer' || (wann === 'knopf' ? chatManual : wann === curMode);
+  Object.assign(chatBox.style, { left: num(D.chatX, 4) + 'vw', top: num(D.chatY, 52) + 'vh', width: num(D.chatBreite, 60) + 'vw', height: num(D.chatHoehe, 30) + 'vh', fontSize: num(D.chatGroesse, 2.2) + 'vh' });
+  chatBox.classList.toggle('blasen', D.chatHintergrund !== false);
+  chatBox.classList.toggle('show', show);
+}
+function chatAdd(m) {
+  if (m.entfernen) { const x = chatBox.querySelector(`[data-id="${CSS.escape(m.entfernen)}"]`); if (x) x.remove(); return; }
+  if (on('chatBefehleWeg', true) && /^\s*!/.test(m.text)) return;
+  const row = el('div', 'chat-msg'); row.dataset.id = m.id;
+  const pf = el('span', 'pf pf-' + (PF_NAME[m.plattform] ? m.plattform : 'chat'), PF_NAME[m.plattform] || m.plattform || 'Chat');
+  const name = el('b', 'chat-name', m.name); if (m.farbe) name.style.color = m.farbe;
+  row.append(pf, name, el('span', 'chat-text', m.text));
+  chatBox.append(row);
+  while (chatBox.children.length > Math.max(1, num(D.chatMax, 8))) chatBox.firstChild.remove();
+  const s = num(D.chatAusblenden, 45);
+  if (s > 0) setTimeout(() => { row.classList.add('weg'); setTimeout(() => row.remove(), 600); }, s * 1000);
+}
+if (window.Overlay) Overlay.on('chat', chatAdd);
+
 // ---------- StreamPrint (virtueller Bondrucker) ----------
 let curMode = D.modusStart || 'party', spManual = false;
 const sp = document.getElementById('sp'), spFrame = document.getElementById('spFrame');
@@ -429,7 +455,7 @@ function spUpdate() {
   sp.classList.toggle('rahmen', D.spRahmen !== false);
   sp.classList.toggle('show', show);
 }
-spUpdate();
+spUpdate(); chatUpdate();
 
 // ---------- Sounds für Like-Fontäne und Ansagen ----------
 let lastLikeSfx = 0;

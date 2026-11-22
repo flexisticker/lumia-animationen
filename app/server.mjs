@@ -162,6 +162,21 @@ function forwardStreamPrint(a, source) {
   fetch(v.spEventUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(ev), signal: AbortSignal.timeout(4000) })
     .catch(e => remember({ art: 'fehler', quelle: 'streamprint', text: 'StreamPrint nicht erreichbar: ' + (e.message || e) }));
 }
+// ---------- Chat (gemischt aus allen Plattformen, die Lumia liefert) ----------
+const chatLog = [];
+const PLATTFORMEN = ['tiktok', 'twitch', 'youtube', 'kick', 'facebook', 'trovo'];
+function chatIn(e, quelle) {
+  const d = e.data || {}, x = d.extraSettings || d;
+  if (d.shouldRemove || x.shouldRemove) { broadcast('chat', { entfernen: String(d.shouldRemove || x.shouldRemove) }, ['vorne']); return; }
+  const plattform = String(e.origin || x.platform || x.origin || '').toLowerCase();
+  const text = String(x.message ?? x.text ?? d.message ?? '').slice(0, 300);
+  const name = String(x.displayname || x.displayName || x.username || d.username || '').slice(0, 40);
+  if (!text || !name) return;
+  const m = { id: String(x.id || x.messageId || d.id || crypto.randomBytes(6).toString('hex')).slice(0, 80), plattform: PLATTFORMEN.includes(plattform) ? plattform : (plattform || 'chat'),
+    name, text, avatar: /^https?:\/\//.test(x.avatar || '') ? String(x.avatar).slice(0, 400) : '', farbe: /^#[0-9a-f]{3,8}$/i.test(x.userColor || '') ? x.userColor : '', quelle, at: Date.now() };
+  chatLog.push(m); if (chatLog.length > 40) chatLog.shift();
+  broadcast('chat', m, ['vorne', 'studio']);
+}
 function fireAlert(alert, source) {
   if (!alert || typeof alert.alert !== 'string') return;
   broadcast('alert', alert, ['vorne']);
@@ -187,6 +202,7 @@ function lumiaConnect() {
   // Achtung: Lumia führt jede gesendete Nachricht als Befehl aus – wir senden NICHTS.
   ws.onmessage = (m) => {
     let e; try { e = JSON.parse(typeof m.data === 'string' ? m.data : m.data.toString()); } catch { return; }
+    if (e && e.type === 'chat') { lumia.ereignisse++; return chatIn(e, 'lumia'); }
     if (e && e.type === 'alert' && e.event) {
       lumia.ereignisse++;
       const d = e.data || {};
@@ -370,6 +386,8 @@ const server = http.createServer(async (req, res) => {
       const e = b.type === 'alert' ? { alert: b.event, dynamic: b.data?.dynamic, extraSettings: b.data?.extraSettings } : b;
       fireAlert(e, 'http'); return json(res, 200, { ok: true });
     }
+    if (p === '/api/test-chat' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); chatIn({ origin: b.plattform, type: 'chat', data: { extraSettings: { username: b.name, message: b.text, userColor: b.farbe } } }, 'test'); return json(res, 200, { ok: true }); }
+    if (p === '/api/chat' && req.method === 'GET') return json(res, 200, { chat: chatLog });
     if (p === '/api/test' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); fireAlert(b, 'test'); return json(res, 200, { ok: true }); }
     if (p === '/api/aktion' && req.method === 'POST') {
       const raw = (await body(req, 4000)).toString();

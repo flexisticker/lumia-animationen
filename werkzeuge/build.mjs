@@ -31,7 +31,7 @@ const cfg = {};
 const add = (key, f) => { cfg[key] = { order: ++order, ...f }; };
 add('bereich', { type: 'dropdown', label: 'Einstellungen für', value: 'allgemein', options: {
   allgemein: 'Allgemein & Ton', banner: 'Banner & Slogans', name: 'Namens-Einblendung', likes: 'Like-Fontäne', szenen: 'Ansagen (Pause, Weiter …)', geschenk: 'Geschenke',
-  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', twitch: 'Twitch', streamprint: 'StreamPrint', sprache: 'Sprachausgabe (Danke)', knopf: 'Aktionsknöpfe' } });
+  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', twitch: 'Twitch', streamprint: 'StreamPrint', sprache: 'Sprachausgabe (Danke)', chat: 'Chat-Einblendung', knopf: 'Aktionsknöpfe' } });
 const vis = b => ({ visibleIf: { key: 'bereich', equals: [b] } });
 add('lautstaerke', { type: 'slider', label: 'Lautstärke gesamt', value: 80, options: { min: 0, max: 100, step: 5, suffix: '%' }, ...vis('allgemein') });
 add('medienAdresse', { type: 'input', label: 'Adresse der Videos (Ordner, endet mit /)', value: '', placeholder: 'leer = nur hochgeladene Videos', ...vis('allgemein') });
@@ -105,6 +105,17 @@ for (const [k, l, v] of [['szeneStart', 'Live startet gleich', "Live startet gle
   ['szeneWeiter', "Weiter geht's", "Weiter geht's! | Schön, dass du noch da bist"], ['szeneEnde', 'Ende', 'Danke & bis bald! | Folg MichaModus, dann verpasst du nichts'],
   ['szeneBrb', 'BRB – bin gleich zurück', 'Bin gleich zurück! | Nicht weggehen – es geht gleich weiter'], ['szeneTechnik', 'Technische Störung', 'Technische Störung | Wir sind gleich wieder da']])
   add(k, { type: 'input', label: `${l} (Titel | Unterzeile)`, value: v, ...vis('szenen') });
+// Chat-Einblendung (gemischt TikTok/Twitch/…, mit Plattform-Schild vorne)
+add('chatWann', { type: 'dropdown', label: 'Chat zeigen', value: 'party', options: { aus: 'aus', immer: 'immer', party: 'nur in Modus 1 (Party)', zocken: 'nur in Modus 2', knopf: 'per Knopf (Steuerung)' }, ...vis('chat') });
+add('chatX', { type: 'slider', label: 'Abstand links', value: 4, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('chat') });
+add('chatY', { type: 'slider', label: 'Abstand oben', value: 52, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('chat') });
+add('chatBreite', { type: 'slider', label: 'Breite', value: 60, options: { min: 10, max: 100, step: 0.5, suffix: ' %' }, ...vis('chat') });
+add('chatHoehe', { type: 'slider', label: 'Höhe', value: 30, options: { min: 5, max: 90, step: 0.5, suffix: ' %' }, ...vis('chat') });
+add('chatGroesse', { type: 'slider', label: 'Schriftgröße', value: 2.2, options: { min: 1, max: 5, step: 0.1, suffix: ' vh' }, ...vis('chat') });
+add('chatMax', { type: 'number', label: 'Höchstens … Nachrichten', value: 8, ...vis('chat') });
+add('chatAusblenden', { type: 'number', label: 'Nachricht ausblenden nach … s (0 = nie)', value: 45, ...vis('chat') });
+add('chatBefehleWeg', { type: 'checkbox', label: 'Befehle mit ! nicht zeigen', value: true, ...vis('chat') });
+add('chatHintergrund', { type: 'checkbox', label: 'Dunkle Blasen hinter den Nachrichten', value: true, ...vis('chat') });
 add('spWann', { type: 'dropdown', label: 'StreamPrint zeigen', value: 'aus', options: { aus: 'aus', immer: 'immer', knopf: 'per Knopf (Steuerung)', party: 'nur in Modus 1', zocken: 'nur in Modus 2' }, ...vis('streamprint') });
 add('spUrl', { type: 'input', label: 'Adresse des Overlays', value: '', placeholder: 'http://192.168.175.20:8000/overlay?seite=mitte', ...vis('streamprint') });
 add('spWeiterleiten', { type: 'checkbox', label: 'Ereignisse an StreamPrint weiterleiten', value: false, ...vis('streamprint') });

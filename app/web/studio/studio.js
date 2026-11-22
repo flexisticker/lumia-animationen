@@ -234,6 +234,9 @@ function test(m) {
   const name = h('input', { type: 'text', value: 'Testnutzer' });
   m.append(h('div', { class: 'card' }, field('Name', name)));
   const send = (alert, extra) => post('/api/test', { alert, extraSettings: { username: name.value, avatar: '/icon.png', ...extra } });
+  const chatText = h('input', { type: 'text', value: 'Hallo zusammen, wie geht\'s? 😄' });
+  m.append(h('div', { class: 'card' }, h('b', {}, 'Chat testen'), field('Nachricht', chatText), h('div', { class: 'row' },
+    ...[['tiktok', 'TikTok'], ['twitch', 'Twitch'], ['youtube', 'YouTube']].map(([pf, l]) => h('button', { class: 'b', onclick: () => post('/api/test-chat', { plattform: pf, name: name.value, text: chatText.value }) }, 'Chat ' + l)))));
   const gifts = [['Rose', 1], ['GG', 1], ['TikTok', 1], ['Finger Heart', 5], ['Heart Me', 1], ['Doughnut', 30], ['Perfume', 20], ['Hand Hearts', 100], ['Sunglasses', 199], ['Money Gun', 500], ['Corgi', 299], ['Baby Chicks', 500], ['Galaxy', 1000], ['Lion', 29999], ['Universe', 34999], ['Blumenstrauß (Stufe)', 30], ['Teures Geschenk (Stufe)', 5000]];
   m.append(h('h2', {}, 'Geschenke'), h('div', { class: 'row' }, ...gifts.map(([g, c]) => h('button', { class: 'b', onclick: () => send('tiktok-gift', { giftName: g.replace(/ \(Stufe\)$/, ''), coins: c, giftAmount: 1 }) }, g))),
     h('h2', {}, 'Ereignisse'), h('div', { class: 'row' }, ...[['tiktok-follower', 'Neuer Follower'], ['tiktok-share', 'Teilen'], ['tiktok-superFan', 'Superfan'], ['tiktok-treasureChest', 'Schatzkiste'], ['tiktok-totalLikes', 'Like-Ziel'], ['tiktok-battleEnd', 'Battle-Ende']]
