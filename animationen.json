@@ -304,6 +304,123 @@
    "bild": "spinning red and blue party police lights flash from the corners, disco ball drops in, lasers and confetti",
    "ton": "a party siren alarm followed by a heavy bass drop",
    "key": "black"
+  },
+  {
+   "id": "tw-follow",
+   "gruppe": "twitch",
+   "label": "Twitch: Follow",
+   "key": "black",
+   "format": "quer",
+   "bild": "a glowing purple heart with a plus sign pops up in the center and bursts into purple and pink hearts and stars",
+   "ton": "a cheerful whoosh, sparkle chime and a short happy crowd cheer"
+  },
+  {
+   "id": "tw-sub",
+   "gruppe": "twitch",
+   "label": "Twitch: Sub",
+   "key": "black",
+   "format": "quer",
+   "bild": "a shiny purple star badge spins into the center, explodes into purple confetti, gold sparkles and light rays",
+   "ton": "an epic celebratory synth stinger with a crowd cheering"
+  },
+  {
+   "id": "tw-primesub",
+   "gruppe": "twitch",
+   "label": "Twitch: Prime-Sub",
+   "key": "black",
+   "format": "quer",
+   "bild": "a glowing golden royal crown descends into the center with blue and gold light beams and a shower of gold coins and sparkles",
+   "ton": "a regal brass fanfare with shimmering chimes"
+  },
+  {
+   "id": "tw-resub",
+   "gruppe": "twitch",
+   "label": "Twitch: Resub",
+   "key": "black",
+   "format": "quer",
+   "bild": "a glowing purple calendar flips pages quickly, then a big heart and golden stars burst out with confetti",
+   "ton": "a warm celebratory chime sequence and applause"
+  },
+  {
+   "id": "tw-giftsub",
+   "gruppe": "twitch",
+   "label": "Twitch: Geschenk-Subs",
+   "key": "black",
+   "format": "quer",
+   "bild": "many wrapped purple gift boxes with gold ribbons rain down and pop open releasing stars, confetti and hearts",
+   "ton": "gift boxes popping, sleigh-bell sparkles and an excited crowd cheer"
+  },
+  {
+   "id": "tw-bits-klein",
+   "gruppe": "twitch",
+   "label": "Twitch: Bits klein",
+   "key": "black",
+   "format": "quer",
+   "bild": "a few glowing purple and grey crystal gems bounce in and sparkle",
+   "ton": "a quick sparkling coin chime"
+  },
+  {
+   "id": "tw-bits-mittel",
+   "gruppe": "twitch",
+   "label": "Twitch: Bits mittel",
+   "key": "black",
+   "format": "quer",
+   "bild": "a burst of glowing purple and green crystal gems explodes from the center with sparkles",
+   "ton": "a cascade of gem chimes and a short cheer"
+  },
+  {
+   "id": "tw-bits-gross",
+   "gruppe": "twitch",
+   "label": "Twitch: Bits groß",
+   "key": "black",
+   "format": "quer",
+   "bild": "a fountain of glowing blue and purple crystal gems erupts and rains across the whole frame with light rays",
+   "ton": "a big cascading jackpot chime with crowd cheering"
+  },
+  {
+   "id": "tw-bits-episch",
+   "gruppe": "twitch",
+   "label": "Twitch: Bits episch",
+   "key": "black",
+   "format": "quer",
+   "bild": "a gigantic glowing red crystal gem shatters into thousands of shining gems and fireworks filling the whole frame",
+   "ton": "an epic orchestral hit, jackpot bells and a roaring crowd"
+  },
+  {
+   "id": "tw-hypetrain-start",
+   "gruppe": "twitch",
+   "label": "Twitch: Hype Train Start",
+   "key": "black",
+   "format": "quer",
+   "bild": "a glowing neon purple train races across the frame from left to right leaving a trail of fire, sparks and confetti",
+   "ton": "a train horn blast, rushing train sound and an energetic beat drop"
+  },
+  {
+   "id": "tw-hypetrain-level",
+   "gruppe": "twitch",
+   "label": "Twitch: Hype Train Level",
+   "key": "black",
+   "format": "quer",
+   "bild": "a glowing neon purple train engine bursts through a ring of fire with a level-up flash, sparks and stars",
+   "ton": "a level-up power-up sound with a train horn and cheering"
+  },
+  {
+   "id": "tw-hypetrain-ende",
+   "gruppe": "twitch",
+   "label": "Twitch: Hype Train Ende",
+   "key": "black",
+   "format": "quer",
+   "bild": "a glowing neon train arrives and stops, a huge golden trophy rises with fireworks and confetti",
+   "ton": "a triumphant victory fanfare and a huge crowd cheer"
+  },
+  {
+   "id": "tw-raid",
+   "gruppe": "twitch",
+   "label": "Twitch: Raid",
+   "key": "black",
+   "format": "quer",
+   "bild": "a huge army of glowing purple paper planes and rockets swoops in from the left side filling the frame, sparks and confetti",
+   "ton": "an epic war horn, rushing wind and a massive crowd roar"
   }
  ]
 }

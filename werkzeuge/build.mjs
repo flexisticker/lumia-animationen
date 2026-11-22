@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const R = new URL('..', import.meta.url).pathname;
 const read = p => fs.readFileSync(R + p, 'utf8');
 const list = JSON.parse(read('animationen.json')).liste;
-const GROUP = { geschenk: 'Geschenke', stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe' };
+const GROUP = { twitch: 'Twitch', geschenk: 'Geschenke', stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe' };
 const LABEL = {
   rose: 'Rose', gg: 'GG', tiktok: 'TikTok', fingerherz: 'Fingerherz', teamherz: 'Teamherz', donut: 'Donut', parfuem: 'Parfüm',
   handherzen: 'Hand-Herzen', sonnenbrille: 'Sonnenbrille', kanone: 'Konfetti-Kanone', corgi: 'Corgi', kueken: 'Küken',
@@ -17,7 +17,7 @@ const LABEL = {
 const ICON = { airhorn: '📯', torjubel: '⚽', trommelwirbel: '🥁', applaus: '👏', konfetti: '🎉', verlosung: '🎡', fanfare: '🎺',
   lacher: '😂', wow: '🤩', rimshot: '🥁', herzregen: '💖', partyalarm: '🚨' };
 const available = new Set(fs.readdirSync(R + 'medien/animationen').map(f => f.replace(/\.mp4$/, '')));
-const items = list.filter(a => available.has(a.id)).map(a => ({ ...a, label: LABEL[a.id] || a.id, datei: a.id + '.mp4' }));
+const items = list.filter(a => available.has(a.id)).map(a => ({ ...a, label: LABEL[a.id] || a.label || a.id, datei: a.id + '.mp4' }));
 
 const SLOGANS = [
   'Werde Teil von MichaModus!', 'Folgen & dabei sein 💜', 'Like-Herzen an – wir wollen das Ziel!',
@@ -31,7 +31,7 @@ const cfg = {};
 const add = (key, f) => { cfg[key] = { order: ++order, ...f }; };
 add('bereich', { type: 'dropdown', label: 'Einstellungen für', value: 'allgemein', options: {
   allgemein: 'Allgemein & Ton', banner: 'Banner & Slogans', name: 'Namens-Einblendung', likes: 'Like-Fontäne', szenen: 'Ansagen (Pause, Weiter …)', geschenk: 'Geschenke',
-  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe' } });
+  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', twitch: 'Twitch', streamprint: 'StreamPrint', knopf: 'Aktionsknöpfe' } });
 const vis = b => ({ visibleIf: { key: 'bereich', equals: [b] } });
 add('lautstaerke', { type: 'slider', label: 'Lautstärke gesamt', value: 80, options: { min: 0, max: 100, step: 5, suffix: '%' }, ...vis('allgemein') });
 add('medienAdresse', { type: 'input', label: 'Adresse der Videos (Ordner, endet mit /)', value: '', placeholder: 'leer = nur hochgeladene Videos', ...vis('allgemein') });
@@ -66,12 +66,36 @@ add('likeAn', { type: 'checkbox', label: 'Like-Fontäne an', value: true, ...vis
 add('likePosition', { type: 'dropdown', label: 'Fontäne kommt von', value: 'rechts', options: { links: 'links', mitte: 'Mitte', rechts: 'rechts' }, ...vis('likes') });
 add('likeMenge', { type: 'slider', label: 'Herzen je Like', value: 1.5, options: { min: 0.2, max: 5, step: 0.1 }, ...vis('likes') });
 add('likeMax', { type: 'number', label: 'Max. Herzen je Schwall', value: 60, ...vis('likes') });
+add('likeSound', { type: 'soundupload', label: 'Sound der Like-Fontäne', value: '', accept: 'audio/mpeg,audio/ogg,audio/wav', ...vis('likes') });
+add('likeSoundLaut', { type: 'slider', label: 'Lautstärke Like-Sound', value: 60, options: { min: 0, max: 150, step: 5, suffix: '%' }, ...vis('likes') });
+add('likeSoundAbstand', { type: 'number', label: 'Like-Sound höchstens alle … ms', value: 1500, ...vis('likes') });
 add('likeFarben', { type: 'input', label: 'Farben (Komma-getrennt)', value: '#ff2e63,#ff6fa5,#ff9ec7,#ffd54f,#b388ff', ...vis('likes') });
+add('szeneSoundLaut', { type: 'slider', label: 'Lautstärke Ansage-Sounds', value: 90, options: { min: 0, max: 150, step: 5, suffix: '%' }, ...vis('szenen') });
+for (const [k, l] of [['start', 'Startet gleich'], ['pause', 'Pause'], ['gleich', "Gleich geht's weiter"], ['weiter', "Weiter geht's"], ['ende', 'Ende']])
+  add('sound_' + k, { type: 'soundupload', label: 'Sound: ' + l, value: '', accept: 'audio/mpeg,audio/ogg,audio/wav', ...vis('szenen') });
 add('szeneAbdunkeln', { type: 'checkbox', label: 'Bei Pause/Startet gleich/Ende abdunkeln', value: true, ...vis('szenen') });
 for (const [k, l, v] of [['szeneStart', 'Live startet gleich', "Live startet gleich! | Schnapp dir was zu trinken"],
   ['szenePause', 'Kurze Pause', "Kurze Pause | Bleib dran – gleich geht's weiter"], ['szeneGleich', "Gleich geht's weiter", "Gleich geht's weiter | Nicht weggehen"],
   ['szeneWeiter', "Weiter geht's", "Weiter geht's! | Schön, dass du noch da bist"], ['szeneEnde', 'Ende', 'Danke & bis bald! | Folg MichaModus, dann verpasst du nichts']])
   add(k, { type: 'input', label: `${l} (Titel | Unterzeile)`, value: v, ...vis('szenen') });
+add('spWann', { type: 'dropdown', label: 'StreamPrint zeigen', value: 'aus', options: { aus: 'aus', immer: 'immer', knopf: 'per Knopf (Steuerung)', party: 'nur in Modus 1', zocken: 'nur in Modus 2' }, ...vis('streamprint') });
+add('spUrl', { type: 'input', label: 'Adresse des Overlays', value: '', placeholder: 'http://192.168.175.20:8000/overlay?seite=mitte', ...vis('streamprint') });
+add('spWeiterleiten', { type: 'checkbox', label: 'Ereignisse an StreamPrint weiterleiten', value: false, ...vis('streamprint') });
+add('spEventUrl', { type: 'input', label: 'StreamPrint-Empfang (POST)', value: '', placeholder: 'http://192.168.175.20:8000/event', ...vis('streamprint') });
+add('spX', { type: 'slider', label: 'Abstand links', value: 3, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('streamprint') });
+add('spY', { type: 'slider', label: 'Abstand oben', value: 20, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('streamprint') });
+add('spBreite', { type: 'slider', label: 'Breite', value: 32, options: { min: 5, max: 100, step: 0.5, suffix: ' %' }, ...vis('streamprint') });
+add('spHoehe', { type: 'slider', label: 'Höhe', value: 60, options: { min: 5, max: 100, step: 0.5, suffix: ' %' }, ...vis('streamprint') });
+add('spRund', { type: 'slider', label: 'Runde Ecken', value: 18, options: { min: 0, max: 60, step: 1, suffix: ' px' }, ...vis('streamprint') });
+add('spRahmen', { type: 'checkbox', label: 'Leuchtrahmen in Banner-Farben', value: true, ...vis('streamprint') });
+add('twTextFollow', { type: 'input', label: 'Twitch-Text Follow', value: 'folgt jetzt!', ...vis('twitch') });
+add('twTextSub', { type: 'input', label: 'Twitch-Text Sub', value: 'abonniert!', ...vis('twitch') });
+add('twTextPrime', { type: 'input', label: 'Twitch-Text Prime-Sub', value: 'abonniert mit Prime 👑', ...vis('twitch') });
+add('twTextResub', { type: 'input', label: 'Twitch-Text Resub ({MONATE})', value: 'ist seit {MONATE} Monaten dabei!', ...vis('twitch') });
+add('twTextGift', { type: 'input', label: 'Twitch-Text Geschenk-Subs', value: 'verschenkt Subs', ...vis('twitch') });
+add('twBitsMittel', { type: 'number', label: 'Bits: Stufe mittel ab', value: 100, ...vis('twitch') });
+add('twBitsGross', { type: 'number', label: 'Bits: Stufe groß ab', value: 1000, ...vis('twitch') });
+add('twBitsEpisch', { type: 'number', label: 'Bits: Stufe episch ab', value: 5000, ...vis('twitch') });
 for (const a of items) {
   add('an_' + a.id, { type: 'checkbox', label: `${a.label}: an`, value: true, ...vis(a.gruppe) });
   add('v_' + a.id, { type: 'videoupload', label: `${a.label}: eigenes Video`, value: '', accept: 'video/mp4,video/webm', ...vis(a.gruppe) });

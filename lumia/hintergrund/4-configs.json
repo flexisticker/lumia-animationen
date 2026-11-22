@@ -490,5 +490,100 @@
    ]
   },
   "order": 33
+ },
+ "videoQuer": {
+  "order": 4.1,
+  "type": "videoupload",
+  "label": "Hintergrund Modus 1 – Querformat (Twitch)",
+  "value": "",
+  "accept": "video/mp4,video/webm",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  }
+ },
+ "zockVideoQuer": {
+  "order": 4.2,
+  "type": "videoupload",
+  "label": "Hintergrund Modus 2 – Querformat (Twitch)",
+  "value": "",
+  "accept": "video/mp4,video/webm",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  }
+ },
+ "f1Format": {
+  "order": 15.5,
+  "type": "dropdown",
+  "label": "Format (fest = Höhe ergibt sich aus der Breite)",
+  "value": "frei",
+  "options": {
+   "frei": "frei (Höhe-Regler)",
+   "16:9": "16:9 (Spiel/Twitch)",
+   "4:3": "4:3",
+   "1:1": "1:1",
+   "9:16": "9:16 (hochkant)"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  }
+ },
+ "f2Format": {
+  "order": 26.5,
+  "type": "dropdown",
+  "label": "Format (fest = Höhe ergibt sich aus der Breite)",
+  "value": "frei",
+  "options": {
+   "frei": "frei (Höhe-Regler)",
+   "16:9": "16:9 (Spiel/Twitch)",
+   "4:3": "4:3",
+   "1:1": "1:1",
+   "9:16": "9:16 (hochkant)"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  }
+ },
+ "modusSound": {
+  "order": 11.5,
+  "type": "soundupload",
+  "label": "Sound beim Moduswechsel",
+  "value": "",
+  "accept": "audio/mpeg,audio/ogg,audio/wav",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  }
+ },
+ "modusSoundLaut": {
+  "order": 11.6,
+  "type": "slider",
+  "label": "Lautstärke Moduswechsel",
+  "value": 80,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  }
  }
 }

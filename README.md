@@ -22,6 +22,13 @@ Ein Image `ghcr.io/flexisticker/live-studio:latest`, zwei Container (Vorlagen in
 Updates: Docker → Check for Updates → apply update (GitHub baut bei jedem Push auf `main`). Einstellungen bleiben erhalten.
 Für https (Browserquellen in OBS/LIVE Studio): NPM-Proxy-Hosts z. B. `michamodus.flexisticker.de` → :8120, `3dbymicha.flexisticker.de` → :8122.
 
+## Twitch, Querformat, StreamPrint
+
+- Twitch-Alerts kommen über Lumia (Follow, Sub, Prime-Sub, Resub, Geschenk-Subs, Bits in 4 Stufen, Hype Train Start/Level/Ende, Raid) – 13 eigene 16:9-Animationen mit Ton.
+- Querformat: Browserquellen einfach in 1920 × 1080 anlegen; Hintergründe haben eigene Querformat-Videos, Fenster 1 kann fest 16:9 sein (Spiel).
+- StreamPrint (virtueller Bondrucker): unter Animationen & Einblendungen → StreamPrint Adresse `http://<PC>:8000/overlay`, Empfang `http://<PC>:8000/event`
+  und „weiterleiten“ an. In StreamPrint dann Streamer.bot/TikTok direkt abschalten, sonst doppelte Zettel.
+
 ## Lumia
 
 Lumia → Einstellungen → API: Developers API an, LAN-Zugriff erlauben, Schlüssel kopieren; Windows-Firewall Port 39231 eingehend erlauben.

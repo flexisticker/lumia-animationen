@@ -1,5 +1,5 @@
 // Erzeugt von werkzeuge/build.mjs – nicht von Hand ändern
-window.MM_LIST = [{"id":"rose","gruppe":"geschenk","match":["Rose","Rosa"],"datei":"rose.mp4","label":"Rose"},{"id":"gg","gruppe":"geschenk","match":["GG"],"datei":"gg.mp4","label":"GG"},{"id":"tiktok","gruppe":"geschenk","match":["TikTok"],"datei":"tiktok.mp4","label":"TikTok"},{"id":"fingerherz","gruppe":"geschenk","match":["Finger Heart","Fingerherz"],"datei":"fingerherz.mp4","label":"Fingerherz"},{"id":"teamherz","gruppe":"geschenk","match":["Team Heart","Teamherz","Heart Me"],"datei":"teamherz.mp4","label":"Teamherz"},{"id":"donut","gruppe":"geschenk","match":["Doughnut","Donut"],"datei":"donut.mp4","label":"Donut"},{"id":"parfuem","gruppe":"geschenk","match":["Perfume","Parfüm"],"datei":"parfuem.mp4","label":"Parfüm"},{"id":"handherzen","gruppe":"geschenk","match":["Hand Hearts","Hand-Herzen"],"datei":"handherzen.mp4","label":"Hand-Herzen"},{"id":"sonnenbrille","gruppe":"geschenk","match":["Sunglasses","Sonnenbrille"],"datei":"sonnenbrille.mp4","label":"Sonnenbrille"},{"id":"kanone","gruppe":"geschenk","match":["Money Gun","Confetti","Kanone","Konfetti"],"datei":"kanone.mp4","label":"Konfetti-Kanone"},{"id":"corgi","gruppe":"geschenk","match":["Corgi"],"datei":"corgi.mp4","label":"Corgi"},{"id":"kueken","gruppe":"geschenk","match":["Baby Chicks","Küken"],"datei":"kueken.mp4","label":"Küken"},{"id":"galaxie","gruppe":"geschenk","match":["Galaxy","Galaxie"],"datei":"galaxie.mp4","label":"Galaxie"},{"id":"loewe","gruppe":"geschenk","match":["Lion","Löwe"],"datei":"loewe.mp4","label":"Löwe"},{"id":"universum","gruppe":"geschenk","match":["Universe","Universum"],"datei":"universum.mp4","label":"Universum"},{"id":"stufe-klein","gruppe":"stufe","ab":1,"datei":"stufe-klein.mp4","label":"Stufe klein"},{"id":"stufe-mittel","gruppe":"stufe","ab":100,"datei":"stufe-mittel.mp4","label":"Stufe mittel"},{"id":"stufe-gross","gruppe":"stufe","ab":1000,"datei":"stufe-gross.mp4","label":"Stufe groß"},{"id":"stufe-episch","gruppe":"stufe","ab":10000,"datei":"stufe-episch.mp4","label":"Stufe episch"},{"id":"folgen","gruppe":"ereignis","datei":"folgen.mp4","label":"Neuer Follower"},{"id":"teilen","gruppe":"ereignis","datei":"teilen.mp4","label":"Live geteilt"},{"id":"superfan","gruppe":"ereignis","datei":"superfan.mp4","label":"Superfan"},{"id":"schatzkiste","gruppe":"ereignis","datei":"schatzkiste.mp4","label":"Schatzkiste"},{"id":"likeziel","gruppe":"ereignis","datei":"likeziel.mp4","label":"Like-Ziel"},{"id":"battle-sieg","gruppe":"ereignis","datei":"battle-sieg.mp4","label":"Battle-Ende"},{"id":"airhorn","gruppe":"knopf","datei":"airhorn.mp4","label":"Airhorn"},{"id":"torjubel","gruppe":"knopf","datei":"torjubel.mp4","label":"Torjubel"},{"id":"trommelwirbel","gruppe":"knopf","datei":"trommelwirbel.mp4","label":"Trommelwirbel"},{"id":"applaus","gruppe":"knopf","datei":"applaus.mp4","label":"Applaus"},{"id":"konfetti","gruppe":"knopf","datei":"konfetti.mp4","label":"Konfetti"},{"id":"verlosung","gruppe":"knopf","datei":"verlosung.mp4","label":"Verlosung"},{"id":"fanfare","gruppe":"knopf","datei":"fanfare.mp4","label":"Fanfare"},{"id":"lacher","gruppe":"knopf","datei":"lacher.mp4","label":"Lacher"},{"id":"wow","gruppe":"knopf","datei":"wow.mp4","label":"Wow"},{"id":"rimshot","gruppe":"knopf","datei":"rimshot.mp4","label":"Ba-dum-tss"},{"id":"herzregen","gruppe":"knopf","datei":"herzregen.mp4","label":"Herzregen"},{"id":"partyalarm","gruppe":"knopf","datei":"partyalarm.mp4","label":"Party-Alarm"}];
+window.MM_LIST = [{"id":"rose","gruppe":"geschenk","match":["Rose","Rosa"],"datei":"rose.mp4","label":"Rose"},{"id":"gg","gruppe":"geschenk","match":["GG"],"datei":"gg.mp4","label":"GG"},{"id":"tiktok","gruppe":"geschenk","match":["TikTok"],"datei":"tiktok.mp4","label":"TikTok"},{"id":"fingerherz","gruppe":"geschenk","match":["Finger Heart","Fingerherz"],"datei":"fingerherz.mp4","label":"Fingerherz"},{"id":"teamherz","gruppe":"geschenk","match":["Team Heart","Teamherz","Heart Me"],"datei":"teamherz.mp4","label":"Teamherz"},{"id":"donut","gruppe":"geschenk","match":["Doughnut","Donut"],"datei":"donut.mp4","label":"Donut"},{"id":"parfuem","gruppe":"geschenk","match":["Perfume","Parfüm"],"datei":"parfuem.mp4","label":"Parfüm"},{"id":"handherzen","gruppe":"geschenk","match":["Hand Hearts","Hand-Herzen"],"datei":"handherzen.mp4","label":"Hand-Herzen"},{"id":"sonnenbrille","gruppe":"geschenk","match":["Sunglasses","Sonnenbrille"],"datei":"sonnenbrille.mp4","label":"Sonnenbrille"},{"id":"kanone","gruppe":"geschenk","match":["Money Gun","Confetti","Kanone","Konfetti"],"datei":"kanone.mp4","label":"Konfetti-Kanone"},{"id":"corgi","gruppe":"geschenk","match":["Corgi"],"datei":"corgi.mp4","label":"Corgi"},{"id":"kueken","gruppe":"geschenk","match":["Baby Chicks","Küken"],"datei":"kueken.mp4","label":"Küken"},{"id":"galaxie","gruppe":"geschenk","match":["Galaxy","Galaxie"],"datei":"galaxie.mp4","label":"Galaxie"},{"id":"loewe","gruppe":"geschenk","match":["Lion","Löwe"],"datei":"loewe.mp4","label":"Löwe"},{"id":"universum","gruppe":"geschenk","match":["Universe","Universum"],"datei":"universum.mp4","label":"Universum"},{"id":"stufe-klein","gruppe":"stufe","ab":1,"datei":"stufe-klein.mp4","label":"Stufe klein"},{"id":"stufe-mittel","gruppe":"stufe","ab":100,"datei":"stufe-mittel.mp4","label":"Stufe mittel"},{"id":"stufe-gross","gruppe":"stufe","ab":1000,"datei":"stufe-gross.mp4","label":"Stufe groß"},{"id":"stufe-episch","gruppe":"stufe","ab":10000,"datei":"stufe-episch.mp4","label":"Stufe episch"},{"id":"folgen","gruppe":"ereignis","datei":"folgen.mp4","label":"Neuer Follower"},{"id":"teilen","gruppe":"ereignis","datei":"teilen.mp4","label":"Live geteilt"},{"id":"superfan","gruppe":"ereignis","datei":"superfan.mp4","label":"Superfan"},{"id":"schatzkiste","gruppe":"ereignis","datei":"schatzkiste.mp4","label":"Schatzkiste"},{"id":"likeziel","gruppe":"ereignis","datei":"likeziel.mp4","label":"Like-Ziel"},{"id":"battle-sieg","gruppe":"ereignis","datei":"battle-sieg.mp4","label":"Battle-Ende"},{"id":"airhorn","gruppe":"knopf","datei":"airhorn.mp4","label":"Airhorn"},{"id":"torjubel","gruppe":"knopf","datei":"torjubel.mp4","label":"Torjubel"},{"id":"trommelwirbel","gruppe":"knopf","datei":"trommelwirbel.mp4","label":"Trommelwirbel"},{"id":"applaus","gruppe":"knopf","datei":"applaus.mp4","label":"Applaus"},{"id":"konfetti","gruppe":"knopf","datei":"konfetti.mp4","label":"Konfetti"},{"id":"verlosung","gruppe":"knopf","datei":"verlosung.mp4","label":"Verlosung"},{"id":"fanfare","gruppe":"knopf","datei":"fanfare.mp4","label":"Fanfare"},{"id":"lacher","gruppe":"knopf","datei":"lacher.mp4","label":"Lacher"},{"id":"wow","gruppe":"knopf","datei":"wow.mp4","label":"Wow"},{"id":"rimshot","gruppe":"knopf","datei":"rimshot.mp4","label":"Ba-dum-tss"},{"id":"herzregen","gruppe":"knopf","datei":"herzregen.mp4","label":"Herzregen"},{"id":"partyalarm","gruppe":"knopf","datei":"partyalarm.mp4","label":"Party-Alarm"},{"id":"tw-follow","gruppe":"twitch","datei":"tw-follow.mp4","label":"Twitch: Follow"},{"id":"tw-sub","gruppe":"twitch","datei":"tw-sub.mp4","label":"Twitch: Sub"},{"id":"tw-primesub","gruppe":"twitch","datei":"tw-primesub.mp4","label":"Twitch: Prime-Sub"},{"id":"tw-resub","gruppe":"twitch","datei":"tw-resub.mp4","label":"Twitch: Resub"},{"id":"tw-giftsub","gruppe":"twitch","datei":"tw-giftsub.mp4","label":"Twitch: Geschenk-Subs"},{"id":"tw-bits-klein","gruppe":"twitch","datei":"tw-bits-klein.mp4","label":"Twitch: Bits klein"},{"id":"tw-bits-mittel","gruppe":"twitch","datei":"tw-bits-mittel.mp4","label":"Twitch: Bits mittel"},{"id":"tw-bits-gross","gruppe":"twitch","datei":"tw-bits-gross.mp4","label":"Twitch: Bits groß"},{"id":"tw-bits-episch","gruppe":"twitch","datei":"tw-bits-episch.mp4","label":"Twitch: Bits episch"},{"id":"tw-hypetrain-start","gruppe":"twitch","datei":"tw-hypetrain-start.mp4","label":"Twitch: Hype Train Start"},{"id":"tw-hypetrain-level","gruppe":"twitch","datei":"tw-hypetrain-level.mp4","label":"Twitch: Hype Train Level"},{"id":"tw-hypetrain-ende","gruppe":"twitch","datei":"tw-hypetrain-ende.mp4","label":"Twitch: Hype Train Ende"},{"id":"tw-raid","gruppe":"twitch","datei":"tw-raid.mp4","label":"Twitch: Raid"}];
 // MichaModus – Animationen (Lumia Custom Overlay, Reiter JS)
 // Spielt zu TikTok-Ereignissen, Aktionsknöpfen und Chat-Befehlen eine Vollbild-Animation mit Ton,
 // blendet den Namen des Spenders ein und zeigt oben das MichaModus-Banner mit wechselnden Slogans.
@@ -77,7 +77,9 @@ function drawFrame() {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
     // Füllend (wie object-fit: cover)
     const va = video.videoWidth / video.videoHeight, ca = canvas.width / canvas.height;
-    let sx = 1, sy = 1; if (va > ca) sx = va / ca; else sy = ca / va;
+    let sx = 1, sy = 1;
+    if ((va > 1) === (ca > 1)) { if (va > ca) sx = va / ca; else sy = ca / va; } // gleiches Format: füllen
+    else { if (va > ca) sy = ca / va; else sx = va / ca; }                        // Hoch- auf Querformat o. ä.: ganz zeigen
     gl.uniform2f(gl.getUniformLocation(prog, 'sc'), sx, sy);
     gl.uniform2f(gl.getUniformLocation(prog, 'of'), (1 - sx) / 2, (1 - sy) / 2);
     const s = num(D.schwarzStaerke, 12) / 100;
@@ -189,8 +191,37 @@ const TEXT = {
   'tiktok-totalLikes': ['likeziel', 'Like-Ziel erreicht!'],
   'tiktok-battleEnd': ['battle-sieg', 'Battle vorbei!'],
 };
+function twitchAlert(data, s) {
+  const dyn = data.dynamic || {};
+  const amount = Number(s.amount || dyn.value || 1) || 1;
+  const user = s.displayname || s.username || '';
+  const base = { user, avatar: s.avatar, amount: 1 };
+  switch (data.alert) {
+    case 'twitch-follower': return { ...base, anim: entryById('tw-follow'), text: D.twTextFollow || 'folgt jetzt!' };
+    case 'twitch-subscriber': {
+      const plan = String(s.subPlan || s.tier || dyn.value || '');
+      if (/prime/i.test(plan)) return { ...base, anim: entryById('tw-primesub'), text: D.twTextPrime || 'abonniert mit Prime 👑' };
+      const months = Number(s.subMonths || dyn.subMonths || 0);
+      const tier = /3000|tier 3/i.test(plan) ? ' (Tier 3)' : /2000|tier 2/i.test(plan) ? ' (Tier 2)' : '';
+      if (months > 1 || dyn.isResub) return { ...base, anim: entryById('tw-resub'), text: (D.twTextResub || 'ist seit {MONATE} Monaten dabei!').replace('{MONATE}', months || '?') + tier };
+      if (dyn.isGift) return { ...base, anim: entryById('tw-giftsub'), text: 'verschenkt einen Sub' + tier };
+      return { ...base, anim: entryById('tw-sub'), text: (D.twTextSub || 'abonniert!') + tier };
+    }
+    case 'twitch-giftSubscription': return { ...base, anim: entryById('tw-giftsub'), amount: Number(s.giftAmount || amount) || 1, key: user + '|giftsub', text: D.twTextGift || 'verschenkt Subs' };
+    case 'twitch-bits': {
+      const t = amount >= num(D.twBitsEpisch, 5000) ? 'tw-bits-episch' : amount >= num(D.twBitsGross, 1000) ? 'tw-bits-gross' : amount >= num(D.twBitsMittel, 100) ? 'tw-bits-mittel' : 'tw-bits-klein';
+      return { ...base, anim: entryById(t), text: 'schickt ' + amount + ' Bits' };
+    }
+    case 'twitch-hypetrainStarted': return { ...base, user: 'HYPE TRAIN', anim: entryById('tw-hypetrain-start'), text: 'ist gestartet! 🚂' };
+    case 'twitch-hypetrainLevelProgressed': return { ...base, user: 'HYPE TRAIN', anim: entryById('tw-hypetrain-level'), text: 'Level ' + (s.level || dyn.value || amount) + '!' };
+    case 'twitch-hypetrainEnded': return { ...base, user: 'HYPE TRAIN', anim: entryById('tw-hypetrain-ende'), text: 'geschafft – Level ' + (s.level || dyn.value || amount) };
+    case 'twitch-raid': return { ...base, anim: entryById('tw-raid'), text: 'raidet mit ' + (s.viewers || amount) + ' Leuten!' };
+  }
+  return null;
+}
 function handleAlert(data) {
   const s = data.extraSettings || {};
+  if (String(data.alert || '').startsWith('twitch-')) { const it = twitchAlert(data, s); if (it && it.anim) enqueue(it); return; }
   if (data.alert === 'tiktok-like') { likeBurst(Number(s.amount || s.userLikeCount || (data.dynamic && data.dynamic.value)) || 5); return; }
   if (data.alert === 'tiktok-gift') {
     const amount = Number(s.giftAmount) || 1;
@@ -209,7 +240,8 @@ function handleAlert(data) {
 // optional JSON {"id":"airhorn","name":"Sandra","text":"gewinnt!"}
 function handleContent(raw) {
   let c = raw; try { c = JSON.parse(raw); } catch (e) { c = { id: String(raw).trim() }; }
-  if (String(c.id).startsWith('modus:') || String(raw).startsWith('modus:')) return;
+  if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); return; }
+  if (c.id === 'streamprint') { spManual = c.an === undefined ? !spManual : !!c.an; spUpdate(); return; }
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
   if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
   const anim = entryById(c.id);
@@ -286,3 +318,35 @@ function showScene(id) {
 }
 
 window.MM = { handleAlert, handleContent, likeBurst, showScene, busy: () => !!playing || queue.length > 0 || scene.classList.contains('show') };
+
+// ---------- StreamPrint (virtueller Bondrucker) ----------
+let curMode = D.modusStart || 'party', spManual = false;
+const sp = document.getElementById('sp'), spFrame = document.getElementById('spFrame');
+function spUpdate() {
+  const wann = D.spWann || 'aus';
+  const show = !!D.spUrl && (wann === 'immer' || wann === curMode || (wann === 'knopf' && spManual));
+  if (show && !spFrame.src) spFrame.src = D.spUrl;
+  Object.assign(sp.style, { left: num(D.spX, 3) + 'vw', top: num(D.spY, 20) + 'vh', width: num(D.spBreite, 32) + 'vw', height: num(D.spHoehe, 60) + 'vh' });
+  sp.style.setProperty('--spR', num(D.spRund, 18) + 'px');
+  sp.classList.toggle('rahmen', D.spRahmen !== false);
+  sp.classList.toggle('show', show);
+}
+spUpdate();
+
+// ---------- Sounds für Like-Fontäne und Ansagen ----------
+let lastLikeSfx = 0;
+function sfx(url, vol) {
+  if (!url) return;
+  try { const a = new Audio(url); a.volume = Math.max(0, Math.min(1, num(D.lautstaerke, 80) / 100 * num(vol, 100) / 100)); a.play().catch(() => {}); } catch (e) {}
+}
+const _likeBurst = likeBurst;
+likeBurst = function (count) {
+  if (on('likeAn') && performance.now() - lastLikeSfx > num(D.likeSoundAbstand, 1500)) { lastLikeSfx = performance.now(); sfx(D.likeSound, D.likeSoundLaut); }
+  _likeBurst(count);
+};
+const _showScene = showScene;
+showScene = function (id) {
+  if (id !== 'aus') sfx(D['sound_' + id], D.szeneSoundLaut);
+  _showScene(id);
+};
+window.MM.likeBurst = likeBurst; window.MM.showScene = showScene;

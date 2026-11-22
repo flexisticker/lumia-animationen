@@ -31,5 +31,11 @@
   "f2Farbe1": "#ffd54f",
   "f2Farbe2": "#ff7a00",
   "f2Farbe3": "#ff3d7f",
-  "f2Schild": "🖨️ LIVE VOM DRUCKER"
+  "f2Schild": "🖨️ LIVE VOM DRUCKER",
+  "videoQuer": "",
+  "zockVideoQuer": "",
+  "f1Format": "frei",
+  "f2Format": "frei",
+  "modusSound": "",
+  "modusSoundLaut": 80
 }

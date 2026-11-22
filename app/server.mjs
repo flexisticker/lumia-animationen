@@ -22,7 +22,8 @@ const DEFAULTS = {
   aktion: JSON.parse(fs.readFileSync(path.join(PUBLIC, 'schema/aktion-data.json'), 'utf8')),
 };
 DEFAULTS.vorne.medienAdresse = '/animationen/';
-Object.assign(DEFAULTS.hinten, { video: '/hintergrund/party-schleife.mp4', zockVideo: '/hintergrund/zockerbude.mp4', musik: '/musik/party-schleife-1.mp3' });
+Object.assign(DEFAULTS.vorne, { likeSound: '/sounds/likes.mp3', sound_start: '/sounds/start.mp3', sound_pause: '/sounds/pause.mp3', sound_gleich: '/sounds/gleich.mp3', sound_weiter: '/sounds/weiter.mp3', sound_ende: '/sounds/ende.mp3' });
+Object.assign(DEFAULTS.hinten, { video: '/hintergrund/party-schleife.mp4', zockVideo: '/hintergrund/zockerbude.mp4', videoQuer: '/hintergrund/party-schleife-quer.mp4', zockVideoQuer: '/hintergrund/zockerbude-quer.mp4', modusSound: '/sounds/modus.mp3', musik: '/musik/party-schleife-1.mp3' });
 // Kanal-Vorgaben (Umgebungsvariable KANAL): gleicher Container, eigene Daten je Kanal
 const KANAL = String(process.env.KANAL || 'michamodus').toLowerCase();
 const PRESETS = {
@@ -31,7 +32,7 @@ const PRESETS = {
     vorne: { bannerText: '3dbymicha', slogans: ['Werde Teil von 3dbymicha!', 'Live aus der Druckwerkstatt 🖨️', 'Folgen & zusehen, wie es entsteht',
       'Like-Herzen an – wir drucken weiter!', 'Wünsch dir ein Modell im Chat 💬', 'Jede Rose zählt 🌹', 'Neu hier? Sag Hallo 👋'].join('\n'),
       bannerFarbe1: '#ff7a00', bannerFarbe2: '#00c2ff', bannerFarbe3: '#ffd54f' },
-    hinten: { video: '/hintergrund/werkstatt.mp4', f2Wann: 'immer', f1Y: 56, f1Hoehe: 30 },
+    hinten: { video: '/hintergrund/werkstatt.mp4', videoQuer: '/hintergrund/werkstatt-quer.mp4', f2Wann: 'immer', f1Y: 56, f1Hoehe: 30 },
     aktion: { titel: '3dbymicha · Steuerung', modus1Name: 'Werkstatt', modus2Name: 'Zockmodus' } },
 };
 const PRESET = PRESETS[KANAL] || { ...PRESETS.michamodus, name: process.env.KANAL };
@@ -57,9 +58,34 @@ setInterval(() => { for (const c of clients) c.res.write(': ping\n\n'); }, 20000
 const log = [];
 function remember(entry) { log.unshift({ at: new Date().toISOString(), ...entry }); log.length = Math.min(log.length, 50); broadcast('log', log[0], ['studio']); }
 
+// StreamPrint: Lumia-Ereignis in dessen /event-Format übersetzen
+function toStreamPrint(a) {
+  const s = a.extraSettings || {}, d = a.dynamic || {}, n = (x, y = 0) => Number(x) || y;
+  const base = { user: s.displayname || s.username || '', avatar: s.avatar || '', text: s.message || '', hide_amount: true };
+  const map = {
+    'tiktok-gift': () => ({ event: 'gift', platform: 'tiktok', diamonds: n(s.coins, n(s.diamonds, 1)) * n(s.giftAmount, 1), gift_name: s.giftName, gift_id: String(s.giftId || ''), count: n(s.giftAmount, 1), icon: s.giftPictureUrl || s.contentImage || '' }),
+    'tiktok-follower': () => ({ event: 'follow', platform: 'tiktok' }),
+    'tiktok-subscriber': () => ({ event: 'sub', platform: 'tiktok' }),
+    'twitch-follower': () => ({ event: 'follow', platform: 'twitch' }),
+    'twitch-bits': () => ({ event: 'bits', platform: 'twitch', bits: n(s.amount, n(d.value)) }),
+    'twitch-subscriber': () => ({ event: 'sub', platform: 'twitch', months: n(s.subMonths, 1), sub_tier: /3000/.test(s.subPlan) ? 3 : /2000/.test(s.subPlan) ? 2 : 1, prime: /prime/i.test(String(s.subPlan)) }),
+    'twitch-giftSubscription': () => ({ event: 'subgift', platform: 'twitch', gifts: n(s.giftAmount, n(s.amount, 1)) }),
+    'twitch-raid': () => ({ event: 'raid', platform: 'twitch', viewers: n(s.viewers, n(s.amount)) }),
+  };
+  return map[a.alert] ? { ...base, ...map[a.alert]() } : null;
+}
+function forwardStreamPrint(a, source) {
+  const v = settingsFor('vorne');
+  if (!v.spWeiterleiten || !/^https?:\/\//.test(v.spEventUrl || '')) return;
+  const ev = toStreamPrint(a); if (!ev) return;
+  if (source === 'test') ev._demo = true; // Testereignisse nie auf Papier
+  fetch(v.spEventUrl, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(ev), signal: AbortSignal.timeout(4000) })
+    .catch(e => remember({ art: 'fehler', quelle: 'streamprint', text: 'StreamPrint nicht erreichbar: ' + (e.message || e) }));
+}
 function fireAlert(alert, source) {
   if (!alert || typeof alert.alert !== 'string') return;
   broadcast('alert', alert, ['vorne']);
+  forwardStreamPrint(alert, source);
   const s = alert.extraSettings || {};
   remember({ art: 'alert', quelle: source, alert: alert.alert, text: [s.username, s.giftName, s.giftAmount && '× ' + s.giftAmount, s.amount && !s.giftName ? s.amount : ''].filter(Boolean).join(' ') });
 }

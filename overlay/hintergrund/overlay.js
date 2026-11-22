@@ -6,8 +6,10 @@ const num = (x, d) => (x === '' || x == null || isNaN(Number(x)) ? d : Number(x)
 const vP = document.getElementById('bgParty'), vZ = document.getElementById('bgZock');
 const cv = document.getElementById('stage'), cx = cv.getContext('2d');
 const m = document.getElementById('music');
-if (D.videoAn !== false && D.video) { vP.src = D.video; vP.play().catch(() => {}); }
-if (D.zockVideo) { vZ.src = D.zockVideo; vZ.play().catch(() => {}); }
+const QUER = innerWidth > innerHeight;
+const pick = (hoch, quer) => (QUER && quer ? quer : hoch);
+if (D.videoAn !== false && pick(D.video, D.videoQuer)) { vP.src = pick(D.video, D.videoQuer); vP.play().catch(() => {}); }
+if (pick(D.zockVideo, D.zockVideoQuer)) { vZ.src = pick(D.zockVideo, D.zockVideoQuer); vZ.play().catch(() => {}); }
 [vP, vZ].forEach(v => (v.playbackRate = num(D.tempo, 100) / 100));
 if (D.musikAn !== false && D.musik) {
   m.src = D.musik; m.volume = Math.min(1, num(D.musikLautstaerke, 35) / 100);
@@ -38,7 +40,9 @@ const WIN = [1, 2].map(n => {
 });
 function want(w) { const a = w.g('Wann') || 'aus'; return a === 'immer' || a === mode; }
 function rect(w) {
-  const W = cv.width * num(w.g('Breite'), 80) / 100, H = cv.height * num(w.g('Hoehe'), 30) / 100;
+  const W = cv.width * num(w.g('Breite'), 80) / 100;
+  const fmt = { '16:9': 16 / 9, '4:3': 4 / 3, '9:16': 9 / 16, '1:1': 1 }[w.g('Format')];
+  const H = fmt ? W / fmt : cv.height * num(w.g('Hoehe'), 30) / 100;
   return { x: cv.width * num(w.g('X'), 50) / 100 - W / 2, y: cv.height * num(w.g('Y'), 40) / 100 - H / 2, w: W, h: H };
 }
 let last = performance.now();
@@ -80,7 +84,11 @@ function draw(now) {
   requestAnimationFrame(draw);
 }
 requestAnimationFrame(draw);
-function setMode(v) { mode = String(v || '').toLowerCase() === 'zocken' ? 'zocken' : 'party'; }
+function setMode(v) {
+  const next = String(v || '').toLowerCase() === 'zocken' ? 'zocken' : 'party';
+  if (next !== mode && D.modusSound) { try { const a = new Audio(D.modusSound); a.volume = Math.min(1, num(D.modusSoundLaut, 80) / 100); a.play().catch(() => {}); } catch (e) {} }
+  mode = next;
+}
 async function poll() {
   try { if (window.Overlay && Overlay.getVariable) { const v = await Overlay.getVariable('mm_modus'); if (v) setMode(v); } } catch (e) {}
   setTimeout(poll, 800);

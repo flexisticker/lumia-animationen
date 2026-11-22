@@ -118,7 +118,7 @@ function settingsPage(bereich, title, hint) {
 // ---------- Galerie ----------
 function galerie(m) {
   m.append(h('h1', {}, 'Animationen ansehen'), h('p', { class: 'hint' }, 'Klick aufs Video = mit Ton abspielen. „Im Stream zeigen“ spielt die Animation live in der Browserquelle.'));
-  const NAMES = { geschenk: 'Geschenke', stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe' };
+  const NAMES = { geschenk: 'TikTok-Geschenke', stufe: 'TikTok-Stufen (alle anderen Geschenke)', ereignis: 'TikTok-Ereignisse', twitch: 'Twitch', knopf: 'Aktionsknöpfe' };
   for (const [g, name] of Object.entries(NAMES)) {
     const items = LIST.filter(a => a.gruppe === g); if (!items.length) continue;
     m.append(h('h2', {}, name), h('div', { class: 'anims' }, ...items.map(a => {
@@ -138,6 +138,11 @@ function test(m) {
   m.append(h('h2', {}, 'Geschenke'), h('div', { class: 'row' }, ...gifts.map(([g, c]) => h('button', { class: 'b', onclick: () => send('tiktok-gift', { giftName: g.replace(/ \(Stufe\)$/, ''), coins: c, giftAmount: 1 }) }, g))),
     h('h2', {}, 'Ereignisse'), h('div', { class: 'row' }, ...[['tiktok-follower', 'Neuer Follower'], ['tiktok-share', 'Teilen'], ['tiktok-superFan', 'Superfan'], ['tiktok-treasureChest', 'Schatzkiste'], ['tiktok-totalLikes', 'Like-Ziel'], ['tiktok-battleEnd', 'Battle-Ende']]
       .map(([a, l]) => h('button', { class: 'b', onclick: () => send(a, {}) }, l))),
+    h('h2', {}, 'Twitch'), h('div', { class: 'row' }, ...[['twitch-follower', 'Follow', {}], ['twitch-subscriber', 'Sub', { subPlan: '1000' }], ['twitch-subscriber', 'Prime-Sub', { subPlan: 'Prime' }],
+      ['twitch-subscriber', 'Resub 12 Monate', { subPlan: '1000', subMonths: 12 }], ['twitch-giftSubscription', '5 Geschenk-Subs', { giftAmount: 5, amount: 5 }],
+      ['twitch-bits', '50 Bits', { amount: 50 }], ['twitch-bits', '500 Bits', { amount: 500 }], ['twitch-bits', '2000 Bits', { amount: 2000 }], ['twitch-bits', '10000 Bits', { amount: 10000 }],
+      ['twitch-hypetrainStarted', 'Hype Train Start', {}], ['twitch-hypetrainLevelProgressed', 'Hype Train Level 3', { level: 3 }], ['twitch-hypetrainEnded', 'Hype Train Ende', { level: 4 }], ['twitch-raid', 'Raid 42', { viewers: 42 }]]
+      .map(([a, l, x]) => h('button', { class: 'b', onclick: () => send(a, x) }, l))),
     h('h2', {}, 'Likes'), h('div', { class: 'row' }, ...[10, 50, 200, 1000].map(n => h('button', { class: 'b', onclick: () => send('tiktok-like', { amount: n }) }, n + ' Likes'))));
 }
 // ---------- Browserquellen ----------

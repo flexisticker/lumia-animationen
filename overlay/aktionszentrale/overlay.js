@@ -29,7 +29,7 @@ function button(box, { id, label, ico }, extra = {}) {
 }
 
 const SCENES = [['szene:start', 'Startet gleich', '⏳'], ['szene:pause', 'Kurze Pause', '☕'], ['szene:gleich', 'Gleich weiter', '⏱️'],
-  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗']];
+  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾']];
 const sceneBox = document.getElementById('scenes');
 SCENES.forEach(([id, label, ico]) => {
   const b = button(sceneBox, { id, label, ico });
