@@ -87,13 +87,22 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
   text-shadow: 0 2px 6px rgba(0,0,0,.7); opacity: 0; transform: translateY(1vh); transition: opacity .3s, transform .3s; z-index: 30; pointer-events: none; }
 .liketag .pf { margin: 0; font-size: 1.7vh; }
 .liketag.show { opacity: 1; transform: none; }
+
+/* Start/Ende mit Spiel-Hintergrund */
+.scene-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s; }
+.scene.voll .scene-bg { opacity: 1; }
+.scene.voll { background: none; }
+.scene.voll::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(10,4,20,.25), rgba(10,4,20,.7)); }
+.scene-box { position: relative; z-index: 1; }
+.scene-spiel { display: inline-block; margin-bottom: 2.2vh; padding: .35em 1.1em; border-radius: 999px; font-size: 3.4vh; font-weight: 800; color: #fff;
+  background: linear-gradient(90deg, var(--b1), var(--b2)); box-shadow: 0 .6vh 2vh rgba(0,0,0,.45); }
 </style></head>
 <body><div id="banner" class="banner"><span id="bannerText">MichaModus</span></div>
 <canvas id="fx"></canvas>
 <video id="clip" playsinline preload="auto" crossorigin="anonymous"></video>
 <div id="cards"></div>
 <canvas id="likes"></canvas>
-<div id="scene" class="scene"><div class="scene-box"><div class="scene-title" id="sceneTitle"></div><div class="scene-sub" id="sceneSub"></div></div></div>
+<div id="scene" class="scene"><video id="sceneBg" class="scene-bg" muted loop playsinline></video><div class="scene-box"><div class="scene-spiel" id="sceneSpiel"></div><div class="scene-title" id="sceneTitle"></div><div class="scene-sub" id="sceneSub"></div></div></div>
 <div id="sp" class="sp"><div class="sp-glow"></div><iframe id="spFrame" title="StreamPrint" allow="autoplay"></iframe></div>
 
 <script>// MichaModus Studio – Verbindung der Browserquellen/Seiten zum Programm (ersetzt die Lumia-Overlay-Schnittstelle)
@@ -457,6 +466,7 @@ function handleAlert(data) {
 function handleContent(raw) {
   let c = raw; try { c = JSON.parse(raw); } catch (e) { c = { id: String(raw).trim() }; }
   if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); return; }
+  if (String(raw).startsWith('spiel:')) { try { curSpiel = JSON.parse(String(raw).slice(6)); } catch (e) {} return; }
   if (c.id === 'streamprint') { spManual = c.an === undefined ? !spManual : !!c.an; spUpdate(); return; }
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
   if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
@@ -518,12 +528,26 @@ const SCENES = {
   ende: ['szeneEnde', 'Danke & bis bald!', 'Folg MichaModus, dann verpasst du nichts', 0],
 };
 const scene = document.getElementById('scene');
-let sceneTimer = null;
+let sceneTimer = null, curSpiel = null;
+const sceneBg = document.getElementById('sceneBg'), sceneSpiel = document.getElementById('sceneSpiel');
+// Start/Ende passend zum eingestellten Spiel: eigener Text am Spiel › Vorlage mit {SPIEL}, dahinter der Spiel-Hintergrund im Vollbild
+function sceneGame(id) {
+  const sp = curSpiel && curSpiel.id !== 'standard' ? curSpiel : null;
+  const voll = (id === 'start' || id === 'ende') && sp && D.szeneSpielVollbild !== false;
+  const src = voll ? (FORMAT === 'quer' && sp.videoQuer) || sp.video || sp.videoQuer : '';
+  if (src) { if (sceneBg.getAttribute('src') !== src) sceneBg.src = src; sceneBg.play().catch(() => {}); } else { sceneBg.pause(); sceneBg.removeAttribute('src'); }
+  scene.classList.toggle('voll', !!src);
+  const zeile = !sp || !(id === 'start' || id === 'ende') ? '' : String(id === 'start' ? (D.szeneStartSpiel ?? 'Heute: {SPIEL}') : (D.szeneEndeSpiel ?? 'Danke fürs Zuschauen bei {SPIEL}!')).replace(/\{SPIEL\}/g, sp.name);
+  sceneSpiel.textContent = zeile; sceneSpiel.style.display = zeile ? '' : 'none';
+  const eigen = sp && (id === 'start' ? sp.start : id === 'ende' ? sp.ende : '');
+  return eigen || '';
+}
 function showScene(id) {
   clearTimeout(sceneTimer);
   if (id === 'aus' || !SCENES[id]) { scene.classList.remove('show'); return; }
   const [key, t, s, secs] = SCENES[id];
-  const [title, sub] = String(D[key] || (t + ' | ' + s)).split('|').map(x => x.trim());
+  const eigen = sceneGame(id);
+  const [title, sub] = String(eigen || D[key] || (t + ' | ' + s)).split('|').map(x => x.trim());
   document.getElementById('sceneTitle').textContent = title;
   const subEl = document.getElementById('sceneSub'); subEl.textContent = sub || '';
   if (!secs) { const d = document.createElement('span'); d.className = 'dots'; d.innerHTML = '<span>.</span><span>.</span><span>.</span>'; subEl.append(d); }

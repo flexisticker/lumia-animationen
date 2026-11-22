@@ -50,7 +50,8 @@ const WIN = [1, 2].map(n => {
   tag.textContent = g('Schild') || '';
   return { n, g, frame, tag, t: 0 };
 });
-function want(w) { const a = w.g('Wann') || 'aus'; return a === 'immer' || a === mode; }
+let curSpiel = null;
+function want(w) { const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
 function rect(w) {
   const W = cv.width * num(w.g('Breite'), 80) / 100;
   const fmt = { '16:9': 16 / 9, '4:3': 4 / 3, '9:16': 9 / 16, '1:1': 1 }[w.g('Format')];
@@ -109,6 +110,7 @@ poll();
 // Spiel-Hintergrund: eigenes Video je Spiel, sonst der Standard-Hintergrund für Modus 2
 const zockDefault = pick(D.zockVideo, D.zockVideoQuer);
 function setSpiel(sp) {
+  curSpiel = sp;
   const src = (sp && pick(sp.video, sp.videoQuer)) || zockDefault;
   if (src && vZ.getAttribute('src') !== src) { vZ.src = src; vZ.play().catch(() => {}); }
 }

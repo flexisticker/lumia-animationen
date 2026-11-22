@@ -85,3 +85,12 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
   text-shadow: 0 2px 6px rgba(0,0,0,.7); opacity: 0; transform: translateY(1vh); transition: opacity .3s, transform .3s; z-index: 30; pointer-events: none; }
 .liketag .pf { margin: 0; font-size: 1.7vh; }
 .liketag.show { opacity: 1; transform: none; }
+
+/* Start/Ende mit Spiel-Hintergrund */
+.scene-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .8s; }
+.scene.voll .scene-bg { opacity: 1; }
+.scene.voll { background: none; }
+.scene.voll::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(10,4,20,.25), rgba(10,4,20,.7)); }
+.scene-box { position: relative; z-index: 1; }
+.scene-spiel { display: inline-block; margin-bottom: 2.2vh; padding: .35em 1.1em; border-radius: 999px; font-size: 3.4vh; font-weight: 800; color: #fff;
+  background: linear-gradient(90deg, var(--b1), var(--b2)); box-shadow: 0 .6vh 2vh rgba(0,0,0,.45); }

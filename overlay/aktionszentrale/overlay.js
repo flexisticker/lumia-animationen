@@ -79,7 +79,7 @@ if ((window.MM_SPIELE || []).length) {
   const box = document.getElementById('spiele'); box.style.display = ''; document.getElementById('spielTitel').style.display = '';
   window.MM_SPIELE.forEach(sp => {
     const b = document.createElement('button'); b.className = 'btn' + (window.MM_MODUS === 'zocken' && sp.id === window.MM_SPIEL ? ' active' : '');
-    b.innerHTML = '<span class="ico">🎮</span><span></span>'; b.lastChild.textContent = sp.name;
+    b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = sp.ohneFenster ? '💬' : '🎮'; b.lastChild.textContent = sp.name;
     b.onclick = async () => {
       box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x === b));
       modeBox.querySelectorAll('.btn').forEach((x, i) => x.classList.toggle('active', i === 1));

@@ -92,6 +92,9 @@ add('szeneSoundLaut', { type: 'slider', label: 'Lautstärke Ansage-Sounds', valu
 for (const [k, l] of [['start', 'Startet gleich'], ['pause', 'Pause'], ['gleich', "Gleich geht's weiter"], ['weiter', "Weiter geht's"], ['ende', 'Ende']])
   add('sound_' + k, { type: 'soundupload', label: 'Sound: ' + l, value: '', accept: 'audio/mpeg,audio/ogg,audio/wav', ...vis('szenen') });
 add('szeneAbdunkeln', { type: 'checkbox', label: 'Bei Pause/Startet gleich/Ende abdunkeln', value: true, ...vis('szenen') });
+add('szeneSpielVollbild', { type: 'checkbox', label: 'Start & Ende: Hintergrund des eingestellten Spiels im Vollbild zeigen', value: true, ...vis('szenen') });
+add('szeneStartSpiel', { type: 'input', label: 'Start: Zeile zum Spiel ({SPIEL} = Name)', value: 'Heute: {SPIEL}', ...vis('szenen') });
+add('szeneEndeSpiel', { type: 'input', label: 'Ende: Zeile zum Spiel ({SPIEL} = Name)', value: 'Danke fürs Zuschauen bei {SPIEL}!', ...vis('szenen') });
 for (const [k, l, v] of [['szeneStart', 'Live startet gleich', "Live startet gleich! | Schnapp dir was zu trinken"],
   ['szenePause', 'Kurze Pause', "Kurze Pause | Bleib dran – gleich geht's weiter"], ['szeneGleich', "Gleich geht's weiter", "Gleich geht's weiter | Nicht weggehen"],
   ['szeneWeiter', "Weiter geht's", "Weiter geht's! | Schön, dass du noch da bist"], ['szeneEnde', 'Ende', 'Danke & bis bald! | Folg MichaModus, dann verpasst du nichts']])

@@ -311,6 +311,7 @@ function handleAlert(data) {
 function handleContent(raw) {
   let c = raw; try { c = JSON.parse(raw); } catch (e) { c = { id: String(raw).trim() }; }
   if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); return; }
+  if (String(raw).startsWith('spiel:')) { try { curSpiel = JSON.parse(String(raw).slice(6)); } catch (e) {} return; }
   if (c.id === 'streamprint') { spManual = c.an === undefined ? !spManual : !!c.an; spUpdate(); return; }
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
   if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
@@ -372,12 +373,26 @@ const SCENES = {
   ende: ['szeneEnde', 'Danke & bis bald!', 'Folg MichaModus, dann verpasst du nichts', 0],
 };
 const scene = document.getElementById('scene');
-let sceneTimer = null;
+let sceneTimer = null, curSpiel = null;
+const sceneBg = document.getElementById('sceneBg'), sceneSpiel = document.getElementById('sceneSpiel');
+// Start/Ende passend zum eingestellten Spiel: eigener Text am Spiel › Vorlage mit {SPIEL}, dahinter der Spiel-Hintergrund im Vollbild
+function sceneGame(id) {
+  const sp = curSpiel && curSpiel.id !== 'standard' ? curSpiel : null;
+  const voll = (id === 'start' || id === 'ende') && sp && D.szeneSpielVollbild !== false;
+  const src = voll ? (FORMAT === 'quer' && sp.videoQuer) || sp.video || sp.videoQuer : '';
+  if (src) { if (sceneBg.getAttribute('src') !== src) sceneBg.src = src; sceneBg.play().catch(() => {}); } else { sceneBg.pause(); sceneBg.removeAttribute('src'); }
+  scene.classList.toggle('voll', !!src);
+  const zeile = !sp || !(id === 'start' || id === 'ende') ? '' : String(id === 'start' ? (D.szeneStartSpiel ?? 'Heute: {SPIEL}') : (D.szeneEndeSpiel ?? 'Danke fürs Zuschauen bei {SPIEL}!')).replace(/\{SPIEL\}/g, sp.name);
+  sceneSpiel.textContent = zeile; sceneSpiel.style.display = zeile ? '' : 'none';
+  const eigen = sp && (id === 'start' ? sp.start : id === 'ende' ? sp.ende : '');
+  return eigen || '';
+}
 function showScene(id) {
   clearTimeout(sceneTimer);
   if (id === 'aus' || !SCENES[id]) { scene.classList.remove('show'); return; }
   const [key, t, s, secs] = SCENES[id];
-  const [title, sub] = String(D[key] || (t + ' | ' + s)).split('|').map(x => x.trim());
+  const eigen = sceneGame(id);
+  const [title, sub] = String(eigen || D[key] || (t + ' | ' + s)).split('|').map(x => x.trim());
   document.getElementById('sceneTitle').textContent = title;
   const subEl = document.getElementById('sceneSub'); subEl.textContent = sub || '';
   if (!secs) { const d = document.createElement('span'); d.className = 'dots'; d.innerHTML = '<span>.</span><span>.</span><span>.</span>'; subEl.append(d); }

@@ -67,15 +67,23 @@ const SPIEL_VORGABEN = [
   ['wow-forever', 'WoW Forever', 'wow-forever', 'fantasy'], ['star-citizen', 'Star Citizen', 'star-citizen', 'space'], ['skerrion', 'Skerrion', 'skerrion', 'mystisch'],
   ['retro', 'Retro-Games', 'retro', 'synthwave'], ['rpg', 'RPG (allgemein)', 'rpg', 'fantasy'], ['scifi', 'Sci-Fi (allgemein)', 'scifi', 'space'],
   ['jumprun', 'Jump & Run', 'jumprun', 'chiptune'], ['pagonia', 'Pioneers of Pagonia', 'aufbau', 'mittelalter'], ['siedler4', 'Die Siedler 4', 'aufbau', 'mittelalter'],
-  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'],
+  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'], ['talk', 'Talk-Runde', 'talk', 'chill', true],
 ];
 saved.spieleVorgaben ||= [];
-for (const [id, name, bild, musik] of SPIEL_VORGABEN) {
+for (const [id, name, bild, musik, ohneFenster] of SPIEL_VORGABEN) {
   if (saved.spieleVorgaben.includes(id)) continue;
   saved.spieleVorgaben.push(id);
   if (saved.spiele.some(x => x.id === id)) continue;
   const v = `/hintergrund/spiele/${bild}.mp4`, q = `/hintergrund/spiele/${bild}-quer.mp4`;
-  saved.spiele.push({ id, name, video: fs.existsSync(path.join(MEDIA, v)) ? v : '', videoQuer: fs.existsSync(path.join(MEDIA, q)) ? q : '', szene: '', musik });
+  saved.spiele.push({ id, name, video: fs.existsSync(path.join(MEDIA, v)) ? v : '', videoQuer: fs.existsSync(path.join(MEDIA, q)) ? q : '', szene: '', musik, ohneFenster: !!ohneFenster,
+    ...(id === 'talk' ? { start: 'Talk-Runde startet gleich! | Hol dir einen Kaffee und quatsch mit', ende: 'Danke für die Talk-Runde! | Bis zum nächsten Mal' } : {}) });
+}
+// Vorgabe-Videos, die erst später ins Image kamen (z. B. Talk-Runde), nachtragen, solange das Spiel noch keins hat
+for (const [id, , bild] of SPIEL_VORGABEN) {
+  const sp = saved.spiele.find(x => x.id === id); if (!sp) continue;
+  const v = `/hintergrund/spiele/${bild}.mp4`, q = `/hintergrund/spiele/${bild}-quer.mp4`;
+  if (!sp.video && fs.existsSync(path.join(MEDIA, v))) sp.video = v;
+  if (!sp.videoQuer && fs.existsSync(path.join(MEDIA, q))) sp.videoQuer = q;
 }
 saved.spiel ||= '';
 saved.obs ||= { host: '', port: 4455, an: false, szeneZocken: '', szeneParty: '', folgen: true, steuern: true };
@@ -189,7 +197,7 @@ function lumiaConnect() {
 }
 
 // ---------- Modus, Spiel, OBS ----------
-const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '' } : null; };
+const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, start: sp.start || '', ende: sp.ende || '' } : null; };
 // Musik: Titel + Lautstärke für alle hinteren Quellen (Lautstärke null = Wert aus den Hintergrund-Einstellungen)
 const musikInfo = () => {
   const t = saved.musik.titel, x = MUSIK.find(m => m.id === t);
@@ -412,7 +420,8 @@ const server = http.createServer(async (req, res) => {
       const b = JSON.parse((await body(req)).toString() || '{}');
       if (!Array.isArray(b.spiele)) return json(res, 400, { fehler: 'ungültig' });
       saved.spiele = b.spiele.slice(0, 50).map(x => ({ id: String(x.id || crypto.randomBytes(4).toString('hex')).replace(/[^a-z0-9-]/gi, '').slice(0, 40) || crypto.randomBytes(4).toString('hex'),
-        name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200), musik: MUSIK.some(m => m.id === x.musik) ? x.musik : '' }));
+        name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200), musik: MUSIK.some(m => m.id === x.musik) ? x.musik : '',
+        ohneFenster: !!x.ohneFenster, start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
       if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = '';
       saveSettings(); broadcast('spiele', { spiele: saved.spiele });
       if (saved.modus === 'zocken') broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
