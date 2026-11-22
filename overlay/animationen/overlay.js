@@ -96,7 +96,13 @@ const queue = [];
 let playing = null;
 
 function entryById(id) { return LIST.find(a => a.id === id); }
-function videoFor(a) { return D['v_' + a.id] || (a.datei && (D.medienAdresse || '') + a.datei) || ''; }
+// Format der Quelle: Adresse …-quer / …-hoch (bzw. ?format=), sonst nach Fenstergröße
+const FORMAT = /-quer\b|format=quer/.test(location.pathname + location.search) ? 'quer' : /-hoch\b|format=hoch/.test(location.pathname + location.search) ? 'hoch' : (innerWidth > innerHeight ? 'quer' : 'hoch');
+function videoFor(a) {
+  const m = D.medienAdresse || '';
+  if (FORMAT === 'quer') { if (D['vq_' + a.id]) return D['vq_' + a.id]; if (!D['v_' + a.id] && a.quer) return m + a.quer; }
+  return D['v_' + a.id] || (a.datei && m + a.datei) || '';
+}
 function enabled(a) { return on('an_' + a.id, true); }
 
 function enqueue(item) {

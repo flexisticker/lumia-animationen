@@ -7,8 +7,8 @@ TikTok LIVE Studio. Lumia Stream liefert nur die TikTok-Ereignisse (Geschenke, L
 |---|---|
 | `/studio` | Verwaltung: alle Einstellungen, Animationen ansehen, eigene Videos hochladen, Lumia-Verbindung, Testen |
 | `/aktion` | Tablet-Steuerung: Kanal, Modus (Party/Zocken bzw. Werkstatt/Zocken), Ansagen, Gimmicks, Like-Fontäne, Tests |
-| `/quelle/hinten` | Browserquelle hinter dir: Hintergrund (2 Modi), Musik, Fenster 1 + 2 für Spiel / Drucker-Kamera |
-| `/quelle/vorne` | Browserquelle vor dir: 37 Animationen, Spendername, Banner + Slogans, Like-Fontäne, Ansagen |
+| `/quelle/hinten-hoch`, `/quelle/hinten-quer` | Browserquelle hinter dir: Hintergrund (2 Modi), Musik, Fenster 1 + 2 für Spiel / Drucker-Kamera |
+| `/quelle/vorne-hoch`, `/quelle/vorne-quer` | Browserquelle vor dir (hoch 1080×1920 / quer 1920×1080, jede mit eigenen Videos): 37 Animationen, Spendername, Banner + Slogans, Like-Fontäne, Ansagen |
 
 ## Unraid
 
@@ -32,9 +32,9 @@ Ausweichweg: Ereignisse per HTTP an `POST /api/ereignis` (Kopf `X-MM: 1`, Lumia-
 ## OBS-Reihenfolge (von unten nach oben)
 
 1. Spielaufnahme und/oder Drucker-Kamera (sichtbar durch Fenster 1/2)
-2. `/quelle/hinten` (1080 × 1920)
+2. `/quelle/hinten-hoch` (1080 × 1920) bzw. `/quelle/hinten-quer` (1920 × 1080)
 3. Deine Kamera, freigestellt
-4. `/quelle/vorne` (1080 × 1920) – „Audio über OBS steuern“ an
+4. `/quelle/vorne-hoch` (1080 × 1920) bzw. `/quelle/vorne-quer` (1920 × 1080) – „Audio über OBS steuern“ an
 
 ## Entwicklung
 

@@ -29,7 +29,7 @@ const PRESETS = {
   michamodus: { name: 'MichaModus', vorne: {}, hinten: {}, aktion: { titel: 'MichaModus · Steuerung' } },
   '3dbymicha': { name: '3dbymicha',
     vorne: { bannerText: '3dbymicha', slogans: ['Werde Teil von 3dbymicha!', 'Live aus der Druckwerkstatt 🖨️', 'Folgen & zusehen, wie es entsteht',
-      'Like-Herzen an – wir drucken weiter!', 'Wünsch dir ein Modell im Chat 💬', 'Jede Rose zählt 🌹', 'Neu hier? Sag Hallo 👋'].join('\n'),
+      'Like-Herzen an – wir drucken weiter!', 'Hier wird gedruckt, getüftelt & gelacht 😄', 'Wünsch dir ein Modell im Chat 💬', 'Jede Rose zählt 🌹', 'Neu hier? Sag Hallo 👋'].join('\n'),
       bannerFarbe1: '#ff7a00', bannerFarbe2: '#00c2ff', bannerFarbe3: '#ffd54f' },
     hinten: { video: '/hintergrund/werkstatt.mp4', videoQuer: '/hintergrund/werkstatt-quer.mp4', f2Wann: 'immer', f1Y: 56, f1Hoehe: 30 },
     aktion: { titel: '3dbymicha · Steuerung', modus1Name: 'Werkstatt', modus2Name: 'Zockmodus' } },
@@ -55,6 +55,8 @@ saved.modus ||= 'party';
 saved.spiele ||= [{ id: 'standard', name: 'Allgemein', video: '', videoQuer: '', szene: '' }];
 saved.spiel ||= '';
 saved.obs ||= { host: '', port: 4455, an: false, szeneZocken: '', szeneParty: '', folgen: true, steuern: true };
+// Slogan-Korrektur 22.11.2026: MichaModus = Gaming & Spaß, Drucken gehört zu 3dbymicha
+for (const p of Object.keys(saved.profile)) { const v = saved.profile[p].vorne; if (v && typeof v.slogans === 'string') v.slogans = v.slogans.replace('Hier wird gedruckt, gelacht & gefeiert', p === '3dbymicha' ? 'Hier wird gedruckt, getüftelt & gelacht 😄' : 'Hier wird gezockt, gelacht & gefeiert 🎮'); }
 let secret = readJson(SECRET_FILE, {});
 const cur = () => saved.profile[saved.profil];
 const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), ...saved.profile[profil][k] });
@@ -238,7 +240,8 @@ function body(req, limit = 1e6) {
 }
 const json = (res, code, v) => { res.writeHead(code, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }); res.end(JSON.stringify(v)); };
 const ROLES = ['vorne', 'hinten', 'studio', 'aktion'];
-const PAGES = { '/': 'studio/index.html', '/studio': 'studio/index.html', '/aktion': 'aktion/index.html', '/quelle/vorne': 'quelle/vorne.html', '/quelle/hinten': 'quelle/hinten.html' };
+const PAGES = { '/': 'studio/index.html', '/studio': 'studio/index.html', '/aktion': 'aktion/index.html', '/quelle/vorne': 'quelle/vorne.html', '/quelle/hinten': 'quelle/hinten.html',
+  '/quelle/vorne-hoch': 'quelle/vorne.html', '/quelle/hinten-hoch': 'quelle/hinten.html', '/quelle/vorne-quer': 'quelle/vorne.html', '/quelle/hinten-quer': 'quelle/hinten.html' };
 const UPLOAD_EXT = /^\.(mp4|webm|mp3|ogg|wav|png|jpg)$/i;
 
 const server = http.createServer(async (req, res) => {

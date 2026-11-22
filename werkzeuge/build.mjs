@@ -17,11 +17,11 @@ const LABEL = {
 const ICON = { airhorn: '📯', torjubel: '⚽', trommelwirbel: '🥁', applaus: '👏', konfetti: '🎉', verlosung: '🎡', fanfare: '🎺',
   lacher: '😂', wow: '🤩', rimshot: '🥁', herzregen: '💖', partyalarm: '🚨' };
 const available = new Set(fs.readdirSync(R + 'medien/animationen').map(f => f.replace(/\.mp4$/, '')));
-const items = list.filter(a => available.has(a.id)).map(a => ({ ...a, label: LABEL[a.id] || a.label || a.id, datei: a.id + '.mp4' }));
+const items = list.filter(a => available.has(a.id)).map(a => ({ ...a, label: LABEL[a.id] || a.label || a.id, datei: a.id + '.mp4', ...(available.has(a.id + '-quer') ? { quer: a.id + '-quer.mp4' } : {}) }));
 
 const SLOGANS = [
   'Werde Teil von MichaModus!', 'Folgen & dabei sein 💜', 'Like-Herzen an – wir wollen das Ziel!',
-  'Teilen = Liebe zeigen 🔁', 'Willkommen im MichaModus!', 'Hier wird gedruckt, gelacht & gefeiert',
+  'Teilen = Liebe zeigen 🔁', 'Willkommen im MichaModus!', 'Hier wird gezockt, gelacht & gefeiert 🎮',
   'Neu hier? Sag Hallo im Chat 👋', 'Jede Rose zählt 🌹', 'MichaModus – einmal drin, nie mehr raus',
 ];
 
@@ -98,12 +98,13 @@ add('twBitsGross', { type: 'number', label: 'Bits: Stufe groß ab', value: 1000,
 add('twBitsEpisch', { type: 'number', label: 'Bits: Stufe episch ab', value: 5000, ...vis('twitch') });
 for (const a of items) {
   add('an_' + a.id, { type: 'checkbox', label: `${a.label}: an`, value: true, ...vis(a.gruppe) });
-  add('v_' + a.id, { type: 'videoupload', label: `${a.label}: eigenes Video`, value: '', accept: 'video/mp4,video/webm', ...vis(a.gruppe) });
+  add('v_' + a.id, { type: 'videoupload', label: `${a.label}: eigenes Video${a.quer ? ' (hochkant)' : ''}`, value: '', accept: 'video/mp4,video/webm', ...vis(a.gruppe) });
+  if (a.quer) add('vq_' + a.id, { type: 'videoupload', label: `${a.label}: eigenes Video (quer 16:9)`, value: '', accept: 'video/mp4,video/webm', ...vis(a.gruppe) });
   add('l_' + a.id, { type: 'slider', label: `${a.label}: Lautstärke`, value: 100, options: { min: 0, max: 150, step: 5, suffix: '%' }, ...vis(a.gruppe) });
   if (a.gruppe === 'stufe') add('ab_' + a.id, { type: 'number', label: `${a.label}: ab … Münzen`, value: a.ab, ...vis('stufe') });
 }
 const data = Object.fromEntries(Object.entries(cfg).map(([k, f]) => [k, f.value ?? '']));
-const mmList = items.map(({ id, gruppe, match, ab, datei, label }) => ({ id, gruppe, match, ab, datei, label }));
+const mmList = items.map(({ id, gruppe, match, ab, datei, quer, label }) => ({ id, gruppe, match, ab, datei, quer, label }));
 
 const out = R + 'lumia/';
 fs.mkdirSync(out + 'animationen', { recursive: true });

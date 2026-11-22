@@ -94,7 +94,7 @@ function control(bereich, key, f) {
 }
 function mediaControl(bereich, key, f, v) {
   const isVideo = f.type === 'videoupload';
-  const fallback = bereich === 'vorne' && key.startsWith('v_') ? S.vorne.medienAdresse + key.slice(2) + '.mp4' : '';
+  const fallback = bereich !== 'vorne' ? '' : key.startsWith('vq_') ? S.vorne.medienAdresse + key.slice(3) + '-quer.mp4' : key.startsWith('v_') ? S.vorne.medienAdresse + key.slice(2) + '.mp4' : '';
   const src = v || fallback;
   const prev = isVideo && src ? h('video', { src, muted: '', preload: 'metadata', onclick: e => { e.target.muted = !e.target.muted; e.target.currentTime = 0; e.target.play(); } }) : null;
   const file = h('input', { type: 'file', accept: f.accept || (isVideo ? 'video/*' : 'audio/*'), style: 'display:none' });
@@ -179,13 +179,15 @@ function spielePage(m) {
   draw();
 }
 // ---------- Galerie ----------
+let galQuer = false;
 function galerie(m) {
-  m.append(h('h1', {}, 'Animationen ansehen'), h('p', { class: 'hint' }, 'Klick aufs Video = mit Ton abspielen. „Im Stream zeigen“ spielt die Animation live in der Browserquelle.'));
+  const umsch = h('div', { class: 'tabs row' }, h('button', { class: 'b' + (galQuer ? '' : ' on'), onclick: () => { galQuer = false; render(); } }, 'Hochkant 9:16'), h('button', { class: 'b' + (galQuer ? ' on' : ''), onclick: () => { galQuer = true; render(); } }, 'Quer 16:9'));
+  m.append(h('h1', {}, 'Animationen ansehen'), h('p', { class: 'hint' }, 'Klick aufs Video = mit Ton abspielen. „Im Stream zeigen“ spielt die Animation live in allen Browserquellen (hochkant und quer, jede in ihrem Format).'), umsch);
   const NAMES = { geschenk: 'TikTok-Geschenke', stufe: 'TikTok-Stufen (alle anderen Geschenke)', ereignis: 'TikTok-Ereignisse', twitch: 'Twitch', knopf: 'Aktionsknöpfe' };
   for (const [g, name] of Object.entries(NAMES)) {
     const items = LIST.filter(a => a.gruppe === g); if (!items.length) continue;
     m.append(h('h2', {}, name), h('div', { class: 'anims' }, ...items.map(a => {
-      const src = S.vorne['v_' + a.id] || S.vorne.medienAdresse + a.datei;
+      const src = (galQuer && (S.vorne['vq_' + a.id] || (!S.vorne['v_' + a.id] && a.quer && S.vorne.medienAdresse + a.quer))) || S.vorne['v_' + a.id] || S.vorne.medienAdresse + a.datei;
       return h('div', { class: 'anim' }, h('video', { src, preload: 'metadata', muted: '', onclick: e => { e.target.muted = false; e.target.currentTime = 0; e.target.play(); } }),
         h('div', { class: 'm' }, h('b', {}, a.label + (S.vorne['an_' + a.id] === false ? ' (aus)' : '')), h('button', { class: 'b', onclick: () => post('/api/aktion', { id: a.id, label: a.label, name: 'Test' }) }, 'Im Stream zeigen')));
     })));
@@ -213,11 +215,13 @@ function quellen(m) {
   const o = location.origin;
   const copyRow = (label, url, text) => h('div', { class: 'card' }, h('b', {}, label), h('p', { class: 'hint' }, text),
     h('div', { class: 'copy' }, h('code', {}, url), h('button', { class: 'b', onclick: e => copy(url, e.target) }, 'Kopieren')));
-  m.append(h('h1', {}, 'Browserquellen für OBS / TikTok LIVE Studio'), h('p', { class: 'hint' }, 'Einmal einrichten, danach steuerst du alles hier und am Tablet. Größe der Quellen: 1080 × 1920.'),
+  m.append(h('h1', {}, 'Browserquellen für OBS / TikTok LIVE Studio'), h('p', { class: 'hint' }, 'Einmal einrichten, danach steuerst du alles hier und am Tablet. Hochkant (TikTok): Quellen in 1080 × 1920. Quer (Twitch): die …-quer-Adressen in 1920 × 1080 – dort kommen die 16:9-Animationen und Hintergründe. Beide Formate laufen gleichzeitig, jeder Alert erscheint in allen Quellen.'),
     copyRow('0. Ganz unten: Spielaufnahme und/oder Drucker-Kamera', '–', 'Als normale OBS-Quellen (Spielaufnahme, Videoaufnahmegerät, Medienquelle/RTSP). Sie sind durch Fenster 1 und 2 sichtbar – Lage und Größe stellst du unter „Hintergrund & Kameras“ ein und schiebst die Quelle in OBS passend darunter.'),
-    copyRow('1. Hinten', o + '/quelle/hinten', 'Hintergrund (beide Modi), Musik und die Fenster für Spiel und Kamera.'),
+    copyRow('1. Hinten – hochkant (1080 × 1920)', o + '/quelle/hinten-hoch', 'Hintergrund (beide Modi), Musik und die Fenster für Spiel und Kamera.'),
+    copyRow('1. Hinten – quer (1920 × 1080)', o + '/quelle/hinten-quer', 'Dasselbe im Querformat für Twitch.'),
     copyRow('2. Deine Kamera (freigestellt)', '–', 'Deine Kamera mit Hintergrund-Entfernung kommt zwischen die beiden Quellen.'),
-    copyRow('3. Vorne (ganz oben)', o + '/quelle/vorne', 'Animationen, Spendername, Banner, Like-Fontäne, Ansagen.'),
+    copyRow('3. Vorne – hochkant (1080 × 1920)', o + '/quelle/vorne-hoch', 'Animationen, Spendername, Banner, Like-Fontäne, Ansagen.'),
+    copyRow('3. Vorne – quer (1920 × 1080)', o + '/quelle/vorne-quer', 'Dieselben Alerts als 16:9-Animationen für Twitch.'),
     copyRow('Tablet-Steuerung', o + '/aktion', 'Auf dem Tablet öffnen und „Zum Startbildschirm hinzufügen“.'),
     h('div', { class: 'card' }, h('b', {}, 'Wichtig in OBS'), h('ul', {}, h('li', {}, '„Audio über OBS steuern“ anhaken, damit Sounds und Musik im Stream landen.'), h('li', {}, '„Quelle herunterfahren, wenn nicht sichtbar“ AUS lassen.'))));
 }

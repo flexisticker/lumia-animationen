@@ -6,7 +6,7 @@ const num = (x, d) => (x === '' || x == null || isNaN(Number(x)) ? d : Number(x)
 const vP = document.getElementById('bgParty'), vZ = document.getElementById('bgZock');
 const cv = document.getElementById('stage'), cx = cv.getContext('2d');
 const m = document.getElementById('music');
-const QUER = innerWidth > innerHeight;
+const QUER = /-quer\b|format=quer/.test(location.pathname + location.search) ? true : /-hoch\b|format=hoch/.test(location.pathname + location.search) ? false : innerWidth > innerHeight;
 const pick = (hoch, quer) => (QUER && quer ? quer : hoch);
 if (D.videoAn !== false && pick(D.video, D.videoQuer)) { vP.src = pick(D.video, D.videoQuer); vP.play().catch(() => {}); }
 if (pick(D.zockVideo, D.zockVideoQuer)) { vZ.src = pick(D.zockVideo, D.zockVideoQuer); vZ.play().catch(() => {}); }
