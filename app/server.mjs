@@ -371,7 +371,8 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/events') {
       const role = ROLES.includes(url.searchParams.get('rolle')) ? url.searchParams.get('rolle') : 'studio';
       res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive', 'x-accel-buffering': 'no' });
-      const c = { res, role }; clients.add(c); req.on('close', () => clients.delete(c));
+      const c = { res, role, format: ['hoch', 'quer'].includes(url.searchParams.get('format')) ? url.searchParams.get('format') : '', pfad: String(url.searchParams.get('pfad') || '').slice(0, 60),
+        groesse: (Number(url.searchParams.get('w')) || 0) + '×' + (Number(url.searchParams.get('h')) || 0) }; clients.add(c); req.on('close', () => clients.delete(c));
       res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo() })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
@@ -379,7 +380,8 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
       kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, musik: musikInfo(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, tts: { ...saved.tts, schluessel: !!secret.elevenlabsKey }, status: lumia, log,
-      quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}) });
+      quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}),
+      quellenListe: [...clients].filter(c => c.role === 'vorne' || c.role === 'hinten').map(c => ({ rolle: c.role, format: c.format, pfad: c.pfad, groesse: c.groesse })) });
     if (p === '/api/settings' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       for (const k of ['vorne', 'hinten', 'aktion']) if (b[k] && typeof b[k] === 'object') {

@@ -5,8 +5,10 @@
   "value": "bild",
   "options": {
    "bild": "Hintergrund & Musik",
-   "f1": "Fenster 1 (z. B. Spiel)",
-   "f2": "Fenster 2 (z. B. Drucker-Kamera)"
+   "f1": "Spielfenster – TikTok (hochkant)",
+   "f1q": "Spielfenster – Twitch (quer)",
+   "f2": "Fenster 2 – hochkant",
+   "f2q": "Fenster 2 – quer"
   },
   "order": 1
  },
@@ -169,7 +171,7 @@
  },
  "f1Wann": {
   "type": "dropdown",
-  "label": "Hochkant: Fenster zeigen",
+  "label": "Fenster zeigen",
   "value": "zocken",
   "options": {
    "aus": "aus",
@@ -187,7 +189,7 @@
  },
  "f1X": {
   "type": "slider",
-  "label": "Hochkant: Mitte waagrecht",
+  "label": "Mitte waagrecht",
   "value": 50,
   "options": {
    "min": 0,
@@ -205,7 +207,7 @@
  },
  "f1Y": {
   "type": "slider",
-  "label": "Hochkant: Mitte senkrecht",
+  "label": "Mitte senkrecht",
   "value": 40,
   "options": {
    "min": 0,
@@ -223,7 +225,7 @@
  },
  "f1Breite": {
   "type": "slider",
-  "label": "Hochkant: Breite",
+  "label": "Breite",
   "value": 84,
   "options": {
    "min": 5,
@@ -241,7 +243,7 @@
  },
  "f1Hoehe": {
   "type": "slider",
-  "label": "Hochkant: Höhe",
+  "label": "Höhe",
   "value": 34,
   "options": {
    "min": 5,
@@ -270,7 +272,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1",
+    "f1q"
    ]
   },
   "order": 17
@@ -282,7 +285,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1",
+    "f1q"
    ]
   },
   "order": 18
@@ -294,7 +298,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1",
+    "f1q"
    ]
   },
   "order": 19
@@ -306,7 +311,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1",
+    "f1q"
    ]
   },
   "order": 20
@@ -318,7 +324,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1",
+    "f1q"
    ]
   },
   "order": 21
@@ -330,14 +337,15 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1",
+    "f1q"
    ]
   },
   "order": 22
  },
  "f2Wann": {
   "type": "dropdown",
-  "label": "Hochkant: Fenster zeigen",
+  "label": "Fenster zeigen",
   "value": "aus",
   "options": {
    "aus": "aus",
@@ -355,7 +363,7 @@
  },
  "f2X": {
   "type": "slider",
-  "label": "Hochkant: Mitte waagrecht",
+  "label": "Mitte waagrecht",
   "value": 72,
   "options": {
    "min": 0,
@@ -373,7 +381,7 @@
  },
  "f2Y": {
   "type": "slider",
-  "label": "Hochkant: Mitte senkrecht",
+  "label": "Mitte senkrecht",
   "value": 22,
   "options": {
    "min": 0,
@@ -391,7 +399,7 @@
  },
  "f2Breite": {
   "type": "slider",
-  "label": "Hochkant: Breite",
+  "label": "Breite",
   "value": 46,
   "options": {
    "min": 5,
@@ -409,7 +417,7 @@
  },
  "f2Hoehe": {
   "type": "slider",
-  "label": "Hochkant: Höhe",
+  "label": "Höhe",
   "value": 22,
   "options": {
    "min": 5,
@@ -438,7 +446,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2",
+    "f2q"
    ]
   },
   "order": 28
@@ -450,7 +459,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2",
+    "f2q"
    ]
   },
   "order": 29
@@ -462,7 +472,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2",
+    "f2q"
    ]
   },
   "order": 30
@@ -474,7 +485,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2",
+    "f2q"
    ]
   },
   "order": 31
@@ -486,7 +498,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2",
+    "f2q"
    ]
   },
   "order": 32
@@ -498,7 +511,8 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2",
+    "f2q"
    ]
   },
   "order": 33
@@ -532,7 +546,7 @@
  "f1Format": {
   "order": 15.5,
   "type": "dropdown",
-  "label": "Hochkant: Format (fest = Höhe ergibt sich aus der Breite)",
+  "label": "Format (fest = Höhe ergibt sich aus der Breite)",
   "value": "frei",
   "options": {
    "frei": "frei (Höhe-Regler)",
@@ -550,19 +564,19 @@
  },
  "f1QuerEigen": {
   "type": "checkbox",
-  "label": "Querformat (Twitch/16:9-Quelle): eigene Lage & Größe",
+  "label": "Eigene Lage & Größe fürs Querformat (aus = wie hochkant)",
   "value": true,
   "order": 23.0,
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1q"
    ]
   }
  },
  "f1QWann": {
   "type": "dropdown",
-  "label": "Quer: Fenster zeigen",
+  "label": "Fenster zeigen",
   "value": "zocken",
   "options": {
    "aus": "aus",
@@ -573,14 +587,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1q"
    ]
   },
   "order": 23.01
  },
  "f1QX": {
   "type": "slider",
-  "label": "Quer: Mitte waagrecht",
+  "label": "Mitte waagrecht",
   "value": 50,
   "options": {
    "min": 0,
@@ -591,14 +605,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1q"
    ]
   },
   "order": 23.02
  },
  "f1QY": {
   "type": "slider",
-  "label": "Quer: Mitte senkrecht",
+  "label": "Mitte senkrecht",
   "value": 50,
   "options": {
    "min": 0,
@@ -609,14 +623,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1q"
    ]
   },
   "order": 23.03
  },
  "f1QBreite": {
   "type": "slider",
-  "label": "Quer: Breite",
+  "label": "Breite",
   "value": 72,
   "options": {
    "min": 5,
@@ -627,14 +641,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1q"
    ]
   },
   "order": 23.04
  },
  "f1QHoehe": {
   "type": "slider",
-  "label": "Quer: Höhe",
+  "label": "Höhe",
   "value": 60,
   "options": {
    "min": 5,
@@ -645,7 +659,7 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1q"
    ]
   },
   "order": 23.05
@@ -653,7 +667,7 @@
  "f1QFormat": {
   "order": 23.06,
   "type": "dropdown",
-  "label": "Quer: Format",
+  "label": "Format",
   "value": "16:9",
   "options": {
    "frei": "frei (Höhe-Regler)",
@@ -665,14 +679,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f1"
+    "f1q"
    ]
   }
  },
  "f2Format": {
   "order": 26.5,
   "type": "dropdown",
-  "label": "Hochkant: Format (fest = Höhe ergibt sich aus der Breite)",
+  "label": "Format (fest = Höhe ergibt sich aus der Breite)",
   "value": "frei",
   "options": {
    "frei": "frei (Höhe-Regler)",
@@ -690,19 +704,19 @@
  },
  "f2QuerEigen": {
   "type": "checkbox",
-  "label": "Querformat (Twitch/16:9-Quelle): eigene Lage & Größe",
+  "label": "Eigene Lage & Größe fürs Querformat (aus = wie hochkant)",
   "value": true,
   "order": 34.0,
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2q"
    ]
   }
  },
  "f2QWann": {
   "type": "dropdown",
-  "label": "Quer: Fenster zeigen",
+  "label": "Fenster zeigen",
   "value": "aus",
   "options": {
    "aus": "aus",
@@ -713,14 +727,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2q"
    ]
   },
   "order": 34.01
  },
  "f2QX": {
   "type": "slider",
-  "label": "Quer: Mitte waagrecht",
+  "label": "Mitte waagrecht",
   "value": 50,
   "options": {
    "min": 0,
@@ -731,14 +745,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2q"
    ]
   },
   "order": 34.02
  },
  "f2QY": {
   "type": "slider",
-  "label": "Quer: Mitte senkrecht",
+  "label": "Mitte senkrecht",
   "value": 80,
   "options": {
    "min": 0,
@@ -749,14 +763,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2q"
    ]
   },
   "order": 34.03
  },
  "f2QBreite": {
   "type": "slider",
-  "label": "Quer: Breite",
+  "label": "Breite",
   "value": 22,
   "options": {
    "min": 5,
@@ -767,14 +781,14 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2q"
    ]
   },
   "order": 34.04
  },
  "f2QHoehe": {
   "type": "slider",
-  "label": "Quer: Höhe",
+  "label": "Höhe",
   "value": 22,
   "options": {
    "min": 5,
@@ -785,7 +799,7 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2q"
    ]
   },
   "order": 34.05
@@ -793,7 +807,7 @@
  "f2QFormat": {
   "order": 34.06,
   "type": "dropdown",
-  "label": "Quer: Format",
+  "label": "Format",
   "value": "frei",
   "options": {
    "frei": "frei (Höhe-Regler)",
@@ -805,7 +819,7 @@
   "visibleIf": {
    "key": "bereich",
    "equals": [
-    "f2"
+    "f2q"
    ]
   }
  },

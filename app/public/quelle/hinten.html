@@ -59,7 +59,8 @@ video { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: no
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {
-      const es = new EventSource('/api/events?rolle=' + ROLE);
+      const fmt = /-quer\b/.test(location.pathname) ? 'quer' : /-hoch\b/.test(location.pathname) ? 'hoch' : (innerWidth > innerHeight ? 'quer' : 'hoch');
+      const es = new EventSource('/api/events?rolle=' + ROLE + '&format=' + fmt + '&pfad=' + encodeURIComponent(location.pathname) + '&w=' + innerWidth + '&h=' + innerHeight);
       const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
       const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
       es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); });

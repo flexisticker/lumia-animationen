@@ -140,6 +140,17 @@ function mediaControl(bereich, key, f, v) {
 function settingsPage(bereich, title, hint) {
   const m = $('#main'); const schema = SCHEMA[bereich];
   m.append(h('h1', {}, title), h('p', { class: 'hint' }, hint, ' Änderungen gelten sofort in der Browserquelle.'));
+  if (bereich === 'hinten' || bereich === 'vorne') {
+    // Welche Browserquellen sind gerade verbunden – und in welchem Format? (Hochkant = TikTok, Quer = Twitch)
+    const ql = (S.quellenListe || []).filter(q => q.rolle === bereich);
+    const hoch = ql.filter(q => q.format === 'hoch').length, quer = ql.filter(q => q.format === 'quer').length;
+    const o = location.origin;
+    m.append(h('div', { class: 'card' }, h('b', {}, 'Verbundene Quellen „' + bereich + '“: '),
+      h('span', { class: 'pill ' + (hoch ? 'ok' : '') }, 'Hochkant (TikTok): ' + hoch), ' ', h('span', { class: 'pill ' + (quer ? 'ok' : '') }, 'Quer (Twitch): ' + quer),
+      ...ql.map(q => h('div', { class: 'hint' }, '• ' + q.pfad + ' – ' + q.groesse + ' → ' + (q.format === 'quer' ? 'Quer' : 'Hochkant'))),
+      h('p', { class: 'hint' }, 'TikTok-Quelle in OBS/LIVE Studio: ', h('code', {}, o + '/quelle/' + bereich + '-hoch'), ' · Twitch-Quelle: ', h('code', {}, o + '/quelle/' + bereich + '-quer'),
+        '. Nur so bekommen beide Quellen ihre eigenen Einstellungen.')));
+  }
   const groupField = schema.bereich;
   let fields = Object.entries(schema).filter(([k]) => k !== 'bereich').sort((a, b) => (a[1].order || 0) - (b[1].order || 0));
   if (groupField) {
