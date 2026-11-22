@@ -75,3 +75,18 @@ if ((window.MM_PROFILE || []).length > 1) {
     kb.append(b);
   });
 }
+
+// Spiel wählen (Live-Studio): schaltet Zockmodus, OBS-Szene und Spiel-Hintergrund
+if ((window.MM_SPIELE || []).length) {
+  const box = document.getElementById('spiele'); box.style.display = ''; document.getElementById('spielTitel').style.display = '';
+  window.MM_SPIELE.forEach(sp => {
+    const b = document.createElement('button'); b.className = 'btn' + (window.MM_MODUS === 'zocken' && sp.id === window.MM_SPIEL ? ' active' : '');
+    b.innerHTML = '<span class="ico">🎮</span><span></span>'; b.lastChild.textContent = sp.name;
+    b.onclick = async () => {
+      box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x === b));
+      modeBox.querySelectorAll('.btn').forEach((x, i) => x.classList.toggle('active', i === 1));
+      try { await Overlay.setVariable('mm_spiel', sp.id); setStatus('Zocke: ' + sp.name, 'ok'); } catch (e) { setStatus('Fehler beim Umschalten', 'err'); }
+    };
+    box.append(b);
+  });
+}

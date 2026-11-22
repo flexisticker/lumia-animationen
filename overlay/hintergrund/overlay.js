@@ -94,5 +94,15 @@ async function poll() {
   setTimeout(poll, 800);
 }
 poll();
-if (window.Overlay) Overlay.on('overlaycontent', d => { const c = String(d.content || ''); if (c.startsWith('modus:')) setMode(c.slice(6)); });
+// Spiel-Hintergrund: eigenes Video je Spiel, sonst der Standard-Hintergrund für Modus 2
+const zockDefault = pick(D.zockVideo, D.zockVideoQuer);
+function setSpiel(sp) {
+  const src = (sp && pick(sp.video, sp.videoQuer)) || zockDefault;
+  if (src && vZ.getAttribute('src') !== src) { vZ.src = src; vZ.play().catch(() => {}); }
+}
+if (window.Overlay) Overlay.on('overlaycontent', d => {
+  const c = String(d.content || '');
+  if (c.startsWith('modus:')) setMode(c.slice(6));
+  if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
+});
 window.MMBG = { setMode };

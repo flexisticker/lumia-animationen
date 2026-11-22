@@ -13,7 +13,7 @@ async function load() {
 }
 const PAGES = [
   ['start', 'Übersicht'], ['lumia', 'Lumia-Verbindung'], ['vorne', 'Animationen & Einblendungen'], ['galerie', 'Animationen ansehen'],
-  ['hinten', 'Hintergrund & Kameras'], ['aktion', 'Tablet-Steuerung'], ['test', 'Testen'], ['quellen', 'Browserquellen für OBS'],
+  ['hinten', 'Hintergrund & Kameras'], ['spiele', 'Spiele & OBS'], ['aktion', 'Tablet-Steuerung'], ['test', 'Testen'], ['quellen', 'Browserquellen für OBS'],
 ];
 function renderNav() {
   const nav = $('#nav'); nav.innerHTML = '';
@@ -31,7 +31,7 @@ function render() {
   const m = $('#main'); m.innerHTML = '';
   ({ start, lumia: lumiaPage, vorne: () => settingsPage('vorne', 'Animationen & Einblendungen', 'Alles, was vor dir im Bild erscheint.'),
     galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik und bis zu zwei Fenster (z. B. Spiel und Drucker-Kamera), durch die man die OBS-Quelle darunter sieht.'),
-    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen }[page.id] || start)(m);
+    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage }[page.id] || start)(m);
 }
 // ---------- Übersicht ----------
 function start(m) {
@@ -118,6 +118,66 @@ function settingsPage(bereich, title, hint) {
   const card = h('div', { class: 'card' }); for (const [k, f] of fields) card.append(field(f.label, control(bereich, k, f)));
   m.append(card, h('div', { class: 'row' }, h('button', { class: 'b', onclick: async () => { if (confirm('Alle Einstellungen dieses Bereichs auf Standard zurücksetzen?')) { await post('/api/settings', { reset: bereich }); await reload(); } } }, 'Alles auf Standard')));
 }
+// ---------- Spiele & OBS ----------
+function obsStatusPill(st) {
+  const map = { verbunden: ['ok', 'verbunden'], verbinde: ['warn', 'verbinde …'], getrennt: ['err', 'getrennt'], fehler: ['err', 'Fehler'], aus: ['', 'aus'] };
+  const [c, t] = map[(st || {}).status] || ['', '?']; return h('span', { class: 'pill ' + c }, 'OBS: ' + t + (st && st.aktuell ? ' · Szene „' + st.aktuell + '“' : ''));
+}
+function sceneSelect(value, onchange, leer) {
+  const sel = h('select', { onchange: e => onchange(e.target.value) });
+  sel.append(h('option', { value: '' }, leer));
+  const list = [...new Set([...(S.obsStatus.szenen || []), value].filter(Boolean))];
+  for (const n of list) { const o = h('option', { value: n }, n); if (n === value) o.selected = true; sel.append(o); }
+  return sel;
+}
+function spielePage(m) {
+  const O = { ...S.obs };
+  m.append(h('h1', {}, 'Spiele & OBS'), h('p', { class: 'hint' }, 'OBS-Szene wechseln = Modus wechselt automatisch. Spiel am Tablet wählen = OBS springt in die Gaming-Szene und der passende Hintergrund läuft.'));
+  const host = h('input', { type: 'text', value: O.host || '', placeholder: 'IP des Stream-PCs, z. B. 192.168.175.20' });
+  const port = h('input', { type: 'number', value: O.port || 4455 });
+  const pw = h('input', { type: 'password', placeholder: O.passwort ? '•••••••• (gespeichert – nur zum Ändern ausfüllen)' : 'Passwort aus OBS' });
+  const an = h('input', { type: 'checkbox' }); an.checked = !!O.an;
+  const folgen = h('input', { type: 'checkbox' }); folgen.checked = O.folgen !== false;
+  const steuern = h('input', { type: 'checkbox' }); steuern.checked = O.steuern !== false;
+  let sz = O.szeneZocken || '', sp = O.szeneParty || '';
+  m.append(h('h2', {}, 'OBS-Verbindung'), h('div', { class: 'card' },
+    field('Verbindung an', an), field('IP-Adresse des Stream-PCs', host), field('Port', port), field('Passwort', pw),
+    field('Gaming-Szene (Modus 2)', sceneSelect(sz, v => (sz = v), '– keine –')),
+    field('Normale Szene (Modus 1)', sceneSelect(sp, v => (sp = v), '– keine –')),
+    field('OBS-Szene schaltet den Modus', folgen), field('Modus/Spiel schaltet die OBS-Szene', steuern),
+    h('div', { class: 'row', style: 'margin-top:12px' }, h('button', { class: 'b p', onclick: async () => {
+      await post('/api/obs', { host: host.value, port: port.value, an: an.checked, passwort: pw.value, szeneZocken: sz, szeneParty: sp, folgen: folgen.checked, steuern: steuern.checked });
+      pw.value = ''; setTimeout(reload, 1500); } }, 'Speichern & verbinden'), obsStatusPill(S.obsStatus)),
+    S.obsStatus.fehler ? h('p', { class: 'hint' }, S.obsStatus.fehler) : null,
+    h('p', { class: 'hint' }, 'In OBS: Werkzeuge → WebSocket-Server-Einstellungen → „WebSocket-Server aktivieren“, Port 4455, Passwort festlegen (dort auch „Verbindungsinfo anzeigen“). Die Szenen-Listen füllen sich nach dem Verbinden.')));
+  // Spiele
+  const list = S.spiele.map(x => ({ ...x }));
+  const save = async () => { const r = await post('/api/spiele', { spiele: list }); const d = await r.json(); if (d.spiele) S.spiele = d.spiele; };
+  m.append(h('h2', {}, 'Spiele'), h('p', { class: 'hint' }, 'Je Spiel ein eigener Hintergrund (Schleife) für Hoch- und Querformat. Ohne eigenes Video läuft der Zockmodus-Hintergrund. Eigene OBS-Szene je Spiel ist optional.'));
+  const box = h('div', {}); m.append(box);
+  const draw = () => {
+    box.innerHTML = '';
+    list.forEach((g, i) => {
+      const name = h('input', { type: 'text', value: g.name, oninput: e => { g.name = e.target.value; } , onchange: save });
+      const vid = key => {
+        const file = h('input', { type: 'file', accept: 'video/mp4,video/webm', style: 'display:none' });
+        const info = h('code', {}, g[key] || 'Standard (Zockmodus-Hintergrund)');
+        file.onchange = async () => { const fl = file.files[0]; if (!fl) return; await save(); info.textContent = 'lädt hoch …';
+          const r = await post(`/api/upload-spiel/${S.spiele[i].id}/${key}?name=${encodeURIComponent(fl.name)}`, fl, true);
+          if (r.ok) { g[key] = (await r.json()).adresse; info.textContent = g[key]; } else info.textContent = 'Fehler'; };
+        return h('div', { class: 'media' }, g[key] ? h('video', { src: g[key], muted: '', preload: 'metadata' }) : null, info, h('button', { class: 'b', onclick: () => file.click() }, 'Video …'), file,
+          g[key] ? h('button', { class: 'b', onclick: async () => { g[key] = ''; await save(); draw(); } }, 'Standard') : null);
+      };
+      box.append(h('div', { class: 'card' },
+        field('Spiel', name), field('Hintergrund hochkant (TikTok)', vid('video')), field('Hintergrund quer (Twitch)', vid('videoQuer')),
+        field('Eigene OBS-Szene (optional)', sceneSelect(g.szene, async v => { g.szene = v; await save(); }, '– Gaming-Szene –')),
+        h('div', { class: 'row' }, h('button', { class: 'b p', onclick: async () => { await save(); await post('/api/modus', { modus: 'zocken', spiel: S.spiele[i].id }); } }, '🎮 Jetzt zocken'),
+          h('button', { class: 'b', onclick: async () => { if (confirm('„' + g.name + '“ entfernen?')) { list.splice(i, 1); await save(); draw(); } } }, 'Entfernen'))));
+    });
+    box.append(h('button', { class: 'b', onclick: async () => { list.push({ name: 'Neues Spiel', video: '', videoQuer: '', szene: '' }); await save(); list.splice(0, list.length, ...S.spiele.map(x => ({ ...x }))); draw(); } }, '+ Spiel hinzufügen'));
+  };
+  draw();
+}
 // ---------- Galerie ----------
 function galerie(m) {
   m.append(h('h1', {}, 'Animationen ansehen'), h('p', { class: 'hint' }, 'Klick aufs Video = mit Ton abspielen. „Im Stream zeigen“ spielt die Animation live in der Browserquelle.'));
@@ -171,6 +231,7 @@ async function reload() { S = await fetch('/api/settings', { cache: 'no-store' }
 const es = new EventSource('/api/events?rolle=studio');
 es.addEventListener('lumia', e => { if (!S) return; S.status = JSON.parse(e.data); if (['start', 'lumia'].includes(page.id)) render(); });
 es.addEventListener('log', e => { if (!S) return; const l = JSON.parse(e.data); S.log = [l, ...(S.log || [])].slice(0, 50); const box = $('#log'); if (box) box.prepend(logLine(l)); });
+es.addEventListener('obs', e => { if (!S) return; S.obsStatus = JSON.parse(e.data); if (page.id === 'spiele' && !document.activeElement.matches('input,select')) render(); });
 es.addEventListener('profil', async () => { if (!S) return; await reload(); renderNav(); });
 es.addEventListener('modus', e => { if (!S) return; S.modus = JSON.parse(e.data).modus; if (page.id === 'start') render(); });
 load();

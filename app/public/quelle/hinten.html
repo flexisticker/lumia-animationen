@@ -44,6 +44,7 @@ video { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: no
     async getVariable(name) { return name === 'mm_modus' ? state.modus : null; },
     async setVariable(name, value) {
       if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); }
+      if (name === 'mm_spiel') { const r = await post('/api/modus', { modus: 'zocken', spiel: value }); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_profil') { const r = await post('/api/profil', { profil: value }); if (!r.ok) throw new Error('Fehler'); }
     },
     async saveStorage() {}, async getStorage() { return null; }, async deleteStorage() {},
@@ -51,15 +52,17 @@ video { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: no
   const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
   window.MM_START = async function (start) {
     const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
-    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil;
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus;
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {
       const es = new EventSource('/api/events?rolle=' + ROLE);
-      es.addEventListener('hallo', e => { state.modus = JSON.parse(e.data).modus; emit('overlaycontent', { content: 'modus:' + state.modus }); });
+      const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
+      es.addEventListener('hallo', e => modusMsg(JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
-      es.addEventListener('modus', e => { state.modus = JSON.parse(e.data).modus; emit('overlaycontent', { content: 'modus:' + state.modus }); });
+      es.addEventListener('modus', e => modusMsg(JSON.parse(e.data)));
+      es.addEventListener('spiele', () => { if (ROLE === 'aktion') setTimeout(() => location.reload(), 300); });
       es.addEventListener('settings', e => {
         const d = JSON.parse(e.data); if (d.bereich !== BEREICH) return;
         // Neue Einstellungen: Seite neu laden, sobald gerade nichts läuft
@@ -170,7 +173,17 @@ async function poll() {
   setTimeout(poll, 800);
 }
 poll();
-if (window.Overlay) Overlay.on('overlaycontent', d => { const c = String(d.content || ''); if (c.startsWith('modus:')) setMode(c.slice(6)); });
+// Spiel-Hintergrund: eigenes Video je Spiel, sonst der Standard-Hintergrund für Modus 2
+const zockDefault = pick(D.zockVideo, D.zockVideoQuer);
+function setSpiel(sp) {
+  const src = (sp && pick(sp.video, sp.videoQuer)) || zockDefault;
+  if (src && vZ.getAttribute('src') !== src) { vZ.src = src; vZ.play().catch(() => {}); }
+}
+if (window.Overlay) Overlay.on('overlaycontent', d => {
+  const c = String(d.content || '');
+  if (c.startsWith('modus:')) setMode(c.slice(6));
+  if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
+});
 window.MMBG = { setMode };
 
 });</script></body></html>

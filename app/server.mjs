@@ -52,6 +52,9 @@ for (const p of Object.keys(PRESETS)) { saved.profile[p] ||= {}; for (const k of
 saved.profil = PRESETS[saved.profil] ? saved.profil : (PRESETS[String(process.env.KANAL || '').toLowerCase()] ? String(process.env.KANAL).toLowerCase() : 'michamodus');
 saved.lumia ||= { host: '', port: 39231, an: false };
 saved.modus ||= 'party';
+saved.spiele ||= [{ id: 'standard', name: 'Allgemein', video: '', videoQuer: '', szene: '' }];
+saved.spiel ||= '';
+saved.obs ||= { host: '', port: 4455, an: false, szeneZocken: '', szeneParty: '', folgen: true, steuern: true };
 let secret = readJson(SECRET_FILE, {});
 const cur = () => saved.profile[saved.profil];
 const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), ...saved.profile[profil][k] });
@@ -131,6 +134,81 @@ function lumiaConnect() {
   };
 }
 
+// ---------- Modus, Spiel, OBS ----------
+const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '' } : null; };
+function setModus(modus, spielId, quelle, fromObs) {
+  const m = modus === 'zocken' ? 'zocken' : 'party';
+  const changed = m !== saved.modus || (spielId !== undefined && spielId !== saved.spiel);
+  saved.modus = m;
+  if (spielId !== undefined) saved.spiel = saved.spiele.some(x => x.id === spielId) ? spielId : '';
+  saveSettings();
+  if (changed) {
+    broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
+    remember({ art: 'modus', quelle, text: saved.modus + (saved.modus === 'zocken' && spielInfo() ? ' · ' + spielInfo().name : '') });
+  }
+  if (!fromObs && saved.obs.steuern) {
+    const sp = saved.spiele.find(x => x.id === saved.spiel);
+    const scene = m === 'zocken' ? (sp && sp.szene) || saved.obs.szeneZocken : saved.obs.szeneParty;
+    if (scene) obsRequest('SetCurrentProgramScene', { sceneName: scene });
+  }
+}
+
+// OBS (obs-websocket v5, in OBS ab Version 28 eingebaut: Werkzeuge → WebSocket-Server-Einstellungen)
+const obs = { status: 'aus', fehler: '', szenen: [], aktuell: '' };
+let ows = null, oretry = null, lastSetScene = '', lastSetAt = 0, reqId = 0;
+const obsStatus = () => broadcast('obs', obs, ['studio']);
+function obsSend(op, d) { if (ows && ows.readyState === 1) ows.send(JSON.stringify({ op, d })); }
+function obsRequest(requestType, requestData) {
+  if (requestType === 'SetCurrentProgramScene') { lastSetScene = requestData.sceneName; lastSetAt = Date.now(); }
+  obsSend(6, { requestType, requestId: String(++reqId), requestData });
+}
+function obsScene(name) {
+  obs.aktuell = name; obsStatus();
+  if (!saved.obs.folgen) return;
+  if (name === lastSetScene && Date.now() - lastSetAt < 5000) return; // Echo unserer eigenen Umschaltung
+  const sp = saved.spiele.find(x => x.szene && x.szene === name);
+  if (sp) return setModus('zocken', sp.id, 'obs', true);
+  if (saved.obs.szeneZocken && name === saved.obs.szeneZocken) return setModus('zocken', undefined, 'obs', true);
+  if (saved.obs.szeneParty && name === saved.obs.szeneParty) return setModus('party', undefined, 'obs', true);
+}
+function obsConnect() {
+  clearTimeout(oretry);
+  if (ows) { try { ows.onclose = null; ows.close(); } catch {} ows = null; }
+  const { host, port, an } = saved.obs;
+  if (!an || !host) { Object.assign(obs, { status: 'aus', fehler: an ? 'Adresse fehlt' : '' }); return obsStatus(); }
+  Object.assign(obs, { status: 'verbinde', fehler: '' }); obsStatus();
+  try { ows = new WebSocket(`ws://${host}:${Number(port) || 4455}`); }
+  catch (e) { Object.assign(obs, { status: 'fehler', fehler: String(e.message || e) }); obsStatus(); oretry = setTimeout(obsConnect, 10000); return; }
+  ows.onmessage = (m) => {
+    let msg; try { msg = JSON.parse(String(m.data)); } catch { return; }
+    if (msg.op === 0) { // Hello
+      const d = { rpcVersion: 1, eventSubscriptions: 4 /* Scenes */ };
+      const a = msg.d && msg.d.authentication;
+      if (a) {
+        if (!secret.obsPasswort) { Object.assign(obs, { status: 'fehler', fehler: 'OBS verlangt ein Passwort' }); obsStatus(); return; }
+        const sec = crypto.createHash('sha256').update(secret.obsPasswort + a.salt).digest('base64');
+        d.authentication = crypto.createHash('sha256').update(sec + a.challenge).digest('base64');
+      }
+      obsSend(1, d);
+    } else if (msg.op === 2) { // Identified
+      Object.assign(obs, { status: 'verbunden', fehler: '' }); obsStatus();
+      obsSend(6, { requestType: 'GetSceneList', requestId: 'szenen' });
+    } else if (msg.op === 5 && msg.d && msg.d.eventType === 'CurrentProgramSceneChanged') {
+      obsScene(msg.d.eventData.sceneName);
+    } else if (msg.op === 5 && msg.d && /^Scene(Created|Removed|NameChanged)$/.test(msg.d.eventType)) {
+      obsSend(6, { requestType: 'GetSceneList', requestId: 'szenen' });
+    } else if (msg.op === 7 && msg.d && msg.d.requestId === 'szenen' && msg.d.responseData) {
+      obs.szenen = (msg.d.responseData.scenes || []).map(x => x.sceneName).reverse();
+      obs.aktuell = msg.d.responseData.currentProgramSceneName || obs.aktuell; obsStatus();
+    }
+  };
+  ows.onerror = () => {};
+  ows.onclose = (ev) => {
+    Object.assign(obs, { status: 'getrennt', fehler: ev && ev.code === 4009 ? 'Falsches OBS-Passwort' : ev && ev.code === 1006 ? 'Keine Verbindung – Adresse/Port/Firewall prüfen, WebSocket-Server in OBS an?' : '' });
+    obsStatus(); oretry = setTimeout(obsConnect, 5000);
+  };
+}
+
 // ---------- HTTP ----------
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.mp4': 'video/mp4', '.webm': 'video/webm', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' };
@@ -172,12 +250,12 @@ const server = http.createServer(async (req, res) => {
       const role = ROLES.includes(url.searchParams.get('rolle')) ? url.searchParams.get('rolle') : 'studio';
       res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive', 'x-accel-buffering': 'no' });
       const c = { res, role }; clients.add(c); req.on('close', () => clients.delete(c));
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus })}\n\n`);
-      if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); }
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo() })}\n\n`);
+      if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
-      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus,
+      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, status: lumia, log,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}) });
     if (p === '/api/settings' && req.method === 'POST') {
@@ -221,9 +299,39 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/modus' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
-      saved.modus = b.modus === 'zocken' ? 'zocken' : 'party'; saveSettings();
-      broadcast('modus', { modus: saved.modus }); remember({ art: 'modus', quelle: 'knopf', text: saved.modus });
+      setModus(b.modus, typeof b.spiel === 'string' ? b.spiel : undefined, 'knopf', false);
       return json(res, 200, { ok: true });
+    }
+    if (p === '/api/obs' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      saved.obs = { host: String(b.host || '').trim().slice(0, 100), port: Number(b.port) || 4455, an: !!b.an,
+        szeneZocken: String(b.szeneZocken || ''), szeneParty: String(b.szeneParty || ''), folgen: b.folgen !== false, steuern: b.steuern !== false };
+      if (typeof b.passwort === 'string' && b.passwort) { secret.obsPasswort = b.passwort; writeJson(SECRET_FILE, secret); }
+      if (b.passwortLoeschen) { delete secret.obsPasswort; writeJson(SECRET_FILE, secret); }
+      saveSettings(); obsConnect(); return json(res, 200, { ok: true });
+    }
+    if (p === '/api/spiele' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      if (!Array.isArray(b.spiele)) return json(res, 400, { fehler: 'ungültig' });
+      saved.spiele = b.spiele.slice(0, 50).map(x => ({ id: String(x.id || crypto.randomBytes(4).toString('hex')).replace(/[^a-z0-9-]/gi, '').slice(0, 40) || crypto.randomBytes(4).toString('hex'),
+        name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200) }));
+      if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = '';
+      saveSettings(); broadcast('spiele', { spiele: saved.spiele });
+      if (saved.modus === 'zocken') broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
+      return json(res, 200, { ok: true, spiele: saved.spiele });
+    }
+    if (p.startsWith('/api/upload-spiel/') && req.method === 'POST') {
+      const [, , , id, key] = p.split('/');
+      const name = String(url.searchParams.get('name') || ''); const ext = path.extname(name).toLowerCase();
+      const sp = saved.spiele.find(x => x.id === id);
+      if (!sp || !['video', 'videoQuer'].includes(key) || !/^\.(mp4|webm)$/i.test(ext)) return json(res, 400, { fehler: 'Spiel oder Dateityp ungültig' });
+      const data = await body(req, 300e6);
+      const file = `spiel-${id}-${key}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+      fs.writeFileSync(path.join(UPLOADS, file), data);
+      if (sp[key] && sp[key].startsWith('/uploads/')) fs.rm(path.join(UPLOADS, path.basename(sp[key])), () => {});
+      sp[key] = '/uploads/' + file; saveSettings();
+      if (saved.modus === 'zocken' && saved.spiel === id) broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
+      return json(res, 200, { ok: true, adresse: sp[key] });
     }
     if (p.startsWith('/api/upload/') && req.method === 'POST') {
       const [, , , bereich, key] = p.split('/');
@@ -249,4 +357,4 @@ const server = http.createServer(async (req, res) => {
     json(res, 404, {});
   } catch (e) { json(res, 500, { fehler: 'Interner Fehler' }); console.error(e); }
 });
-server.listen(PORT, () => { console.log(`MichaModus Studio läuft auf Port ${PORT}`); lumiaConnect(); });
+server.listen(PORT, () => { console.log(`Live-Studio läuft auf Port ${PORT}`); lumiaConnect(); obsConnect(); });

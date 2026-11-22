@@ -40,6 +40,8 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
   <div class="grid scenes" id="kanaele" style="display:none"></div>
   <h2>Modus</h2>
   <div class="grid scenes" id="modes"></div>
+  <h2 id="spielTitel" style="display:none">Ich zocke gerade …</h2>
+  <div class="grid scenes" id="spiele" style="display:none"></div>
   <h2>Ansagen</h2>
   <div class="grid scenes" id="scenes"></div>
   <h2>Gimmicks & Sounds</h2>
@@ -62,6 +64,7 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
     async getVariable(name) { return name === 'mm_modus' ? state.modus : null; },
     async setVariable(name, value) {
       if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); }
+      if (name === 'mm_spiel') { const r = await post('/api/modus', { modus: 'zocken', spiel: value }); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_profil') { const r = await post('/api/profil', { profil: value }); if (!r.ok) throw new Error('Fehler'); }
     },
     async saveStorage() {}, async getStorage() { return null; }, async deleteStorage() {},
@@ -69,15 +72,17 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
   const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
   window.MM_START = async function (start) {
     const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
-    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil;
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus;
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {
       const es = new EventSource('/api/events?rolle=' + ROLE);
-      es.addEventListener('hallo', e => { state.modus = JSON.parse(e.data).modus; emit('overlaycontent', { content: 'modus:' + state.modus }); });
+      const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
+      es.addEventListener('hallo', e => modusMsg(JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
-      es.addEventListener('modus', e => { state.modus = JSON.parse(e.data).modus; emit('overlaycontent', { content: 'modus:' + state.modus }); });
+      es.addEventListener('modus', e => modusMsg(JSON.parse(e.data)));
+      es.addEventListener('spiele', () => { if (ROLE === 'aktion') setTimeout(() => location.reload(), 300); });
       es.addEventListener('settings', e => {
         const d = JSON.parse(e.data); if (d.bereich !== BEREICH) return;
         // Neue Einstellungen: Seite neu laden, sobald gerade nichts läuft
@@ -165,6 +170,21 @@ if ((window.MM_PROFILE || []).length > 1) {
     b.innerHTML = '<span class="ico">📺</span><span></span>'; b.lastChild.textContent = p.name;
     b.onclick = async () => { try { await Overlay.setVariable('mm_profil', p.id); setStatus('Kanal: ' + p.name, 'ok'); } catch (e) { setStatus('Kanal konnte nicht gewechselt werden', 'err'); } };
     kb.append(b);
+  });
+}
+
+// Spiel wählen (Live-Studio): schaltet Zockmodus, OBS-Szene und Spiel-Hintergrund
+if ((window.MM_SPIELE || []).length) {
+  const box = document.getElementById('spiele'); box.style.display = ''; document.getElementById('spielTitel').style.display = '';
+  window.MM_SPIELE.forEach(sp => {
+    const b = document.createElement('button'); b.className = 'btn' + (window.MM_MODUS === 'zocken' && sp.id === window.MM_SPIEL ? ' active' : '');
+    b.innerHTML = '<span class="ico">🎮</span><span></span>'; b.lastChild.textContent = sp.name;
+    b.onclick = async () => {
+      box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x === b));
+      modeBox.querySelectorAll('.btn').forEach((x, i) => x.classList.toggle('active', i === 1));
+      try { await Overlay.setVariable('mm_spiel', sp.id); setStatus('Zocke: ' + sp.name, 'ok'); } catch (e) { setStatus('Fehler beim Umschalten', 'err'); }
+    };
+    box.append(b);
   });
 }
 
