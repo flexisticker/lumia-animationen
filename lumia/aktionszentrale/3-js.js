@@ -51,11 +51,18 @@ else tests.forEach(t => button(document.getElementById('tests'), { id: t.id, lab
 
 // Modus: Party / Zockmodus (Hintergrund-Overlay liest die Lumia-Variable „mm_modus“)
 const modeBox = document.getElementById('modes');
+// Zeigt, ob die OBS-Szene mitgeschaltet hat (Server meldet „OK:<Szene>“ oder den Grund)
+function obsMeldung(text, info) {
+  if (!info) return setStatus(text, 'ok');
+  if (String(info).startsWith('OK:')) return setStatus(text + ' · OBS: ' + String(info).slice(3), 'ok');
+  setStatus(text + ' · ⚠ ' + info, 'err');
+}
 async function setMode(m, b) {
   modeBox.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x === b));
   try {
-    if (window.Overlay) await Overlay.setVariable('mm_modus', m); else if (window.TEST_SEND) window.TEST_SEND('modus:' + m);
-    setStatus((m === 'zocken' ? (D.modus2Name || 'Zockmodus') : (D.modus1Name || 'Party')) + ' an', 'ok');
+    let obsInfo = '';
+    if (window.Overlay) obsInfo = await Overlay.setVariable('mm_modus', m); else if (window.TEST_SEND) window.TEST_SEND('modus:' + m);
+    obsMeldung((m === 'zocken' ? (D.modus2Name || 'Zockmodus') : (D.modus1Name || 'Party')) + ' an', obsInfo);
   } catch (e) { setStatus('Modus konnte nicht gesetzt werden', 'err'); }
 }
 [['party', D.modus1Name || 'Party', '🎉'], ['zocken', D.modus2Name || 'Zockmodus', '🎮']].forEach(([m, label, ico]) => {
@@ -85,7 +92,7 @@ if ((window.MM_SPIELE || []).length) {
     b.onclick = async () => {
       box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x === b));
       modeBox.querySelectorAll('.btn').forEach((x, i) => x.classList.toggle('active', i === 1));
-      try { await Overlay.setVariable('mm_spiel', sp.id); setStatus('Zocke: ' + sp.name, 'ok'); } catch (e) { setStatus('Fehler beim Umschalten', 'err'); }
+      try { obsMeldung('Zocke: ' + sp.name, await Overlay.setVariable('mm_spiel', sp.id)); } catch (e) { setStatus('Fehler beim Umschalten', 'err'); }
     };
     box.append(b);
   });

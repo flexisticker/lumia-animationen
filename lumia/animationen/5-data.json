@@ -44,6 +44,7 @@
   "anzeigeSekunden": 5,
   "likeAn": true,
   "likePosition": "rechts",
+  "likeEinsZuEins": true,
   "likeMenge": 1.5,
   "likeMax": 60,
   "likeSound": "",

@@ -247,11 +247,19 @@ function setModus(modus, spielId, quelle, fromObs) {
     else if (m === 'party' && saved.musik.vonSpiel) setMusik({ titel: 'standard' });
     remember({ art: 'modus', quelle, text: saved.modus + (saved.modus === 'zocken' && spielInfo() ? ' · ' + spielInfo().name : '') });
   }
-  if (!fromObs && saved.obs.steuern) {
+  // Rückmeldung für die Steuerung: was ist mit OBS passiert?
+  let obsInfo = '';
+  if (!fromObs) {
     const sp = saved.spiele.find(x => x.id === saved.spiel);
     const scene = m === 'zocken' ? (sp && sp.szene) || saved.obs.szeneZocken : saved.obs.szeneParty;
-    if (scene) obsRequest('SetCurrentProgramScene', { sceneName: scene });
+    if (!saved.obs.an) obsInfo = 'OBS-Kopplung ist aus (Studio → Spiele & OBS)';
+    else if (!saved.obs.steuern) obsInfo = '„Modus schaltet die OBS-Szene“ ist aus';
+    else if (!scene) obsInfo = 'Keine OBS-Szene für ' + (m === 'zocken' ? 'den Zockmodus' : 'Party') + ' eingestellt';
+    else if (obs.status !== 'verbunden') obsInfo = 'OBS nicht verbunden' + (obs.fehler ? ': ' + obs.fehler : '');
+    else if (obs.szenen.length && !obs.szenen.includes(scene)) obsInfo = 'OBS-Szene „' + scene + '“ gibt es nicht';
+    else { obsRequest('SetCurrentProgramScene', { sceneName: scene }); obsInfo = 'OK:' + scene; }
   }
+  return obsInfo;
 }
 
 // OBS (obs-websocket v5, in OBS ab Version 28 eingebaut: Werkzeuge → WebSocket-Server-Einstellungen)
@@ -403,8 +411,8 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/modus' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
-      setModus(b.modus, typeof b.spiel === 'string' ? b.spiel : undefined, 'knopf', false);
-      return json(res, 200, { ok: true });
+      const obsInfo = setModus(b.modus, typeof b.spiel === 'string' ? b.spiel : undefined, 'knopf', false);
+      return json(res, 200, { ok: true, obs: obsInfo });
     }
     if (p === '/api/obs' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');

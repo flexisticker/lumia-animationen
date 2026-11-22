@@ -290,7 +290,7 @@ function twitchAlert(data, s) {
 function handleAlert(data) {
   const s = data.extraSettings || {};
   if (String(data.alert || '').startsWith('twitch-')) { const it = twitchAlert(data, s); if (it && it.anim) enqueue(it); return; }
-  if (data.alert === 'tiktok-like') { const n = Number(s.amount || s.userLikeCount || (data.dynamic && data.dynamic.value)) || 5; likeBurst(n); likeTag(s.username, n); return; }
+  if (data.alert === 'tiktok-like') { const n = Number(s.amount || s.userLikeCount || (data.dynamic && data.dynamic.value)) || 5; likeBurst(n, true); likeTag(s.username, n); return; }
   if (data.alert === 'tiktok-gift') {
     const amount = Number(s.giftAmount) || 1;
     const coins = (Number(s.coins) || Number(s.value) || 1) * amount;
@@ -349,12 +349,23 @@ function likeLoop() {
   }
   if (parts.length) requestAnimationFrame(likeLoop); else { likeRunning = false; lc.clearRect(0, 0, likeCv.width, likeCv.height); }
 }
-function likeBurst(count) {
+// echt = TikTok-Likes: genau 1 Herz je Like (nacheinander, höchstens likeMax); sonst (Knöpfe, Ansagen) ein Schwall
+function likeBurst(count, echt) {
   if (!on('likeAn')) return;
-  const n = Math.min(num(D.likeMax, 60), Math.max(4, Math.round(Math.sqrt(count) * 3 * num(D.likeMenge, 1.5))));
+  const eins = echt && D.likeEinsZuEins !== false;
+  const n = eins ? Math.min(num(D.likeMax, 60), Math.max(1, Math.round(count)))
+    : Math.min(num(D.likeMax, 60), Math.max(4, Math.round(Math.sqrt(count) * 3 * num(D.likeMenge, 1.5))));
   const side = String(D.likePosition || 'rechts');
   const x0 = side === 'links' ? innerWidth * 0.15 : side === 'mitte' ? innerWidth * 0.5 : innerWidth * 0.85;
-  for (let i = 0; i < n && parts.length < 400; i++) {
+  if (eins && n > 1) { // gestaffelt, damit man jedes Herz einzeln sieht
+    let k = 0; const t = setInterval(() => { likeOne(x0, k++); if (k >= n) clearInterval(t); }, Math.max(40, Math.min(160, 1500 / n)));
+    likeOne(x0, k++); return;
+  }
+  for (let i = 0; i < n; i++) likeOne(x0, i);
+}
+function likeOne(x0, i) {
+  if (parts.length >= 400) return;
+  {
     parts.push({ x: x0 + (Math.random() - 0.5) * 40, y: innerHeight + 10,
       vx: (Math.random() - 0.5) * 5, vy: -(innerHeight / 55) * (0.75 + Math.random() * 0.5),
       s: (0.9 + Math.random() * 1.4) * (innerHeight / 900), c: LIKE_COLORS[i % LIKE_COLORS.length],
@@ -462,9 +473,9 @@ function sfx(url, vol) {
   try { const a = new Audio(url); a.volume = Math.max(0, Math.min(1, num(D.lautstaerke, 80) / 100 * num(vol, 100) / 100)); a.play().catch(() => {}); } catch (e) {}
 }
 const _likeBurst = likeBurst;
-likeBurst = function (count) {
+likeBurst = function (count, echt) {
   if (on('likeAn') && performance.now() - lastLikeSfx > num(D.likeSoundAbstand, 1500)) { lastLikeSfx = performance.now(); sfx(D.likeSound, D.likeSoundLaut); }
-  _likeBurst(count);
+  _likeBurst(count, echt);
 };
 const _showScene = showScene;
 showScene = function (id) {

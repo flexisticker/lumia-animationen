@@ -11,8 +11,10 @@
     async callCommand(cmd, vars) { const r = await post('/api/aktion', JSON.parse(vars.aktion)); if (!r.ok) throw new Error('Fehler'); },
     async getVariable(name) { return name === 'mm_modus' ? state.modus : null; },
     async setVariable(name, value) {
-      if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); }
-      if (name === 'mm_spiel') { const r = await post('/api/modus', { modus: 'zocken', spiel: value }); if (!r.ok) throw new Error('Fehler'); }
+      if (name === 'mm_modus' || name === 'mm_spiel') {
+        const r = await post('/api/modus', name === 'mm_modus' ? { modus: value } : { modus: 'zocken', spiel: value });
+        if (!r.ok) throw new Error('Fehler'); return (await r.json()).obs || '';
+      }
       if (name === 'mm_musik') { const r = await post('/api/musik', value); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_profil') { const r = await post('/api/profil', { profil: value }); if (!r.ok) throw new Error('Fehler'); }
     },

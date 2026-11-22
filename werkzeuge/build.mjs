@@ -82,7 +82,8 @@ add('anzeigeSekunden', { type: 'number', label: 'Dauer ohne Video (Sekunden)', v
 
 add('likeAn', { type: 'checkbox', label: 'Like-Fontäne an', value: true, ...vis('likes') });
 add('likePosition', { type: 'dropdown', label: 'Fontäne kommt von', value: 'rechts', options: { links: 'links', mitte: 'Mitte', rechts: 'rechts' }, ...vis('likes') });
-add('likeMenge', { type: 'slider', label: 'Herzen je Like', value: 1.5, options: { min: 0.2, max: 5, step: 0.1 }, ...vis('likes') });
+add('likeEinsZuEins', { type: 'checkbox', label: 'Genau 1 Herz je Like (TikTok-Likes)', value: true, ...vis('likes') });
+add('likeMenge', { type: 'slider', label: 'Herzen je Schwall (Knopf „Like-Fontäne“, Ansagen)', value: 1.5, options: { min: 0.2, max: 5, step: 0.1 }, ...vis('likes') });
 add('likeMax', { type: 'number', label: 'Max. Herzen je Schwall', value: 60, ...vis('likes') });
 add('likeSound', { type: 'soundupload', label: 'Sound der Like-Fontäne', value: '', accept: 'audio/mpeg,audio/ogg,audio/wav', ...vis('likes') });
 add('likeSoundLaut', { type: 'slider', label: 'Lautstärke Like-Sound', value: 60, options: { min: 0, max: 150, step: 5, suffix: '%' }, ...vis('likes') });
