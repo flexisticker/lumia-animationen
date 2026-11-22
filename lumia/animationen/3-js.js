@@ -457,11 +457,13 @@ if (window.Overlay) Overlay.on('chat', chatAdd);
 // ---------- StreamPrint (virtueller Bondrucker) ----------
 let curMode = D.modusStart || 'party', spManual = false;
 const sp = document.getElementById('sp'), spFrame = document.getElementById('spFrame');
+// StreamPrint: in der Quer-Quelle eigene Werte (spQ*), wenn „eigene Lage“ an ist
+const spG = k => (FORMAT === 'quer' && D.spQEigen !== false && D['spQ' + k] !== undefined && D['spQ' + k] !== '') ? D['spQ' + k] : D['sp' + k];
 function spUpdate() {
-  const wann = D.spWann || 'aus';
+  const wann = spG('Wann') || 'aus';
   const show = !!D.spUrl && (wann === 'immer' || wann === curMode || (wann === 'knopf' && spManual));
   if (show && !spFrame.src) spFrame.src = D.spUrl;
-  Object.assign(sp.style, { left: num(D.spX, 3) + 'vw', top: num(D.spY, 20) + 'vh', width: num(D.spBreite, 32) + 'vw', height: num(D.spHoehe, 60) + 'vh' });
+  Object.assign(sp.style, { left: num(spG('X'), 3) + 'vw', top: num(spG('Y'), 20) + 'vh', width: num(spG('Breite'), 32) + 'vw', height: num(spG('Hoehe'), 60) + 'vh' });
   sp.style.setProperty('--spR', num(D.spRund, 18) + 'px');
   sp.classList.toggle('rahmen', D.spRahmen !== false);
   sp.classList.toggle('show', show);

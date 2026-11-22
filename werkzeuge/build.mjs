@@ -31,7 +31,7 @@ const cfg = {};
 const add = (key, f) => { cfg[key] = { order: ++order, ...f }; };
 add('bereich', { type: 'dropdown', label: 'Einstellungen für', value: 'allgemein', options: {
   allgemein: 'Allgemein & Ton', banner: 'Banner & Slogans', name: 'Namens-Einblendung', likes: 'Like-Fontäne', szenen: 'Ansagen (Pause, Weiter …)', geschenk: 'Geschenke',
-  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', twitch: 'Twitch', streamprint: 'StreamPrint', sprache: 'Sprachausgabe (Danke)', chat: 'Chat-Einblendung', knopf: 'Aktionsknöpfe' } });
+  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', twitch: 'Twitch', streamprint: 'StreamPrint – hochkant (TikTok)', streamprintq: 'StreamPrint – quer (Twitch)', sprache: 'Sprachausgabe (Danke)', chat: 'Chat-Einblendung', knopf: 'Aktionsknöpfe' } });
 const vis = b => ({ visibleIf: { key: 'bereich', equals: [b] } });
 add('lautstaerke', { type: 'slider', label: 'Lautstärke gesamt', value: 80, options: { min: 0, max: 100, step: 5, suffix: '%' }, ...vis('allgemein') });
 add('medienAdresse', { type: 'input', label: 'Adresse der Videos (Ordner, endet mit /)', value: '', placeholder: 'leer = nur hochgeladene Videos', ...vis('allgemein') });
@@ -127,6 +127,13 @@ add('spBreite', { type: 'slider', label: 'Breite', value: 32, options: { min: 5,
 add('spHoehe', { type: 'slider', label: 'Höhe', value: 60, options: { min: 5, max: 100, step: 0.5, suffix: ' %' }, ...vis('streamprint') });
 add('spRund', { type: 'slider', label: 'Runde Ecken', value: 18, options: { min: 0, max: 60, step: 1, suffix: ' px' }, ...vis('streamprint') });
 add('spRahmen', { type: 'checkbox', label: 'Leuchtrahmen in Banner-Farben', value: true, ...vis('streamprint') });
+// Querformat-Quelle (vorne-quer): eigene Lage/Größe/Wann
+add('spQEigen', { type: 'checkbox', label: 'Eigene Lage & Größe fürs Querformat (aus = wie hochkant)', value: true, ...vis('streamprintq') });
+add('spQWann', { type: 'dropdown', label: 'StreamPrint zeigen (quer)', value: '', options: { '': 'wie hochkant', aus: 'aus', immer: 'immer', knopf: 'per Knopf (Steuerung)', party: 'nur in Modus 1', zocken: 'nur in Modus 2' }, ...vis('streamprintq') });
+add('spQX', { type: 'slider', label: 'Abstand links', value: 76, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('streamprintq') });
+add('spQY', { type: 'slider', label: 'Abstand oben', value: 12, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('streamprintq') });
+add('spQBreite', { type: 'slider', label: 'Breite', value: 20, options: { min: 5, max: 100, step: 0.5, suffix: ' %' }, ...vis('streamprintq') });
+add('spQHoehe', { type: 'slider', label: 'Höhe', value: 80, options: { min: 5, max: 100, step: 0.5, suffix: ' %' }, ...vis('streamprintq') });
 add('twTextFollow', { type: 'input', label: 'Twitch-Text Follow', value: 'folgt jetzt!', ...vis('twitch') });
 add('twTextSub', { type: 'input', label: 'Twitch-Text Sub', value: 'abonniert!', ...vis('twitch') });
 add('twTextPrime', { type: 'input', label: 'Twitch-Text Prime-Sub', value: 'abonniert mit Prime 👑', ...vis('twitch') });

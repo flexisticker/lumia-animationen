@@ -14,7 +14,8 @@
       "stufe": "Stufen (alle anderen Geschenke)",
       "ereignis": "Ereignisse",
       "twitch": "Twitch",
-      "streamprint": "StreamPrint",
+      "streamprint": "StreamPrint – hochkant (TikTok)",
+      "streamprintq": "StreamPrint – quer (Twitch)",
       "sprache": "Sprachausgabe (Danke)",
       "chat": "Chat-Einblendung",
       "knopf": "Aktionsknöpfe"
@@ -1315,8 +1316,112 @@
       ]
     }
   },
-  "twTextFollow": {
+  "spQEigen": {
     "order": 97,
+    "type": "checkbox",
+    "label": "Eigene Lage & Größe fürs Querformat (aus = wie hochkant)",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "streamprintq"
+      ]
+    }
+  },
+  "spQWann": {
+    "order": 98,
+    "type": "dropdown",
+    "label": "StreamPrint zeigen (quer)",
+    "value": "",
+    "options": {
+      "": "wie hochkant",
+      "aus": "aus",
+      "immer": "immer",
+      "knopf": "per Knopf (Steuerung)",
+      "party": "nur in Modus 1",
+      "zocken": "nur in Modus 2"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "streamprintq"
+      ]
+    }
+  },
+  "spQX": {
+    "order": 99,
+    "type": "slider",
+    "label": "Abstand links",
+    "value": 76,
+    "options": {
+      "min": 0,
+      "max": 95,
+      "step": 0.5,
+      "suffix": " %"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "streamprintq"
+      ]
+    }
+  },
+  "spQY": {
+    "order": 100,
+    "type": "slider",
+    "label": "Abstand oben",
+    "value": 12,
+    "options": {
+      "min": 0,
+      "max": 95,
+      "step": 0.5,
+      "suffix": " %"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "streamprintq"
+      ]
+    }
+  },
+  "spQBreite": {
+    "order": 101,
+    "type": "slider",
+    "label": "Breite",
+    "value": 20,
+    "options": {
+      "min": 5,
+      "max": 100,
+      "step": 0.5,
+      "suffix": " %"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "streamprintq"
+      ]
+    }
+  },
+  "spQHoehe": {
+    "order": 102,
+    "type": "slider",
+    "label": "Höhe",
+    "value": 80,
+    "options": {
+      "min": 5,
+      "max": 100,
+      "step": 0.5,
+      "suffix": " %"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "streamprintq"
+      ]
+    }
+  },
+  "twTextFollow": {
+    "order": 103,
     "type": "input",
     "label": "Twitch-Text Follow",
     "value": "folgt jetzt!",
@@ -1328,7 +1433,7 @@
     }
   },
   "twTextSub": {
-    "order": 98,
+    "order": 104,
     "type": "input",
     "label": "Twitch-Text Sub",
     "value": "abonniert!",
@@ -1340,7 +1445,7 @@
     }
   },
   "twTextPrime": {
-    "order": 99,
+    "order": 105,
     "type": "input",
     "label": "Twitch-Text Prime-Sub",
     "value": "abonniert mit Prime 👑",
@@ -1352,7 +1457,7 @@
     }
   },
   "twTextResub": {
-    "order": 100,
+    "order": 106,
     "type": "input",
     "label": "Twitch-Text Resub ({MONATE})",
     "value": "ist seit {MONATE} Monaten dabei!",
@@ -1364,7 +1469,7 @@
     }
   },
   "twTextGift": {
-    "order": 101,
+    "order": 107,
     "type": "input",
     "label": "Twitch-Text Geschenk-Subs",
     "value": "verschenkt Subs",
@@ -1376,7 +1481,7 @@
     }
   },
   "twBitsMittel": {
-    "order": 102,
+    "order": 108,
     "type": "number",
     "label": "Bits: Stufe mittel ab",
     "value": 100,
@@ -1388,7 +1493,7 @@
     }
   },
   "twBitsGross": {
-    "order": 103,
+    "order": 109,
     "type": "number",
     "label": "Bits: Stufe groß ab",
     "value": 1000,
@@ -1400,7 +1505,7 @@
     }
   },
   "twBitsEpisch": {
-    "order": 104,
+    "order": 110,
     "type": "number",
     "label": "Bits: Stufe episch ab",
     "value": 5000,
@@ -1412,7 +1517,7 @@
     }
   },
   "knopfModus": {
-    "order": 105,
+    "order": 111,
     "type": "dropdown",
     "label": "Knopf drücken, während etwas läuft",
     "value": "knopf",
@@ -1429,7 +1534,7 @@
     }
   },
   "an_rose": {
-    "order": 106,
+    "order": 112,
     "type": "checkbox",
     "label": "Rose: an",
     "value": true,
@@ -1441,7 +1546,7 @@
     }
   },
   "v_rose": {
-    "order": 107,
+    "order": 113,
     "type": "videoupload",
     "label": "Rose: eigenes Video (hochkant)",
     "value": "",
@@ -1454,7 +1559,7 @@
     }
   },
   "vq_rose": {
-    "order": 108,
+    "order": 114,
     "type": "videoupload",
     "label": "Rose: eigenes Video (quer 16:9)",
     "value": "",
@@ -1467,7 +1572,7 @@
     }
   },
   "l_rose": {
-    "order": 109,
+    "order": 115,
     "type": "slider",
     "label": "Rose: Lautstärke",
     "value": 100,
@@ -1485,7 +1590,7 @@
     }
   },
   "an_gg": {
-    "order": 110,
+    "order": 116,
     "type": "checkbox",
     "label": "GG: an",
     "value": true,
@@ -1497,7 +1602,7 @@
     }
   },
   "v_gg": {
-    "order": 111,
+    "order": 117,
     "type": "videoupload",
     "label": "GG: eigenes Video (hochkant)",
     "value": "",
@@ -1510,7 +1615,7 @@
     }
   },
   "vq_gg": {
-    "order": 112,
+    "order": 118,
     "type": "videoupload",
     "label": "GG: eigenes Video (quer 16:9)",
     "value": "",
@@ -1523,7 +1628,7 @@
     }
   },
   "l_gg": {
-    "order": 113,
+    "order": 119,
     "type": "slider",
     "label": "GG: Lautstärke",
     "value": 100,
@@ -1541,7 +1646,7 @@
     }
   },
   "an_tiktok": {
-    "order": 114,
+    "order": 120,
     "type": "checkbox",
     "label": "TikTok: an",
     "value": true,
@@ -1553,7 +1658,7 @@
     }
   },
   "v_tiktok": {
-    "order": 115,
+    "order": 121,
     "type": "videoupload",
     "label": "TikTok: eigenes Video (hochkant)",
     "value": "",
@@ -1566,7 +1671,7 @@
     }
   },
   "vq_tiktok": {
-    "order": 116,
+    "order": 122,
     "type": "videoupload",
     "label": "TikTok: eigenes Video (quer 16:9)",
     "value": "",
@@ -1579,7 +1684,7 @@
     }
   },
   "l_tiktok": {
-    "order": 117,
+    "order": 123,
     "type": "slider",
     "label": "TikTok: Lautstärke",
     "value": 100,
@@ -1597,7 +1702,7 @@
     }
   },
   "an_fingerherz": {
-    "order": 118,
+    "order": 124,
     "type": "checkbox",
     "label": "Fingerherz: an",
     "value": true,
@@ -1609,7 +1714,7 @@
     }
   },
   "v_fingerherz": {
-    "order": 119,
+    "order": 125,
     "type": "videoupload",
     "label": "Fingerherz: eigenes Video (hochkant)",
     "value": "",
@@ -1622,7 +1727,7 @@
     }
   },
   "vq_fingerherz": {
-    "order": 120,
+    "order": 126,
     "type": "videoupload",
     "label": "Fingerherz: eigenes Video (quer 16:9)",
     "value": "",
@@ -1635,7 +1740,7 @@
     }
   },
   "l_fingerherz": {
-    "order": 121,
+    "order": 127,
     "type": "slider",
     "label": "Fingerherz: Lautstärke",
     "value": 100,
@@ -1653,7 +1758,7 @@
     }
   },
   "an_teamherz": {
-    "order": 122,
+    "order": 128,
     "type": "checkbox",
     "label": "Teamherz: an",
     "value": true,
@@ -1665,7 +1770,7 @@
     }
   },
   "v_teamherz": {
-    "order": 123,
+    "order": 129,
     "type": "videoupload",
     "label": "Teamherz: eigenes Video (hochkant)",
     "value": "",
@@ -1678,7 +1783,7 @@
     }
   },
   "vq_teamherz": {
-    "order": 124,
+    "order": 130,
     "type": "videoupload",
     "label": "Teamherz: eigenes Video (quer 16:9)",
     "value": "",
@@ -1691,7 +1796,7 @@
     }
   },
   "l_teamherz": {
-    "order": 125,
+    "order": 131,
     "type": "slider",
     "label": "Teamherz: Lautstärke",
     "value": 100,
@@ -1709,7 +1814,7 @@
     }
   },
   "an_donut": {
-    "order": 126,
+    "order": 132,
     "type": "checkbox",
     "label": "Donut: an",
     "value": true,
@@ -1721,7 +1826,7 @@
     }
   },
   "v_donut": {
-    "order": 127,
+    "order": 133,
     "type": "videoupload",
     "label": "Donut: eigenes Video (hochkant)",
     "value": "",
@@ -1734,7 +1839,7 @@
     }
   },
   "vq_donut": {
-    "order": 128,
+    "order": 134,
     "type": "videoupload",
     "label": "Donut: eigenes Video (quer 16:9)",
     "value": "",
@@ -1747,7 +1852,7 @@
     }
   },
   "l_donut": {
-    "order": 129,
+    "order": 135,
     "type": "slider",
     "label": "Donut: Lautstärke",
     "value": 100,
@@ -1765,7 +1870,7 @@
     }
   },
   "an_parfuem": {
-    "order": 130,
+    "order": 136,
     "type": "checkbox",
     "label": "Parfüm: an",
     "value": true,
@@ -1777,7 +1882,7 @@
     }
   },
   "v_parfuem": {
-    "order": 131,
+    "order": 137,
     "type": "videoupload",
     "label": "Parfüm: eigenes Video (hochkant)",
     "value": "",
@@ -1790,7 +1895,7 @@
     }
   },
   "vq_parfuem": {
-    "order": 132,
+    "order": 138,
     "type": "videoupload",
     "label": "Parfüm: eigenes Video (quer 16:9)",
     "value": "",
@@ -1803,7 +1908,7 @@
     }
   },
   "l_parfuem": {
-    "order": 133,
+    "order": 139,
     "type": "slider",
     "label": "Parfüm: Lautstärke",
     "value": 100,
@@ -1821,7 +1926,7 @@
     }
   },
   "an_handherzen": {
-    "order": 134,
+    "order": 140,
     "type": "checkbox",
     "label": "Hand-Herzen: an",
     "value": true,
@@ -1833,7 +1938,7 @@
     }
   },
   "v_handherzen": {
-    "order": 135,
+    "order": 141,
     "type": "videoupload",
     "label": "Hand-Herzen: eigenes Video (hochkant)",
     "value": "",
@@ -1846,7 +1951,7 @@
     }
   },
   "vq_handherzen": {
-    "order": 136,
+    "order": 142,
     "type": "videoupload",
     "label": "Hand-Herzen: eigenes Video (quer 16:9)",
     "value": "",
@@ -1859,7 +1964,7 @@
     }
   },
   "l_handherzen": {
-    "order": 137,
+    "order": 143,
     "type": "slider",
     "label": "Hand-Herzen: Lautstärke",
     "value": 100,
@@ -1877,7 +1982,7 @@
     }
   },
   "an_sonnenbrille": {
-    "order": 138,
+    "order": 144,
     "type": "checkbox",
     "label": "Sonnenbrille: an",
     "value": true,
@@ -1889,7 +1994,7 @@
     }
   },
   "v_sonnenbrille": {
-    "order": 139,
+    "order": 145,
     "type": "videoupload",
     "label": "Sonnenbrille: eigenes Video (hochkant)",
     "value": "",
@@ -1902,7 +2007,7 @@
     }
   },
   "vq_sonnenbrille": {
-    "order": 140,
+    "order": 146,
     "type": "videoupload",
     "label": "Sonnenbrille: eigenes Video (quer 16:9)",
     "value": "",
@@ -1915,7 +2020,7 @@
     }
   },
   "l_sonnenbrille": {
-    "order": 141,
+    "order": 147,
     "type": "slider",
     "label": "Sonnenbrille: Lautstärke",
     "value": 100,
@@ -1933,7 +2038,7 @@
     }
   },
   "an_kanone": {
-    "order": 142,
+    "order": 148,
     "type": "checkbox",
     "label": "Konfetti-Kanone: an",
     "value": true,
@@ -1945,7 +2050,7 @@
     }
   },
   "v_kanone": {
-    "order": 143,
+    "order": 149,
     "type": "videoupload",
     "label": "Konfetti-Kanone: eigenes Video (hochkant)",
     "value": "",
@@ -1958,7 +2063,7 @@
     }
   },
   "vq_kanone": {
-    "order": 144,
+    "order": 150,
     "type": "videoupload",
     "label": "Konfetti-Kanone: eigenes Video (quer 16:9)",
     "value": "",
@@ -1971,7 +2076,7 @@
     }
   },
   "l_kanone": {
-    "order": 145,
+    "order": 151,
     "type": "slider",
     "label": "Konfetti-Kanone: Lautstärke",
     "value": 100,
@@ -1989,7 +2094,7 @@
     }
   },
   "an_corgi": {
-    "order": 146,
+    "order": 152,
     "type": "checkbox",
     "label": "Corgi: an",
     "value": true,
@@ -2001,7 +2106,7 @@
     }
   },
   "v_corgi": {
-    "order": 147,
+    "order": 153,
     "type": "videoupload",
     "label": "Corgi: eigenes Video (hochkant)",
     "value": "",
@@ -2014,7 +2119,7 @@
     }
   },
   "vq_corgi": {
-    "order": 148,
+    "order": 154,
     "type": "videoupload",
     "label": "Corgi: eigenes Video (quer 16:9)",
     "value": "",
@@ -2027,7 +2132,7 @@
     }
   },
   "l_corgi": {
-    "order": 149,
+    "order": 155,
     "type": "slider",
     "label": "Corgi: Lautstärke",
     "value": 100,
@@ -2045,7 +2150,7 @@
     }
   },
   "an_kueken": {
-    "order": 150,
+    "order": 156,
     "type": "checkbox",
     "label": "Küken: an",
     "value": true,
@@ -2057,7 +2162,7 @@
     }
   },
   "v_kueken": {
-    "order": 151,
+    "order": 157,
     "type": "videoupload",
     "label": "Küken: eigenes Video (hochkant)",
     "value": "",
@@ -2070,7 +2175,7 @@
     }
   },
   "vq_kueken": {
-    "order": 152,
+    "order": 158,
     "type": "videoupload",
     "label": "Küken: eigenes Video (quer 16:9)",
     "value": "",
@@ -2083,7 +2188,7 @@
     }
   },
   "l_kueken": {
-    "order": 153,
+    "order": 159,
     "type": "slider",
     "label": "Küken: Lautstärke",
     "value": 100,
@@ -2101,7 +2206,7 @@
     }
   },
   "an_galaxie": {
-    "order": 154,
+    "order": 160,
     "type": "checkbox",
     "label": "Galaxie: an",
     "value": true,
@@ -2113,7 +2218,7 @@
     }
   },
   "v_galaxie": {
-    "order": 155,
+    "order": 161,
     "type": "videoupload",
     "label": "Galaxie: eigenes Video (hochkant)",
     "value": "",
@@ -2126,7 +2231,7 @@
     }
   },
   "vq_galaxie": {
-    "order": 156,
+    "order": 162,
     "type": "videoupload",
     "label": "Galaxie: eigenes Video (quer 16:9)",
     "value": "",
@@ -2139,7 +2244,7 @@
     }
   },
   "l_galaxie": {
-    "order": 157,
+    "order": 163,
     "type": "slider",
     "label": "Galaxie: Lautstärke",
     "value": 100,
@@ -2157,7 +2262,7 @@
     }
   },
   "an_loewe": {
-    "order": 158,
+    "order": 164,
     "type": "checkbox",
     "label": "Löwe: an",
     "value": true,
@@ -2169,7 +2274,7 @@
     }
   },
   "v_loewe": {
-    "order": 159,
+    "order": 165,
     "type": "videoupload",
     "label": "Löwe: eigenes Video (hochkant)",
     "value": "",
@@ -2182,7 +2287,7 @@
     }
   },
   "vq_loewe": {
-    "order": 160,
+    "order": 166,
     "type": "videoupload",
     "label": "Löwe: eigenes Video (quer 16:9)",
     "value": "",
@@ -2195,7 +2300,7 @@
     }
   },
   "l_loewe": {
-    "order": 161,
+    "order": 167,
     "type": "slider",
     "label": "Löwe: Lautstärke",
     "value": 100,
@@ -2213,7 +2318,7 @@
     }
   },
   "an_universum": {
-    "order": 162,
+    "order": 168,
     "type": "checkbox",
     "label": "Universum: an",
     "value": true,
@@ -2225,7 +2330,7 @@
     }
   },
   "v_universum": {
-    "order": 163,
+    "order": 169,
     "type": "videoupload",
     "label": "Universum: eigenes Video (hochkant)",
     "value": "",
@@ -2238,7 +2343,7 @@
     }
   },
   "vq_universum": {
-    "order": 164,
+    "order": 170,
     "type": "videoupload",
     "label": "Universum: eigenes Video (quer 16:9)",
     "value": "",
@@ -2251,7 +2356,7 @@
     }
   },
   "l_universum": {
-    "order": 165,
+    "order": 171,
     "type": "slider",
     "label": "Universum: Lautstärke",
     "value": 100,
@@ -2269,7 +2374,7 @@
     }
   },
   "an_stufe-klein": {
-    "order": 166,
+    "order": 172,
     "type": "checkbox",
     "label": "Stufe klein: an",
     "value": true,
@@ -2281,7 +2386,7 @@
     }
   },
   "v_stufe-klein": {
-    "order": 167,
+    "order": 173,
     "type": "videoupload",
     "label": "Stufe klein: eigenes Video (hochkant)",
     "value": "",
@@ -2294,7 +2399,7 @@
     }
   },
   "vq_stufe-klein": {
-    "order": 168,
+    "order": 174,
     "type": "videoupload",
     "label": "Stufe klein: eigenes Video (quer 16:9)",
     "value": "",
@@ -2307,7 +2412,7 @@
     }
   },
   "l_stufe-klein": {
-    "order": 169,
+    "order": 175,
     "type": "slider",
     "label": "Stufe klein: Lautstärke",
     "value": 100,
@@ -2325,7 +2430,7 @@
     }
   },
   "ab_stufe-klein": {
-    "order": 170,
+    "order": 176,
     "type": "number",
     "label": "Stufe klein: ab … Münzen",
     "value": 1,
@@ -2337,7 +2442,7 @@
     }
   },
   "an_stufe-mittel": {
-    "order": 171,
+    "order": 177,
     "type": "checkbox",
     "label": "Stufe mittel: an",
     "value": true,
@@ -2349,7 +2454,7 @@
     }
   },
   "v_stufe-mittel": {
-    "order": 172,
+    "order": 178,
     "type": "videoupload",
     "label": "Stufe mittel: eigenes Video (hochkant)",
     "value": "",
@@ -2362,7 +2467,7 @@
     }
   },
   "vq_stufe-mittel": {
-    "order": 173,
+    "order": 179,
     "type": "videoupload",
     "label": "Stufe mittel: eigenes Video (quer 16:9)",
     "value": "",
@@ -2375,7 +2480,7 @@
     }
   },
   "l_stufe-mittel": {
-    "order": 174,
+    "order": 180,
     "type": "slider",
     "label": "Stufe mittel: Lautstärke",
     "value": 100,
@@ -2393,7 +2498,7 @@
     }
   },
   "ab_stufe-mittel": {
-    "order": 175,
+    "order": 181,
     "type": "number",
     "label": "Stufe mittel: ab … Münzen",
     "value": 100,
@@ -2405,7 +2510,7 @@
     }
   },
   "an_stufe-gross": {
-    "order": 176,
+    "order": 182,
     "type": "checkbox",
     "label": "Stufe groß: an",
     "value": true,
@@ -2417,7 +2522,7 @@
     }
   },
   "v_stufe-gross": {
-    "order": 177,
+    "order": 183,
     "type": "videoupload",
     "label": "Stufe groß: eigenes Video (hochkant)",
     "value": "",
@@ -2430,7 +2535,7 @@
     }
   },
   "vq_stufe-gross": {
-    "order": 178,
+    "order": 184,
     "type": "videoupload",
     "label": "Stufe groß: eigenes Video (quer 16:9)",
     "value": "",
@@ -2443,7 +2548,7 @@
     }
   },
   "l_stufe-gross": {
-    "order": 179,
+    "order": 185,
     "type": "slider",
     "label": "Stufe groß: Lautstärke",
     "value": 100,
@@ -2461,7 +2566,7 @@
     }
   },
   "ab_stufe-gross": {
-    "order": 180,
+    "order": 186,
     "type": "number",
     "label": "Stufe groß: ab … Münzen",
     "value": 1000,
@@ -2473,7 +2578,7 @@
     }
   },
   "an_stufe-episch": {
-    "order": 181,
+    "order": 187,
     "type": "checkbox",
     "label": "Stufe episch: an",
     "value": true,
@@ -2485,7 +2590,7 @@
     }
   },
   "v_stufe-episch": {
-    "order": 182,
+    "order": 188,
     "type": "videoupload",
     "label": "Stufe episch: eigenes Video (hochkant)",
     "value": "",
@@ -2498,7 +2603,7 @@
     }
   },
   "vq_stufe-episch": {
-    "order": 183,
+    "order": 189,
     "type": "videoupload",
     "label": "Stufe episch: eigenes Video (quer 16:9)",
     "value": "",
@@ -2511,7 +2616,7 @@
     }
   },
   "l_stufe-episch": {
-    "order": 184,
+    "order": 190,
     "type": "slider",
     "label": "Stufe episch: Lautstärke",
     "value": 100,
@@ -2529,7 +2634,7 @@
     }
   },
   "ab_stufe-episch": {
-    "order": 185,
+    "order": 191,
     "type": "number",
     "label": "Stufe episch: ab … Münzen",
     "value": 10000,
@@ -2541,7 +2646,7 @@
     }
   },
   "an_folgen": {
-    "order": 186,
+    "order": 192,
     "type": "checkbox",
     "label": "Neuer Follower: an",
     "value": true,
@@ -2553,7 +2658,7 @@
     }
   },
   "v_folgen": {
-    "order": 187,
+    "order": 193,
     "type": "videoupload",
     "label": "Neuer Follower: eigenes Video (hochkant)",
     "value": "",
@@ -2566,7 +2671,7 @@
     }
   },
   "vq_folgen": {
-    "order": 188,
+    "order": 194,
     "type": "videoupload",
     "label": "Neuer Follower: eigenes Video (quer 16:9)",
     "value": "",
@@ -2579,7 +2684,7 @@
     }
   },
   "l_folgen": {
-    "order": 189,
+    "order": 195,
     "type": "slider",
     "label": "Neuer Follower: Lautstärke",
     "value": 100,
@@ -2597,7 +2702,7 @@
     }
   },
   "an_teilen": {
-    "order": 190,
+    "order": 196,
     "type": "checkbox",
     "label": "Live geteilt: an",
     "value": true,
@@ -2609,7 +2714,7 @@
     }
   },
   "v_teilen": {
-    "order": 191,
+    "order": 197,
     "type": "videoupload",
     "label": "Live geteilt: eigenes Video (hochkant)",
     "value": "",
@@ -2622,7 +2727,7 @@
     }
   },
   "vq_teilen": {
-    "order": 192,
+    "order": 198,
     "type": "videoupload",
     "label": "Live geteilt: eigenes Video (quer 16:9)",
     "value": "",
@@ -2635,7 +2740,7 @@
     }
   },
   "l_teilen": {
-    "order": 193,
+    "order": 199,
     "type": "slider",
     "label": "Live geteilt: Lautstärke",
     "value": 100,
@@ -2653,7 +2758,7 @@
     }
   },
   "an_superfan": {
-    "order": 194,
+    "order": 200,
     "type": "checkbox",
     "label": "Superfan: an",
     "value": true,
@@ -2665,7 +2770,7 @@
     }
   },
   "v_superfan": {
-    "order": 195,
+    "order": 201,
     "type": "videoupload",
     "label": "Superfan: eigenes Video (hochkant)",
     "value": "",
@@ -2678,7 +2783,7 @@
     }
   },
   "vq_superfan": {
-    "order": 196,
+    "order": 202,
     "type": "videoupload",
     "label": "Superfan: eigenes Video (quer 16:9)",
     "value": "",
@@ -2691,7 +2796,7 @@
     }
   },
   "l_superfan": {
-    "order": 197,
+    "order": 203,
     "type": "slider",
     "label": "Superfan: Lautstärke",
     "value": 100,
@@ -2709,7 +2814,7 @@
     }
   },
   "an_schatzkiste": {
-    "order": 198,
+    "order": 204,
     "type": "checkbox",
     "label": "Schatzkiste: an",
     "value": true,
@@ -2721,7 +2826,7 @@
     }
   },
   "v_schatzkiste": {
-    "order": 199,
+    "order": 205,
     "type": "videoupload",
     "label": "Schatzkiste: eigenes Video (hochkant)",
     "value": "",
@@ -2734,7 +2839,7 @@
     }
   },
   "vq_schatzkiste": {
-    "order": 200,
+    "order": 206,
     "type": "videoupload",
     "label": "Schatzkiste: eigenes Video (quer 16:9)",
     "value": "",
@@ -2747,7 +2852,7 @@
     }
   },
   "l_schatzkiste": {
-    "order": 201,
+    "order": 207,
     "type": "slider",
     "label": "Schatzkiste: Lautstärke",
     "value": 100,
@@ -2765,7 +2870,7 @@
     }
   },
   "an_likeziel": {
-    "order": 202,
+    "order": 208,
     "type": "checkbox",
     "label": "Like-Ziel: an",
     "value": true,
@@ -2777,7 +2882,7 @@
     }
   },
   "v_likeziel": {
-    "order": 203,
+    "order": 209,
     "type": "videoupload",
     "label": "Like-Ziel: eigenes Video (hochkant)",
     "value": "",
@@ -2790,7 +2895,7 @@
     }
   },
   "vq_likeziel": {
-    "order": 204,
+    "order": 210,
     "type": "videoupload",
     "label": "Like-Ziel: eigenes Video (quer 16:9)",
     "value": "",
@@ -2803,7 +2908,7 @@
     }
   },
   "l_likeziel": {
-    "order": 205,
+    "order": 211,
     "type": "slider",
     "label": "Like-Ziel: Lautstärke",
     "value": 100,
@@ -2821,7 +2926,7 @@
     }
   },
   "an_battle-sieg": {
-    "order": 206,
+    "order": 212,
     "type": "checkbox",
     "label": "Battle-Ende: an",
     "value": true,
@@ -2833,7 +2938,7 @@
     }
   },
   "v_battle-sieg": {
-    "order": 207,
+    "order": 213,
     "type": "videoupload",
     "label": "Battle-Ende: eigenes Video (hochkant)",
     "value": "",
@@ -2846,7 +2951,7 @@
     }
   },
   "vq_battle-sieg": {
-    "order": 208,
+    "order": 214,
     "type": "videoupload",
     "label": "Battle-Ende: eigenes Video (quer 16:9)",
     "value": "",
@@ -2859,7 +2964,7 @@
     }
   },
   "l_battle-sieg": {
-    "order": 209,
+    "order": 215,
     "type": "slider",
     "label": "Battle-Ende: Lautstärke",
     "value": 100,
@@ -2877,7 +2982,7 @@
     }
   },
   "an_airhorn": {
-    "order": 210,
+    "order": 216,
     "type": "checkbox",
     "label": "Airhorn: an",
     "value": true,
@@ -2889,7 +2994,7 @@
     }
   },
   "v_airhorn": {
-    "order": 211,
+    "order": 217,
     "type": "videoupload",
     "label": "Airhorn: eigenes Video (hochkant)",
     "value": "",
@@ -2902,7 +3007,7 @@
     }
   },
   "vq_airhorn": {
-    "order": 212,
+    "order": 218,
     "type": "videoupload",
     "label": "Airhorn: eigenes Video (quer 16:9)",
     "value": "",
@@ -2915,7 +3020,7 @@
     }
   },
   "l_airhorn": {
-    "order": 213,
+    "order": 219,
     "type": "slider",
     "label": "Airhorn: Lautstärke",
     "value": 100,
@@ -2933,7 +3038,7 @@
     }
   },
   "an_torjubel": {
-    "order": 214,
+    "order": 220,
     "type": "checkbox",
     "label": "Torjubel: an",
     "value": true,
@@ -2945,7 +3050,7 @@
     }
   },
   "v_torjubel": {
-    "order": 215,
+    "order": 221,
     "type": "videoupload",
     "label": "Torjubel: eigenes Video (hochkant)",
     "value": "",
@@ -2958,7 +3063,7 @@
     }
   },
   "vq_torjubel": {
-    "order": 216,
+    "order": 222,
     "type": "videoupload",
     "label": "Torjubel: eigenes Video (quer 16:9)",
     "value": "",
@@ -2971,7 +3076,7 @@
     }
   },
   "l_torjubel": {
-    "order": 217,
+    "order": 223,
     "type": "slider",
     "label": "Torjubel: Lautstärke",
     "value": 100,
@@ -2989,7 +3094,7 @@
     }
   },
   "an_trommelwirbel": {
-    "order": 218,
+    "order": 224,
     "type": "checkbox",
     "label": "Trommelwirbel: an",
     "value": true,
@@ -3001,7 +3106,7 @@
     }
   },
   "v_trommelwirbel": {
-    "order": 219,
+    "order": 225,
     "type": "videoupload",
     "label": "Trommelwirbel: eigenes Video (hochkant)",
     "value": "",
@@ -3014,7 +3119,7 @@
     }
   },
   "vq_trommelwirbel": {
-    "order": 220,
+    "order": 226,
     "type": "videoupload",
     "label": "Trommelwirbel: eigenes Video (quer 16:9)",
     "value": "",
@@ -3027,7 +3132,7 @@
     }
   },
   "l_trommelwirbel": {
-    "order": 221,
+    "order": 227,
     "type": "slider",
     "label": "Trommelwirbel: Lautstärke",
     "value": 100,
@@ -3045,7 +3150,7 @@
     }
   },
   "an_applaus": {
-    "order": 222,
+    "order": 228,
     "type": "checkbox",
     "label": "Applaus: an",
     "value": true,
@@ -3057,7 +3162,7 @@
     }
   },
   "v_applaus": {
-    "order": 223,
+    "order": 229,
     "type": "videoupload",
     "label": "Applaus: eigenes Video (hochkant)",
     "value": "",
@@ -3070,7 +3175,7 @@
     }
   },
   "vq_applaus": {
-    "order": 224,
+    "order": 230,
     "type": "videoupload",
     "label": "Applaus: eigenes Video (quer 16:9)",
     "value": "",
@@ -3083,7 +3188,7 @@
     }
   },
   "l_applaus": {
-    "order": 225,
+    "order": 231,
     "type": "slider",
     "label": "Applaus: Lautstärke",
     "value": 100,
@@ -3101,7 +3206,7 @@
     }
   },
   "an_konfetti": {
-    "order": 226,
+    "order": 232,
     "type": "checkbox",
     "label": "Konfetti: an",
     "value": true,
@@ -3113,7 +3218,7 @@
     }
   },
   "v_konfetti": {
-    "order": 227,
+    "order": 233,
     "type": "videoupload",
     "label": "Konfetti: eigenes Video (hochkant)",
     "value": "",
@@ -3126,7 +3231,7 @@
     }
   },
   "vq_konfetti": {
-    "order": 228,
+    "order": 234,
     "type": "videoupload",
     "label": "Konfetti: eigenes Video (quer 16:9)",
     "value": "",
@@ -3139,7 +3244,7 @@
     }
   },
   "l_konfetti": {
-    "order": 229,
+    "order": 235,
     "type": "slider",
     "label": "Konfetti: Lautstärke",
     "value": 100,
@@ -3157,7 +3262,7 @@
     }
   },
   "an_verlosung": {
-    "order": 230,
+    "order": 236,
     "type": "checkbox",
     "label": "Verlosung: an",
     "value": true,
@@ -3169,7 +3274,7 @@
     }
   },
   "v_verlosung": {
-    "order": 231,
+    "order": 237,
     "type": "videoupload",
     "label": "Verlosung: eigenes Video (hochkant)",
     "value": "",
@@ -3182,7 +3287,7 @@
     }
   },
   "vq_verlosung": {
-    "order": 232,
+    "order": 238,
     "type": "videoupload",
     "label": "Verlosung: eigenes Video (quer 16:9)",
     "value": "",
@@ -3195,7 +3300,7 @@
     }
   },
   "l_verlosung": {
-    "order": 233,
+    "order": 239,
     "type": "slider",
     "label": "Verlosung: Lautstärke",
     "value": 100,
@@ -3213,7 +3318,7 @@
     }
   },
   "an_fanfare": {
-    "order": 234,
+    "order": 240,
     "type": "checkbox",
     "label": "Fanfare: an",
     "value": true,
@@ -3225,7 +3330,7 @@
     }
   },
   "v_fanfare": {
-    "order": 235,
+    "order": 241,
     "type": "videoupload",
     "label": "Fanfare: eigenes Video (hochkant)",
     "value": "",
@@ -3238,7 +3343,7 @@
     }
   },
   "vq_fanfare": {
-    "order": 236,
+    "order": 242,
     "type": "videoupload",
     "label": "Fanfare: eigenes Video (quer 16:9)",
     "value": "",
@@ -3251,7 +3356,7 @@
     }
   },
   "l_fanfare": {
-    "order": 237,
+    "order": 243,
     "type": "slider",
     "label": "Fanfare: Lautstärke",
     "value": 100,
@@ -3269,7 +3374,7 @@
     }
   },
   "an_lacher": {
-    "order": 238,
+    "order": 244,
     "type": "checkbox",
     "label": "Lacher: an",
     "value": true,
@@ -3281,7 +3386,7 @@
     }
   },
   "v_lacher": {
-    "order": 239,
+    "order": 245,
     "type": "videoupload",
     "label": "Lacher: eigenes Video (hochkant)",
     "value": "",
@@ -3294,7 +3399,7 @@
     }
   },
   "vq_lacher": {
-    "order": 240,
+    "order": 246,
     "type": "videoupload",
     "label": "Lacher: eigenes Video (quer 16:9)",
     "value": "",
@@ -3307,7 +3412,7 @@
     }
   },
   "l_lacher": {
-    "order": 241,
+    "order": 247,
     "type": "slider",
     "label": "Lacher: Lautstärke",
     "value": 100,
@@ -3325,7 +3430,7 @@
     }
   },
   "an_wow": {
-    "order": 242,
+    "order": 248,
     "type": "checkbox",
     "label": "Wow: an",
     "value": true,
@@ -3337,7 +3442,7 @@
     }
   },
   "v_wow": {
-    "order": 243,
+    "order": 249,
     "type": "videoupload",
     "label": "Wow: eigenes Video (hochkant)",
     "value": "",
@@ -3350,7 +3455,7 @@
     }
   },
   "vq_wow": {
-    "order": 244,
+    "order": 250,
     "type": "videoupload",
     "label": "Wow: eigenes Video (quer 16:9)",
     "value": "",
@@ -3363,7 +3468,7 @@
     }
   },
   "l_wow": {
-    "order": 245,
+    "order": 251,
     "type": "slider",
     "label": "Wow: Lautstärke",
     "value": 100,
@@ -3381,7 +3486,7 @@
     }
   },
   "an_rimshot": {
-    "order": 246,
+    "order": 252,
     "type": "checkbox",
     "label": "Ba-dum-tss: an",
     "value": true,
@@ -3393,7 +3498,7 @@
     }
   },
   "v_rimshot": {
-    "order": 247,
+    "order": 253,
     "type": "videoupload",
     "label": "Ba-dum-tss: eigenes Video (hochkant)",
     "value": "",
@@ -3406,7 +3511,7 @@
     }
   },
   "vq_rimshot": {
-    "order": 248,
+    "order": 254,
     "type": "videoupload",
     "label": "Ba-dum-tss: eigenes Video (quer 16:9)",
     "value": "",
@@ -3419,7 +3524,7 @@
     }
   },
   "l_rimshot": {
-    "order": 249,
+    "order": 255,
     "type": "slider",
     "label": "Ba-dum-tss: Lautstärke",
     "value": 100,
@@ -3437,7 +3542,7 @@
     }
   },
   "an_herzregen": {
-    "order": 250,
+    "order": 256,
     "type": "checkbox",
     "label": "Herzregen: an",
     "value": true,
@@ -3449,7 +3554,7 @@
     }
   },
   "v_herzregen": {
-    "order": 251,
+    "order": 257,
     "type": "videoupload",
     "label": "Herzregen: eigenes Video (hochkant)",
     "value": "",
@@ -3462,7 +3567,7 @@
     }
   },
   "vq_herzregen": {
-    "order": 252,
+    "order": 258,
     "type": "videoupload",
     "label": "Herzregen: eigenes Video (quer 16:9)",
     "value": "",
@@ -3475,7 +3580,7 @@
     }
   },
   "l_herzregen": {
-    "order": 253,
+    "order": 259,
     "type": "slider",
     "label": "Herzregen: Lautstärke",
     "value": 100,
@@ -3493,7 +3598,7 @@
     }
   },
   "an_partyalarm": {
-    "order": 254,
+    "order": 260,
     "type": "checkbox",
     "label": "Party-Alarm: an",
     "value": true,
@@ -3505,7 +3610,7 @@
     }
   },
   "v_partyalarm": {
-    "order": 255,
+    "order": 261,
     "type": "videoupload",
     "label": "Party-Alarm: eigenes Video (hochkant)",
     "value": "",
@@ -3518,7 +3623,7 @@
     }
   },
   "vq_partyalarm": {
-    "order": 256,
+    "order": 262,
     "type": "videoupload",
     "label": "Party-Alarm: eigenes Video (quer 16:9)",
     "value": "",
@@ -3531,7 +3636,7 @@
     }
   },
   "l_partyalarm": {
-    "order": 257,
+    "order": 263,
     "type": "slider",
     "label": "Party-Alarm: Lautstärke",
     "value": 100,
@@ -3549,7 +3654,7 @@
     }
   },
   "an_tw-follow": {
-    "order": 258,
+    "order": 264,
     "type": "checkbox",
     "label": "Twitch: Follow: an",
     "value": true,
@@ -3561,7 +3666,7 @@
     }
   },
   "v_tw-follow": {
-    "order": 259,
+    "order": 265,
     "type": "videoupload",
     "label": "Twitch: Follow: eigenes Video",
     "value": "",
@@ -3574,7 +3679,7 @@
     }
   },
   "l_tw-follow": {
-    "order": 260,
+    "order": 266,
     "type": "slider",
     "label": "Twitch: Follow: Lautstärke",
     "value": 100,
@@ -3592,7 +3697,7 @@
     }
   },
   "an_tw-sub": {
-    "order": 261,
+    "order": 267,
     "type": "checkbox",
     "label": "Twitch: Sub: an",
     "value": true,
@@ -3604,7 +3709,7 @@
     }
   },
   "v_tw-sub": {
-    "order": 262,
+    "order": 268,
     "type": "videoupload",
     "label": "Twitch: Sub: eigenes Video",
     "value": "",
@@ -3617,7 +3722,7 @@
     }
   },
   "l_tw-sub": {
-    "order": 263,
+    "order": 269,
     "type": "slider",
     "label": "Twitch: Sub: Lautstärke",
     "value": 100,
@@ -3635,7 +3740,7 @@
     }
   },
   "an_tw-primesub": {
-    "order": 264,
+    "order": 270,
     "type": "checkbox",
     "label": "Twitch: Prime-Sub: an",
     "value": true,
@@ -3647,7 +3752,7 @@
     }
   },
   "v_tw-primesub": {
-    "order": 265,
+    "order": 271,
     "type": "videoupload",
     "label": "Twitch: Prime-Sub: eigenes Video",
     "value": "",
@@ -3660,7 +3765,7 @@
     }
   },
   "l_tw-primesub": {
-    "order": 266,
+    "order": 272,
     "type": "slider",
     "label": "Twitch: Prime-Sub: Lautstärke",
     "value": 100,
@@ -3678,7 +3783,7 @@
     }
   },
   "an_tw-resub": {
-    "order": 267,
+    "order": 273,
     "type": "checkbox",
     "label": "Twitch: Resub: an",
     "value": true,
@@ -3690,7 +3795,7 @@
     }
   },
   "v_tw-resub": {
-    "order": 268,
+    "order": 274,
     "type": "videoupload",
     "label": "Twitch: Resub: eigenes Video",
     "value": "",
@@ -3703,7 +3808,7 @@
     }
   },
   "l_tw-resub": {
-    "order": 269,
+    "order": 275,
     "type": "slider",
     "label": "Twitch: Resub: Lautstärke",
     "value": 100,
@@ -3721,7 +3826,7 @@
     }
   },
   "an_tw-giftsub": {
-    "order": 270,
+    "order": 276,
     "type": "checkbox",
     "label": "Twitch: Geschenk-Subs: an",
     "value": true,
@@ -3733,7 +3838,7 @@
     }
   },
   "v_tw-giftsub": {
-    "order": 271,
+    "order": 277,
     "type": "videoupload",
     "label": "Twitch: Geschenk-Subs: eigenes Video",
     "value": "",
@@ -3746,7 +3851,7 @@
     }
   },
   "l_tw-giftsub": {
-    "order": 272,
+    "order": 278,
     "type": "slider",
     "label": "Twitch: Geschenk-Subs: Lautstärke",
     "value": 100,
@@ -3764,7 +3869,7 @@
     }
   },
   "an_tw-bits-klein": {
-    "order": 273,
+    "order": 279,
     "type": "checkbox",
     "label": "Twitch: Bits klein: an",
     "value": true,
@@ -3776,7 +3881,7 @@
     }
   },
   "v_tw-bits-klein": {
-    "order": 274,
+    "order": 280,
     "type": "videoupload",
     "label": "Twitch: Bits klein: eigenes Video",
     "value": "",
@@ -3789,7 +3894,7 @@
     }
   },
   "l_tw-bits-klein": {
-    "order": 275,
+    "order": 281,
     "type": "slider",
     "label": "Twitch: Bits klein: Lautstärke",
     "value": 100,
@@ -3807,7 +3912,7 @@
     }
   },
   "an_tw-bits-mittel": {
-    "order": 276,
+    "order": 282,
     "type": "checkbox",
     "label": "Twitch: Bits mittel: an",
     "value": true,
@@ -3819,7 +3924,7 @@
     }
   },
   "v_tw-bits-mittel": {
-    "order": 277,
+    "order": 283,
     "type": "videoupload",
     "label": "Twitch: Bits mittel: eigenes Video",
     "value": "",
@@ -3832,7 +3937,7 @@
     }
   },
   "l_tw-bits-mittel": {
-    "order": 278,
+    "order": 284,
     "type": "slider",
     "label": "Twitch: Bits mittel: Lautstärke",
     "value": 100,
@@ -3850,7 +3955,7 @@
     }
   },
   "an_tw-bits-gross": {
-    "order": 279,
+    "order": 285,
     "type": "checkbox",
     "label": "Twitch: Bits groß: an",
     "value": true,
@@ -3862,7 +3967,7 @@
     }
   },
   "v_tw-bits-gross": {
-    "order": 280,
+    "order": 286,
     "type": "videoupload",
     "label": "Twitch: Bits groß: eigenes Video",
     "value": "",
@@ -3875,7 +3980,7 @@
     }
   },
   "l_tw-bits-gross": {
-    "order": 281,
+    "order": 287,
     "type": "slider",
     "label": "Twitch: Bits groß: Lautstärke",
     "value": 100,
@@ -3893,7 +3998,7 @@
     }
   },
   "an_tw-bits-episch": {
-    "order": 282,
+    "order": 288,
     "type": "checkbox",
     "label": "Twitch: Bits episch: an",
     "value": true,
@@ -3905,7 +4010,7 @@
     }
   },
   "v_tw-bits-episch": {
-    "order": 283,
+    "order": 289,
     "type": "videoupload",
     "label": "Twitch: Bits episch: eigenes Video",
     "value": "",
@@ -3918,7 +4023,7 @@
     }
   },
   "l_tw-bits-episch": {
-    "order": 284,
+    "order": 290,
     "type": "slider",
     "label": "Twitch: Bits episch: Lautstärke",
     "value": 100,
@@ -3936,7 +4041,7 @@
     }
   },
   "an_tw-hypetrain-start": {
-    "order": 285,
+    "order": 291,
     "type": "checkbox",
     "label": "Twitch: Hype Train Start: an",
     "value": true,
@@ -3948,7 +4053,7 @@
     }
   },
   "v_tw-hypetrain-start": {
-    "order": 286,
+    "order": 292,
     "type": "videoupload",
     "label": "Twitch: Hype Train Start: eigenes Video",
     "value": "",
@@ -3961,7 +4066,7 @@
     }
   },
   "l_tw-hypetrain-start": {
-    "order": 287,
+    "order": 293,
     "type": "slider",
     "label": "Twitch: Hype Train Start: Lautstärke",
     "value": 100,
@@ -3979,7 +4084,7 @@
     }
   },
   "an_tw-hypetrain-level": {
-    "order": 288,
+    "order": 294,
     "type": "checkbox",
     "label": "Twitch: Hype Train Level: an",
     "value": true,
@@ -3991,7 +4096,7 @@
     }
   },
   "v_tw-hypetrain-level": {
-    "order": 289,
+    "order": 295,
     "type": "videoupload",
     "label": "Twitch: Hype Train Level: eigenes Video",
     "value": "",
@@ -4004,7 +4109,7 @@
     }
   },
   "l_tw-hypetrain-level": {
-    "order": 290,
+    "order": 296,
     "type": "slider",
     "label": "Twitch: Hype Train Level: Lautstärke",
     "value": 100,
@@ -4022,7 +4127,7 @@
     }
   },
   "an_tw-hypetrain-ende": {
-    "order": 291,
+    "order": 297,
     "type": "checkbox",
     "label": "Twitch: Hype Train Ende: an",
     "value": true,
@@ -4034,7 +4139,7 @@
     }
   },
   "v_tw-hypetrain-ende": {
-    "order": 292,
+    "order": 298,
     "type": "videoupload",
     "label": "Twitch: Hype Train Ende: eigenes Video",
     "value": "",
@@ -4047,7 +4152,7 @@
     }
   },
   "l_tw-hypetrain-ende": {
-    "order": 293,
+    "order": 299,
     "type": "slider",
     "label": "Twitch: Hype Train Ende: Lautstärke",
     "value": 100,
@@ -4065,7 +4170,7 @@
     }
   },
   "an_tw-raid": {
-    "order": 294,
+    "order": 300,
     "type": "checkbox",
     "label": "Twitch: Raid: an",
     "value": true,
@@ -4077,7 +4182,7 @@
     }
   },
   "v_tw-raid": {
-    "order": 295,
+    "order": 301,
     "type": "videoupload",
     "label": "Twitch: Raid: eigenes Video",
     "value": "",
@@ -4090,7 +4195,7 @@
     }
   },
   "l_tw-raid": {
-    "order": 296,
+    "order": 302,
     "type": "slider",
     "label": "Twitch: Raid: Lautstärke",
     "value": 100,
