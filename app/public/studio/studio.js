@@ -181,7 +181,7 @@ function spielePage(m) {
 // ---------- Galerie ----------
 let galQuer = false;
 function galerie(m) {
-  const umsch = h('div', { class: 'row' }, h('button', { class: 'b' + (galQuer ? '' : ' on'), onclick: () => { galQuer = false; render(); } }, 'Hochkant 9:16'), h('button', { class: 'b' + (galQuer ? ' on' : ''), onclick: () => { galQuer = true; render(); } }, 'Quer 16:9'));
+  const umsch = h('div', { class: 'tabs row' }, h('button', { class: 'b' + (galQuer ? '' : ' on'), onclick: () => { galQuer = false; render(); } }, 'Hochkant 9:16'), h('button', { class: 'b' + (galQuer ? ' on' : ''), onclick: () => { galQuer = true; render(); } }, 'Quer 16:9'));
   m.append(h('h1', {}, 'Animationen ansehen'), h('p', { class: 'hint' }, 'Klick aufs Video = mit Ton abspielen. „Im Stream zeigen“ spielt die Animation live in allen Browserquellen (hochkant und quer, jede in ihrem Format).'), umsch);
   const NAMES = { geschenk: 'TikTok-Geschenke', stufe: 'TikTok-Stufen (alle anderen Geschenke)', ereignis: 'TikTok-Ereignisse', twitch: 'Twitch', knopf: 'Aktionsknöpfe' };
   for (const [g, name] of Object.entries(NAMES)) {

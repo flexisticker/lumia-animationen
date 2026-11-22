@@ -63,6 +63,7 @@
   "twBitsMittel": 100,
   "twBitsGross": 1000,
   "twBitsEpisch": 5000,
+  "knopfModus": "knopf",
   "an_rose": true,
   "v_rose": "",
   "vq_rose": "",

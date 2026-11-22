@@ -96,6 +96,8 @@ add('twTextGift', { type: 'input', label: 'Twitch-Text Geschenk-Subs', value: 'v
 add('twBitsMittel', { type: 'number', label: 'Bits: Stufe mittel ab', value: 100, ...vis('twitch') });
 add('twBitsGross', { type: 'number', label: 'Bits: Stufe groß ab', value: 1000, ...vis('twitch') });
 add('twBitsEpisch', { type: 'number', label: 'Bits: Stufe episch ab', value: 5000, ...vis('twitch') });
+add('knopfModus', { type: 'dropdown', label: 'Knopf drücken, während etwas läuft', value: 'knopf', options: {
+  knopf: 'Knopf-Animation abbrechen und neu starten (Geschenke laufen zu Ende)', alles: 'Alles sofort abbrechen und neu starten', anstellen: 'Hinten anstellen (wie früher)' }, ...vis('knopf') });
 for (const a of items) {
   add('an_' + a.id, { type: 'checkbox', label: `${a.label}: an`, value: true, ...vis(a.gruppe) });
   add('v_' + a.id, { type: 'videoupload', label: `${a.label}: eigenes Video${a.quer ? ' (hochkant)' : ''}`, value: '', accept: 'video/mp4,video/webm', ...vis(a.gruppe) });

@@ -109,6 +109,15 @@ function enabled(a) { return on('an_' + a.id, true); }
 
 function enqueue(item) {
   if (!item.anim || !enabled(item.anim)) return;
+  // Aktionsknöpfe: nicht stapeln, sondern laufende Knopf-Animation abbrechen und neu starten
+  const km = D.knopfModus || 'knopf';
+  if (item.knopf && km !== 'anstellen') {
+    for (let i = queue.length - 1; i >= 0; i--) if (queue[i].knopf) queue.splice(i, 1);
+    if (playing && (playing.knopf || km === 'alles')) { stopNow(playing); queue.unshift(item); next(); return; }
+    queue.unshift(item);
+    if (!playing) next();
+    return;
+  }
   // Gleicher Spender + gleiches Geschenk: nur hochzählen
   if (item.key && on('comboZusammen')) {
     if (playing && playing.key === item.key && playing.card) { playing.amount += item.amount; updateCount(playing); return; }
@@ -137,6 +146,13 @@ function next() {
   } else {
     setTimeout(() => finish(item), num(D.anzeigeSekunden, 5) * 1000);
   }
+}
+function stopNow(item) {
+  video.onended = video.onerror = null;
+  video.pause();
+  if (item.card) item.card.remove();
+  if (gl) gl.clear(gl.COLOR_BUFFER_BIT);
+  playing = null;
 }
 function finish(item) {
   if (playing !== item) return;
@@ -251,7 +267,7 @@ function handleContent(raw) {
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
   if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
   const anim = entryById(c.id);
-  if (anim) enqueue({ anim, user: c.name || '', text: c.text || '', amount: 1 });
+  if (anim) enqueue({ anim, user: c.name || '', text: c.text || '', amount: 1, knopf: true });
 }
 
 if (window.Overlay) {
