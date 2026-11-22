@@ -77,3 +77,4 @@
   Neue Titel (Freigabe Michael, ca. 2,80 $): Stable Audio 2.5 (`fal-ai/stable-audio-25/text-to-audio`, 150 s, WAV → Stille weg, Fades, loudnorm, MP3) je 2 für fantasy, space, mystisch, synthwave, chiptune, mittelalter, chill (Dateien `-2`/`-3`).
   Weitere Titel: einfach `medien/musik/<genre>-4.mp3` usw. ablegen.
 - 22.11.2026: „Spielfenster ändert sich nicht“: lokal geprüft – Breite ändert sich sofort. Ursache bei Michael vermutlich Format-Verwechslung (OBS-Quelle quer bzw. ohne -hoch → nimmt Twitch-Reiter) oder alte Version. Studio warnt jetzt im Fenster-Reiter, wenn keine Quelle dieses Formats verbunden ist, und nennt den richtigen Reiter/Adresse.
+- 22.11.2026: Quellen-Adressen tippfehler-tolerant (Groß/klein, _ statt -, / am Ende, .html → 302 auf richtige Adresse); unbekannte `/quelle/...` zeigen eine sichtbare Hilfeseite mit allen gültigen Adressen statt leerer 404.

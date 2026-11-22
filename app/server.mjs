@@ -529,6 +529,15 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 404, { fehler: 'unbekannt' });
     if (PAGES[p]) return sendFile(req, res, path.join(PUBLIC, PAGES[p]));
+    // Tippfehler-tolerant: /Quelle/hinten_quer/ oder …-quer.html → auf die richtige Adresse umleiten
+    { const n = p.toLowerCase().replace(/_/g, '-').replace(/\.html?$/, '').replace(/\/+$/, '') || '/';
+      if (n !== p && PAGES[n]) { res.writeHead(302, { location: n + (url.search || '') }); return res.end(); } }
+    if (/^\/quelle\//i.test(p)) {
+      // Unbekannte Quellen-Adresse: sichtbare Hilfe statt leerer Seite (erscheint direkt in OBS)
+      const liste = Object.keys(PAGES).filter(k => k.startsWith('/quelle/')).map(k => `<li><code>http://${req.headers.host}${k}</code></li>`).join('');
+      res.writeHead(404, { 'content-type': 'text/html; charset=utf-8' });
+      return res.end(`<!doctype html><meta charset="utf-8"><body style="font:28px system-ui;color:#fff;background:#3a1020;padding:40px"><h1>Adresse unbekannt: ${p.replace(/[<>&"]/g, '')}</h1><p>Richtige Adressen für die Browserquelle:</p><ul>${liste}</ul></body>`);
+    }
     if (p.startsWith('/uploads/')) { const f = safeJoin(UPLOADS, p.slice(9)); return f ? sendFile(req, res, f) : json(res, 400, {}); }
     const pub = safeJoin(PUBLIC, p.slice(1));
     if (pub && fs.existsSync(pub) && fs.statSync(pub).isFile()) return sendFile(req, res, pub);
