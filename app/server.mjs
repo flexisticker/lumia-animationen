@@ -263,10 +263,11 @@ function setModus(modus, spielId, quelle, fromObs) {
   let obsInfo = '';
   if (!fromObs) {
     const sp = saved.spiele.find(x => x.id === saved.spiel);
-    const scene = m === 'zocken' ? (sp && sp.szene) || saved.obs.szeneZocken : saved.obs.szeneParty;
+    // Spiel mit eigener Szene › Talk-Runde (ohne Spielfenster) → Party-Szene › Zock-Szene
+    const scene = m === 'zocken' ? (sp && sp.szene) || (sp && sp.ohneFenster ? saved.obs.szeneParty || saved.obs.szeneZocken : saved.obs.szeneZocken) : saved.obs.szeneParty;
     if (!saved.obs.an) obsInfo = 'OBS-Kopplung ist aus (Studio → Spiele & OBS)';
     else if (!saved.obs.steuern) obsInfo = '„Modus schaltet die OBS-Szene“ ist aus';
-    else if (!scene) obsInfo = 'Keine OBS-Szene für ' + (m === 'zocken' ? 'den Zockmodus' : 'Party') + ' eingestellt';
+    else if (!scene) obsInfo = 'Keine OBS-Szene für ' + (m === 'zocken' ? (sp ? '„' + sp.name + '“ bzw. den Zockmodus' : 'den Zockmodus') : 'Party') + ' eingestellt (Studio → Spiele & OBS)';
     else if (obs.status !== 'verbunden') obsInfo = 'OBS nicht verbunden' + (obs.fehler ? ': ' + obs.fehler : '');
     else if (obs.szenen.length && !obs.szenen.includes(scene)) obsInfo = 'OBS-Szene „' + scene + '“ gibt es nicht';
     else { obsRequest('SetCurrentProgramScene', { sceneName: scene }); obsInfo = 'OK:' + scene; }
