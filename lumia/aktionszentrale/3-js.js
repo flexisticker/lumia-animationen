@@ -104,7 +104,11 @@ if (window.MM_MUSIK) {
     b.onclick = () => { mark(t.id); send({ titel: t.id }, t.id === 'aus' ? 'Musik aus' : 'Musik: ' + t.name); };
     box.append(b);
   });
-  const show = m => { mark(m.titel); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
+  // Schnellknopf oben: Musik aus (blendet weich aus) / wieder an (letzter Titel)
+  const quick = document.getElementById('musikSchnell'); quick.style.display = '';
+  const quickShow = t => { const aus = t === 'aus'; quick.textContent = aus ? '🔊 Musik an' : '🔇 Musik aus'; quick.classList.toggle('aus', aus); quick.dataset.t = t; };
+  quick.onclick = () => { const an = quick.dataset.t === 'aus'; quickShow(an ? 'an' : 'aus'); if (!an) mark('aus'); send({ titel: an ? 'an' : 'aus' }, an ? 'Musik an' : 'Musik blendet aus'); };
+  const show = m => { mark(m.titel); quickShow(m.titel); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
   show(window.MM_MUSIK);
   let tm = null;
   vol.oninput = () => { wert.textContent = vol.value + ' %'; clearTimeout(tm); tm = setTimeout(() => send({ lautstaerke: Number(vol.value) }), 120); };

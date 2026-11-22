@@ -155,6 +155,18 @@
   },
   "order": 11
  },
+ "musikAusblendenMs": {
+  "type": "number",
+  "label": "Musik aus: Ausblenden in ms",
+  "value": 2500,
+  "order": 11.5,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  }
+ },
  "f1Wann": {
   "type": "dropdown",
   "label": "Fenster zeigen",

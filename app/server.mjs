@@ -209,7 +209,10 @@ const musikInfo = () => {
   return { titel: t === 'aus' ? 'aus' : (x ? x.id : 'standard'), datei: t === 'aus' ? '' : (x && x.datei) || settingsFor('hinten').musik || '', lautstaerke: Number(vol), liste: MUSIK.map(({ id, name }) => ({ id, name })) };
 };
 function setMusik(m, quelle) {
-  if (m.titel !== undefined) { saved.musik.titel = m.titel === 'aus' || MUSIK.some(x => x.id === m.titel) ? m.titel : 'standard'; saved.musik.vonSpiel = !!m.vonSpiel; }
+  if (m.titel === 'an') m.titel = saved.musik.titel === 'aus' ? (saved.musik.vorher || 'standard') : saved.musik.titel; // Schnellknopf: letzten Titel wieder starten
+  if (m.titel !== undefined) {
+    if (m.titel === 'aus' && saved.musik.titel !== 'aus') saved.musik.vorher = saved.musik.titel;
+    saved.musik.titel = m.titel === 'aus' || MUSIK.some(x => x.id === m.titel) ? m.titel : 'standard'; saved.musik.vonSpiel = !!m.vonSpiel; }
   if (m.lautstaerke !== undefined) saved.musik.lautstaerke = Math.max(0, Math.min(100, Math.round(Number(m.lautstaerke) || 0)));
   saveSettings(); broadcast('musik', musikInfo());
   if (m.titel !== undefined && quelle) remember({ art: 'modus', quelle, text: 'Musik: ' + (saved.musik.titel === 'aus' ? 'aus' : (MUSIK.find(x => x.id === saved.musik.titel) || {}).name) });

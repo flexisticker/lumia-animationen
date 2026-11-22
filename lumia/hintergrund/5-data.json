@@ -10,6 +10,7 @@
   "musikAn": true,
   "musik": "",
   "musikLautstaerke": 35,
+  "musikAusblendenMs": 2500,
   "f1Wann": "zocken",
   "f1X": 50,
   "f1Y": 40,

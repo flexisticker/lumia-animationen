@@ -24,7 +24,7 @@ function setMusik(x) {
   const src = (x.titel === 'standard' && D.musikAn === false) ? '' : (x.datei || '');
   if ((m.getAttribute('src') || '') === src) { if (src) fadeTo(musikZiel, 300); return; }
   const wechsel = () => { if (!src) { m.pause(); m.removeAttribute('src'); m.load(); return; } m.src = src; m.loop = true; m.volume = 0; musikStart(); fadeTo(musikZiel, 1200); };
-  if (m.getAttribute('src') && !m.paused) fadeTo(0, 700, wechsel); else wechsel();
+  if (m.getAttribute('src') && !m.paused) fadeTo(0, src ? 700 : num(D.musikAusblendenMs, 2500), wechsel); else wechsel();
 }
 if (D.musikAn !== false && D.musik && !(window.MM_MUSIK)) { m.src = D.musik; m.loop = true; m.volume = musikZiel; musikStart(); }
 let mode = D.modus === 'zocken' ? 'zocken' : 'party';

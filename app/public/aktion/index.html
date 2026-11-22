@@ -38,9 +38,14 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
 .vol-row b { min-width: 58px; text-align: right; font-size: 18px; }
 .vol-ico { font-size: 24px; }
 #musik .btn.active { border-color: var(--c3); box-shadow: 0 6px 0 #0b0714, 0 0 0 3px var(--c3) inset; }
+
+.quick { font: inherit; font-size: 17px; font-weight: 800; padding: 10px 18px; border-radius: 99px; border: 2px solid var(--c3); background: #2a1640; color: #fff; cursor: pointer; }
+.quick.aus { border-color: #5a4a70; background: #1a1026; color: #cbb8e8; }
+header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-top: 8px; padding-bottom: 8px; }
+.quick { white-space: nowrap; }
 </style></head>
 <body><main class="az">
-  <header><h1 id="titel">MichaModus · Aktionszentrale</h1><div class="head-r"><div id="status" class="status">bereit</div><a id="admin" class="admin" href="/studio" style="display:none">⚙️ Verwaltung</a></div></header>
+  <header><h1 id="titel">MichaModus · Aktionszentrale</h1><div class="head-r"><button id="musikSchnell" class="quick" style="display:none">🔇 Musik aus</button><div id="status" class="status">bereit</div><a id="admin" class="admin" href="/studio" style="display:none">⚙️ Verwaltung</a></div></header>
   <section id="nameRow" class="name-row"><input id="name" placeholder="Name (optional, z. B. Gewinner)" maxlength="24"><button class="clear" id="nameClear">×</button></section>
   <h2 id="kanalTitel" style="display:none">Kanal</h2>
   <div class="grid scenes" id="kanaele" style="display:none"></div>
@@ -213,7 +218,11 @@ if (window.MM_MUSIK) {
     b.onclick = () => { mark(t.id); send({ titel: t.id }, t.id === 'aus' ? 'Musik aus' : 'Musik: ' + t.name); };
     box.append(b);
   });
-  const show = m => { mark(m.titel); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
+  // Schnellknopf oben: Musik aus (blendet weich aus) / wieder an (letzter Titel)
+  const quick = document.getElementById('musikSchnell'); quick.style.display = '';
+  const quickShow = t => { const aus = t === 'aus'; quick.textContent = aus ? '🔊 Musik an' : '🔇 Musik aus'; quick.classList.toggle('aus', aus); quick.dataset.t = t; };
+  quick.onclick = () => { const an = quick.dataset.t === 'aus'; quickShow(an ? 'an' : 'aus'); if (!an) mark('aus'); send({ titel: an ? 'an' : 'aus' }, an ? 'Musik an' : 'Musik blendet aus'); };
+  const show = m => { mark(m.titel); quickShow(m.titel); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
   show(window.MM_MUSIK);
   let tm = null;
   vol.oninput = () => { wert.textContent = vol.value + ' %'; clearTimeout(tm); tm = setTimeout(() => send({ lautstaerke: Number(vol.value) }), 120); };
