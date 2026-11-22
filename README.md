@@ -7,7 +7,7 @@ Vollbild-Animationen mit Party-Sound für den TikTok-Kanal **MichaModus**, als C
 
 | Overlay | Wo | Inhalt |
 |---|---|---|
-| **MichaModus – Animationen** | vor dir (oberste Ebene) | 31 Animationen (5 s, mit Ton) für Geschenke, Stufen nach Münzwert, Ereignisse und Aktionsknöpfe · animierter Spendername mit Profilbild und × Zähler · Banner „MichaModus“ mit wechselnden Slogans · Like-Fontäne · Ansagen (Startet gleich, Pause, Gleich geht's weiter, Weiter geht's, Ende) |
+| **MichaModus – Animationen** | vor dir (oberste Ebene) | 37 Animationen (5 s, mit Ton) für Geschenke, Stufen nach Münzwert, Ereignisse und Aktionsknöpfe · animierter Spendername mit Profilbild und × Zähler · Banner „MichaModus“ mit wechselnden Slogans · Like-Fontäne · Ansagen (Startet gleich, Pause, Gleich geht's weiter, Weiter geht's, Ende) |
 | **MichaModus – Hintergrund** | hinter dir (unterste Ebene) | Party-Hintergrund als Schleife + Musikschleife |
 | **MichaModus – Aktionszentrale** | auf dem Tablet im Browser | große Knöpfe für Ansagen, Gimmicks, Like-Fontäne, Test aller Geschenke; Namensfeld (z. B. Gewinner) |
 
@@ -62,4 +62,4 @@ und die fertigen Overlay-Dateien (`/lumia/...`). Neue Animationen = Docker-Updat
 2. Test: `http://192.168.1.10:8120/animationen/rose.mp4`.
 3. Lumia-Overlays laufen über **https** → NPM-Proxy-Host, z. B. `medien.flexisticker.de` → `192.168.1.10:8120` (Let's Encrypt, „Nur Heimnetz“).
 4. In Lumia: Animationen → Allgemein & Ton → **Adresse der Videos** = `https://medien.flexisticker.de/animationen/`;
-   Hintergrund: `…/hintergrund/party-schleife.mp4`, Musik: `…/musik/party-schleife-1.mp3`.
+   Hintergrund: `…/hintergrund/party-schleife.mp4`, Zockerbude: `…/hintergrund/zockerbude.mp4`, Musik: `…/musik/party-schleife-1.mp3`.

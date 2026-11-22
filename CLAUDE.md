@@ -9,5 +9,4 @@
   Schleife per Überblendung (ffmpeg). Prompt-Vorlage siehe `animationen.json`/Git-Historie.
 - Lumia-Alert-Schlüssel: tiktok-gift, tiktok-like, tiktok-follower, tiktok-share, tiktok-superFan, tiktok-treasureChest, tiktok-totalLikes, tiktok-battleEnd.
 - Knöpfe: Aktionszentrale → `Overlay.callCommand('mm-aktion', {aktion: JSON})` → Lumia-Befehl sendet `{{aktion}}` per overlaycontent an das Animations-Overlay.
-- Offen (22.11.2026): Gimmicks fanfare, lacher, wow, rimshot, herzregen, partyalarm sind in `animationen.json`, aber noch nicht erzeugt
-  (fal.ai-Guthaben leer). Nicht getestet: echtes Lumia (Configs-Format, overlaycontent/codeId, Video-Upload), Tablet, OBS/TikTok LIVE Studio.
+- 22.11.2026: alle 37 Animationen + Zockerbude-Schleife erzeugt. Medien-Container ghcr.io/flexisticker/michamodus-medien (Port 8120 auf Unraid, baut bei jedem Push auf main).

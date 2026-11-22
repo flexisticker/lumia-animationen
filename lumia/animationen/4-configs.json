@@ -1871,5 +1871,263 @@
         "knopf"
       ]
     }
+  },
+  "an_fanfare": {
+    "order": 135,
+    "type": "checkbox",
+    "label": "Fanfare: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_fanfare": {
+    "order": 136,
+    "type": "videoupload",
+    "label": "Fanfare: eigenes Video",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_fanfare": {
+    "order": 137,
+    "type": "slider",
+    "label": "Fanfare: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_lacher": {
+    "order": 138,
+    "type": "checkbox",
+    "label": "Lacher: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_lacher": {
+    "order": 139,
+    "type": "videoupload",
+    "label": "Lacher: eigenes Video",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_lacher": {
+    "order": 140,
+    "type": "slider",
+    "label": "Lacher: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_wow": {
+    "order": 141,
+    "type": "checkbox",
+    "label": "Wow: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_wow": {
+    "order": 142,
+    "type": "videoupload",
+    "label": "Wow: eigenes Video",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_wow": {
+    "order": 143,
+    "type": "slider",
+    "label": "Wow: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_rimshot": {
+    "order": 144,
+    "type": "checkbox",
+    "label": "Ba-dum-tss: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_rimshot": {
+    "order": 145,
+    "type": "videoupload",
+    "label": "Ba-dum-tss: eigenes Video",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_rimshot": {
+    "order": 146,
+    "type": "slider",
+    "label": "Ba-dum-tss: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_herzregen": {
+    "order": 147,
+    "type": "checkbox",
+    "label": "Herzregen: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_herzregen": {
+    "order": 148,
+    "type": "videoupload",
+    "label": "Herzregen: eigenes Video",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_herzregen": {
+    "order": 149,
+    "type": "slider",
+    "label": "Herzregen: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_partyalarm": {
+    "order": 150,
+    "type": "checkbox",
+    "label": "Party-Alarm: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_partyalarm": {
+    "order": 151,
+    "type": "videoupload",
+    "label": "Party-Alarm: eigenes Video",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_partyalarm": {
+    "order": 152,
+    "type": "slider",
+    "label": "Party-Alarm: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
   }
 }
