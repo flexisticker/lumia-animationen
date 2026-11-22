@@ -78,6 +78,13 @@ const MUSIK = [
   { id: 'synthwave', name: 'Synthwave Retro', datei: '/musik/synthwave.mp3' }, { id: 'chiptune', name: '8-Bit Jump & Run', datei: '/musik/chiptune.mp3' },
   { id: 'mittelalter', name: 'Mittelalter-Dorf', datei: '/musik/mittelalter.mp3' }, { id: 'mystisch', name: 'Mystisch', datei: '/musik/mystisch.mp3' },
 ].filter(x => !x.datei || fs.existsSync(path.join(MEDIA, x.datei)));
+// Playlist je Genre: <genre>.mp3 + <genre>-2.mp3, -3.mp3 … (alles, was im Medienordner liegt)
+for (const x of MUSIK) {
+  x.dateien = x.datei ? [x.datei] : [];
+  if (!x.datei) continue;
+  const base = x.datei.replace(/\.mp3$/, '');
+  for (let i = 2; i <= 30; i++) { const f = `${base}-${i}.mp3`; if (fs.existsSync(path.join(MEDIA, f))) x.dateien.push(f); }
+}
 saved.musik ||= { titel: 'standard', lautstaerke: null, vonSpiel: false };
 // Vorgabe-Spiele (22.11.2026): werden einmalig ergänzt, gelöschte kommen nicht wieder
 const SPIEL_VORGABEN = [
@@ -247,13 +254,17 @@ const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel
 const musikInfo = () => {
   const t = saved.musik.titel, x = MUSIK.find(m => m.id === t);
   const vol = saved.musik.lautstaerke ?? settingsFor('hinten').musikLautstaerke ?? 35;
-  return { titel: t === 'aus' ? 'aus' : (x ? x.id : 'standard'), datei: t === 'aus' ? '' : (x && x.datei) || settingsFor('hinten').musik || '', lautstaerke: Number(vol), liste: MUSIK.map(({ id, name }) => ({ id, name })) };
+  const dateien = t === 'aus' ? [] : (x && x.dateien && x.dateien.length ? x.dateien : [settingsFor('hinten').musik].filter(Boolean));
+  return { titel: t === 'aus' ? 'aus' : (x ? x.id : 'standard'), datei: dateien[0] || '', dateien, reihenfolge: saved.musik.reihenfolge || 'zufall', weiter: saved.musik.weiter || 0,
+    lautstaerke: Number(vol), liste: MUSIK.map(({ id, name, dateien }) => ({ id, name, anzahl: (dateien || []).length || 1 })) };
 };
 function setMusik(m, quelle) {
   if (m.titel === 'an') m.titel = saved.musik.titel === 'aus' ? (saved.musik.vorher || 'standard') : saved.musik.titel; // Schnellknopf: letzten Titel wieder starten
   if (m.titel !== undefined) {
     if (m.titel === 'aus' && saved.musik.titel !== 'aus') saved.musik.vorher = saved.musik.titel;
     saved.musik.titel = m.titel === 'aus' || MUSIK.some(x => x.id === m.titel) ? m.titel : 'standard'; saved.musik.vonSpiel = !!m.vonSpiel; }
+  if (m.reihenfolge === 'zufall' || m.reihenfolge === 'nacheinander') saved.musik.reihenfolge = m.reihenfolge;
+  if (m.weiter) saved.musik.weiter = Date.now();
   if (m.lautstaerke !== undefined) saved.musik.lautstaerke = Math.max(0, Math.min(100, Math.round(Number(m.lautstaerke) || 0)));
   saveSettings(); broadcast('musik', musikInfo());
   if (m.titel !== undefined && quelle) remember({ art: 'modus', quelle, text: 'Musik: ' + (saved.musik.titel === 'aus' ? 'aus' : (MUSIK.find(x => x.id === saved.musik.titel) || {}).name) });
@@ -475,7 +486,7 @@ const server = http.createServer(async (req, res) => {
     if (p.startsWith('/tts/') && /^\/tts\/[0-9a-f]{32}\.mp3$/.test(p)) { const f = path.join(TTS_DIR, path.basename(p)); return fs.existsSync(f) ? sendFile(req, res, f) : json(res, 404, {}); }
     if (p === '/api/musik' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
-      setMusik({ titel: b.titel, lautstaerke: b.lautstaerke }, 'knopf');
+      setMusik({ titel: b.titel, lautstaerke: b.lautstaerke, reihenfolge: b.reihenfolge, weiter: b.weiter }, 'knopf');
       return json(res, 200, { ok: true, musik: musikInfo() });
     }
     if (p === '/api/spiele' && req.method === 'POST') {

@@ -72,3 +72,7 @@
 - 22.11.2026: **Schild über dem Fenster verschiebbar:** `f<n>SchildPos` links|mitte|rechts, `f<n>SchildX` (−50…50 % der Fensterbreite), `f<n>SchildY` (−30…30 % der Bildhöhe), für beide Formate gemeinsam.
   **Einstellungen nach Update weg:** Ursache fast sicher fehlende Pfad-Zuordnung `/data` (alter Container michamodus-medien ohne Path → anonymes Volume, wird bei Update neu angelegt).
   Server prüft `/proc/self/mountinfo` (`datenDauerhaft`), Studio zeigt sonst rote Warnung mit Anleitung (Path /data → /mnt/user/appdata/live-studio).
+- 22.11.2026: **Musik-Playlists je Genre:** Server sammelt `<genre>.mp3` + `<genre>-2.mp3 … -30.mp3` (`MUSIK[].dateien`), `musikInfo` liefert `dateien`, `reihenfolge` (zufall|nacheinander, `saved.musik.reihenfolge`), `weiter` (Zeitstempel → nächstes Stück).
+  Hintergrund-Overlay: Playlist (`pl`, `naechster`, `spiele`), bei 1 Titel Schleife, sonst `ended` → nächster. Steuerung: „⏭ Nächstes Stück“, Umschalter 🔀 Zufall / 🔁 Nacheinander, Anzeige Anzahl.
+  Neue Titel (Freigabe Michael, ca. 2,80 $): Stable Audio 2.5 (`fal-ai/stable-audio-25/text-to-audio`, 150 s, WAV → Stille weg, Fades, loudnorm, MP3) je 2 für fantasy, space, mystisch, synthwave, chiptune, mittelalter, chill (Dateien `-2`/`-3`).
+  Weitere Titel: einfach `medien/musik/<genre>-4.mp3` usw. ablegen.

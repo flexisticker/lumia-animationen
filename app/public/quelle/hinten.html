@@ -104,13 +104,31 @@ function fadeTo(vol, ms, done) {
   clearInterval(musikFade); const from = m.volume, t0 = performance.now();
   musikFade = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / ms); m.volume = Math.max(0, Math.min(1, from + (vol - from) * k)); if (k >= 1) { clearInterval(musikFade); done && done(); } }, 40);
 }
+// Playlist: mehrere Titel je Genre, nacheinander oder Zufall; „weiter“ (Zeitstempel) = nächstes Stück
+let pl = { key: '', liste: [], i: 0, reihe: 'zufall', weiter: 0 };
+function naechster() {
+  const n = pl.liste.length; if (n < 2) return pl.i;
+  if (pl.reihe === 'nacheinander') return (pl.i + 1) % n;
+  let j; do { j = Math.floor(Math.random() * n); } while (j === pl.i); return j;
+}
+function spiele(src, ms) {
+  const wechsel = () => { if (!src) { m.pause(); m.removeAttribute('src'); m.load(); return; } m.src = src; m.loop = pl.liste.length < 2; m.volume = 0; musikStart(); fadeTo(musikZiel, 1200); };
+  if (m.getAttribute('src') && !m.paused) fadeTo(0, ms, wechsel); else wechsel();
+}
+m.addEventListener('ended', () => { if (pl.liste.length > 1) { pl.i = naechster(); spiele(pl.liste[pl.i], 10); } });
 function setMusik(x) {
   if (!x) return;
   musikZiel = Math.max(0, Math.min(1, num(x.lautstaerke, 35) / 100));
-  const src = (x.titel === 'standard' && D.musikAn === false) ? '' : (x.datei || '');
-  if ((m.getAttribute('src') || '') === src) { if (src) fadeTo(musikZiel, 300); return; }
-  const wechsel = () => { if (!src) { m.pause(); m.removeAttribute('src'); m.load(); return; } m.src = src; m.loop = true; m.volume = 0; musikStart(); fadeTo(musikZiel, 1200); };
-  if (m.getAttribute('src') && !m.paused) fadeTo(0, src ? 700 : num(D.musikAusblendenMs, 2500), wechsel); else wechsel();
+  const aus = (x.titel === 'standard' && D.musikAn === false) || !(x.dateien || [x.datei]).filter(Boolean).length;
+  const liste = aus ? [] : (x.dateien && x.dateien.length ? x.dateien : [x.datei]);
+  const key = liste.join('|');
+  pl.reihe = x.reihenfolge || 'zufall';
+  if (key === pl.key) {
+    if (x.weiter && x.weiter !== pl.weiter && liste.length > 1) { pl.weiter = x.weiter; pl.i = naechster(); spiele(liste[pl.i], 900); return; }
+    pl.weiter = x.weiter || pl.weiter; if (key) fadeTo(musikZiel, 300); return;
+  }
+  pl = { key, liste, reihe: pl.reihe, weiter: x.weiter || 0, i: liste.length > 1 && pl.reihe === 'zufall' ? Math.floor(Math.random() * liste.length) : 0 };
+  spiele(liste[pl.i] || '', liste.length ? 700 : num(D.musikAusblendenMs, 2500));
 }
 if (D.musikAn !== false && D.musik && !(window.MM_MUSIK)) { m.src = D.musik; m.loop = true; m.volume = musikZiel; musikStart(); }
 let mode = D.modus === 'zocken' ? 'zocken' : 'party';

@@ -43,6 +43,8 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
 .quick.aus { border-color: #5a4a70; background: #1a1026; color: #cbb8e8; }
 header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-top: 8px; padding-bottom: 8px; }
 .quick { white-space: nowrap; }
+#musikExtra .hint{color:var(--muted);font-size:15px}
+.quick:disabled{opacity:.4}
 </style></head>
 <body><main class="az">
   <header><h1 id="titel">MichaModus · Aktionszentrale</h1><div class="head-r"><button id="musikSchnell" class="quick" style="display:none">🔇 Musik aus</button><div id="status" class="status">bereit</div><a id="admin" class="admin" href="/studio" style="display:none">⚙️ Verwaltung</a></div></header>
@@ -54,6 +56,7 @@ header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-t
   <h2 id="spielTitel" style="display:none">Was läuft gerade? (Spiel oder Talk)</h2>
   <div class="grid scenes" id="spiele" style="display:none"></div>
   <h2 id="musikTitel" style="display:none">Musik</h2>
+  <section id="musikExtra" class="vol-row" style="display:none"><button id="musikWeiter" class="quick">⏭ Nächstes Stück</button><button id="musikReihe" class="quick aus">🔀 Zufall</button><span id="musikInfo" class="hint"></span></section>
   <section id="musikRegler" class="vol-row" style="display:none"><span class="vol-ico">🔈</span><input id="musikVol" type="range" min="0" max="100" step="1"><b id="musikVolWert">35 %</b></section>
   <div class="grid" id="musik" style="display:none"></div>
   <h2>Ansagen</h2>
@@ -238,7 +241,12 @@ if ((window.MM_SPIELE || []).length) {
 // Musik (Live-Studio): Titel starten/stoppen und Lautstärke – gilt für alle hinteren Quellen
 if (window.MM_MUSIK) {
   const box = document.getElementById('musik'), vol = document.getElementById('musikVol'), wert = document.getElementById('musikVolWert');
-  ['musik', 'musikTitel', 'musikRegler'].forEach(id => (document.getElementById(id).style.display = ''));
+  ['musik', 'musikTitel', 'musikRegler', 'musikExtra'].forEach(id => (document.getElementById(id).style.display = ''));
+  const weiterB = document.getElementById('musikWeiter'), reiheB = document.getElementById('musikReihe'), infoE = document.getElementById('musikInfo');
+  weiterB.onclick = () => send({ weiter: true }, 'Nächstes Stück');
+  reiheB.onclick = () => send({ reihenfolge: reiheB.dataset.r === 'zufall' ? 'nacheinander' : 'zufall' });
+  const extraShow = m => { reiheB.dataset.r = m.reihenfolge || 'zufall'; reiheB.textContent = reiheB.dataset.r === 'zufall' ? '🔀 Zufall' : '🔁 Nacheinander';
+    const n = (m.dateien || []).length; infoE.textContent = m.titel === 'aus' ? '' : n > 1 ? n + ' Stücke in diesem Genre' : '1 Stück (Schleife)'; weiterB.disabled = n < 2; };
   const ICO = { standard: '🎉', hype: '⚡', funk: '🕺', chill: '☕', fantasy: '🐉', space: '🚀', synthwave: '🌆', chiptune: '👾', mittelalter: '🏰', mystisch: '🔮' };
   const mark = t => box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x.dataset.id === t));
   const send = async (data, text) => { try { await Overlay.setVariable('mm_musik', data); if (text) setStatus(text, 'ok'); } catch (e) { setStatus('Fehler bei der Musik', 'err'); } };
@@ -252,7 +260,7 @@ if (window.MM_MUSIK) {
   const quick = document.getElementById('musikSchnell'); quick.style.display = '';
   const quickShow = t => { const aus = t === 'aus'; quick.textContent = aus ? '🔊 Musik an' : '🔇 Musik aus'; quick.classList.toggle('aus', aus); quick.dataset.t = t; };
   quick.onclick = () => { const an = quick.dataset.t === 'aus'; quickShow(an ? 'an' : 'aus'); if (!an) mark('aus'); send({ titel: an ? 'an' : 'aus' }, an ? 'Musik an' : 'Musik blendet aus'); };
-  const show = m => { mark(m.titel); quickShow(m.titel); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
+  const show = m => { mark(m.titel); quickShow(m.titel); extraShow(m); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
   show(window.MM_MUSIK);
   let tm = null;
   vol.oninput = () => { wert.textContent = vol.value + ' %'; clearTimeout(tm); tm = setTimeout(() => send({ lautstaerke: Number(vol.value) }), 120); };

@@ -118,7 +118,12 @@ if ((window.MM_SPIELE || []).length) {
 // Musik (Live-Studio): Titel starten/stoppen und Lautstärke – gilt für alle hinteren Quellen
 if (window.MM_MUSIK) {
   const box = document.getElementById('musik'), vol = document.getElementById('musikVol'), wert = document.getElementById('musikVolWert');
-  ['musik', 'musikTitel', 'musikRegler'].forEach(id => (document.getElementById(id).style.display = ''));
+  ['musik', 'musikTitel', 'musikRegler', 'musikExtra'].forEach(id => (document.getElementById(id).style.display = ''));
+  const weiterB = document.getElementById('musikWeiter'), reiheB = document.getElementById('musikReihe'), infoE = document.getElementById('musikInfo');
+  weiterB.onclick = () => send({ weiter: true }, 'Nächstes Stück');
+  reiheB.onclick = () => send({ reihenfolge: reiheB.dataset.r === 'zufall' ? 'nacheinander' : 'zufall' });
+  const extraShow = m => { reiheB.dataset.r = m.reihenfolge || 'zufall'; reiheB.textContent = reiheB.dataset.r === 'zufall' ? '🔀 Zufall' : '🔁 Nacheinander';
+    const n = (m.dateien || []).length; infoE.textContent = m.titel === 'aus' ? '' : n > 1 ? n + ' Stücke in diesem Genre' : '1 Stück (Schleife)'; weiterB.disabled = n < 2; };
   const ICO = { standard: '🎉', hype: '⚡', funk: '🕺', chill: '☕', fantasy: '🐉', space: '🚀', synthwave: '🌆', chiptune: '👾', mittelalter: '🏰', mystisch: '🔮' };
   const mark = t => box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x.dataset.id === t));
   const send = async (data, text) => { try { await Overlay.setVariable('mm_musik', data); if (text) setStatus(text, 'ok'); } catch (e) { setStatus('Fehler bei der Musik', 'err'); } };
@@ -132,7 +137,7 @@ if (window.MM_MUSIK) {
   const quick = document.getElementById('musikSchnell'); quick.style.display = '';
   const quickShow = t => { const aus = t === 'aus'; quick.textContent = aus ? '🔊 Musik an' : '🔇 Musik aus'; quick.classList.toggle('aus', aus); quick.dataset.t = t; };
   quick.onclick = () => { const an = quick.dataset.t === 'aus'; quickShow(an ? 'an' : 'aus'); if (!an) mark('aus'); send({ titel: an ? 'an' : 'aus' }, an ? 'Musik an' : 'Musik blendet aus'); };
-  const show = m => { mark(m.titel); quickShow(m.titel); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
+  const show = m => { mark(m.titel); quickShow(m.titel); extraShow(m); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
   show(window.MM_MUSIK);
   let tm = null;
   vol.oninput = () => { wert.textContent = vol.value + ' %'; clearTimeout(tm); tm = setTimeout(() => send({ lautstaerke: Number(vol.value) }), 120); };
