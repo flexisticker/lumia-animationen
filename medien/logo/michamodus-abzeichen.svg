@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3d7f"/><stop offset=".5" stop-color="#7c4dff"/><stop offset="1" stop-color="#00e5ff"/></linearGradient>
+    <linearGradient id="t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#ffd1ec"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe082"/><stop offset="1" stop-color="#ffb300"/></linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+  <!-- Sechseck-Abzeichen -->
+  <path d="M256 22 L459 139 L459 373 L256 490 L53 373 L53 139 Z" fill="url(#g)" filter="url(#glow)" opacity=".55"/>
+  <path d="M256 22 L459 139 L459 373 L256 490 L53 373 L53 139 Z" fill="url(#g)"/>
+  <path d="M256 44 L440 150 L440 362 L256 468 L72 362 L72 150 Z" fill="#140b24"/>
+  <!-- Controller-Knöpfe als Deko -->
+  <g opacity=".95"><circle cx="300" cy="120" r="10" fill="#ff3d7f"/><circle cx="322" cy="142" r="10" fill="#00e5ff"/><circle cx="278" cy="142" r="10" fill="#ffd54f"/><circle cx="300" cy="164" r="10" fill="#7c4dff"/></g>
+  <g fill="#fff" opacity=".9"><rect x="184" y="135" width="40" height="13" rx="4"/><rect x="197.5" y="121.5" width="13" height="40" rx="4"/></g>
+  <!-- Monogramm MM -->
+  <text x="256" y="330" text-anchor="middle" font-family="Inter" font-weight="900" font-style="italic" font-size="150" fill="url(#g)" filter="url(#glow)" opacity=".7" letter-spacing="-10">MM</text>
+  <text x="256" y="330" text-anchor="middle" font-family="Inter" font-weight="900" font-style="italic" font-size="150" fill="url(#t)" stroke="#140b24" stroke-width="4" letter-spacing="-10">MM</text>
+  <!-- Band -->
+  <path d="M86 372 H426 L408 400 L426 428 H86 L104 400 Z" fill="url(#gold)"/>
+  <text x="256" y="412" text-anchor="middle" font-family="Inter" font-weight="900" font-size="34" fill="#1a0d2b" letter-spacing="5">MICHAMODUS</text>
+</svg>
