@@ -64,3 +64,4 @@
   (Reparatur-Roboter + Testbild), sounds/brb.mp3, sounds/technik.mp3, Stadion-Airhorn als neue Tonspur in animationen/airhorn(-quer).mp4 (ElevenLabs SFX, loudnorm -14).
 - ElevenLabs-Fehler werden jetzt ausgewertet (`elFehler`: missing_permissions → Hinweis auf Berechtigungen „Text to Speech“ + „Voices lesen“, invalid_api_key → neu kopieren, Kontingent), Schlüssel wird von Leerzeichen/Anführungszeichen bereinigt, Stimmen-ID auch von Hand eintragbar (falls nur TTS-Recht).
 - 22.11.2026: Michael bestätigt: Sprachausgabe mit echtem ElevenLabs-Schlüssel funktioniert (Ursache vorher: Schlüssel-Berechtigungen).
+- 22.11.2026: **Sparen (Wunsch Michael):** keine weiteren kostenpflichtigen fal.ai-Erzeugungen ohne ausdrückliche Freigabe (Varianten je Animation zurückgestellt). Vorher Kosten nennen und fragen.
