@@ -63,3 +63,15 @@ async function setMode(m, b) {
   b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = ico; b.lastChild.textContent = label;
   b.onclick = () => setMode(m, b); modeBox.append(b);
 });
+
+// Kanal umschalten (nur im Live-Studio vorhanden)
+if ((window.MM_PROFILE || []).length > 1) {
+  const kb = document.getElementById('kanaele'); kb.style.display = '';
+  document.getElementById('kanalTitel').style.display = '';
+  window.MM_PROFILE.forEach(p => {
+    const b = document.createElement('button'); b.className = 'btn' + (p.id === window.MM_PROFIL ? ' active' : '');
+    b.innerHTML = '<span class="ico">📺</span><span></span>'; b.lastChild.textContent = p.name;
+    b.onclick = async () => { try { await Overlay.setVariable('mm_profil', p.id); setStatus('Kanal: ' + p.name, 'ok'); } catch (e) { setStatus('Kanal konnte nicht gewechselt werden', 'err'); } };
+    kb.append(b);
+  });
+}

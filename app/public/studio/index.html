@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MichaModus Studio</title><link rel="icon" href="/icon.png">
+<title>Live-Studio</title><link rel="icon" href="/icon.png">
 <style>
 :root{--bg:#120c1f;--side:#17102a;--card:#1e1631;--line:#3a2d5c;--text:#fff;--muted:#b9a8e6;--c1:#ff3d7f;--c2:#7c4dff;--c3:#ffd54f;--ok:#7dffb0;--err:#ff8a8a}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -11,6 +11,7 @@ aside{background:var(--side);border-right:1px solid var(--line);padding:16px 12p
 nav button{display:block;width:100%;text-align:left;margin:2px 0;padding:9px 12px;border-radius:10px;border:0;background:none;color:var(--muted);font:inherit;cursor:pointer}
 nav button.on,nav button:hover{background:var(--card);color:var(--text)}
 nav a.steuer{display:block;text-align:center;margin:0 0 14px;padding:14px;border-radius:14px;font-weight:700;font-size:17px;color:#fff;text-decoration:none;background:linear-gradient(90deg,var(--c1),var(--c2))}
+nav .kanalbox{margin:0 0 14px}nav .kanalbox select{font-weight:700;font-size:16px;padding:10px}nav .kanalbox small{display:block;color:var(--muted);font-size:12px;margin-top:6px}
 nav .sub{padding-left:24px;font-size:14px}
 main{padding:22px 26px 80px;max-width:1100px;width:100%}
 h1{margin:0 0 4px;font-size:24px}h2{margin:26px 0 10px;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
@@ -41,7 +42,7 @@ button.b:hover{border-color:var(--c2)}button.p{background:linear-gradient(90deg,
 .save.show{display:flex}
 @media(max-width:860px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.f{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}main{padding:16px}}
 </style></head><body>
-<div class="app"><aside><div class="brand"><img src="/icon.png" alt=""><b>MichaModus Studio</b></div><nav id="nav"></nav></aside>
+<div class="app"><aside><div class="brand"><img src="/icon.png" alt=""><b>Live-Studio</b></div><nav id="nav"></nav></aside>
 <main id="main"></main></div>
 <div class="save" id="save"><span>Änderungen werden gespeichert …</span></div>
 <script src="/studio/studio.js"></script>

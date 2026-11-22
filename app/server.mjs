@@ -24,8 +24,7 @@ const DEFAULTS = {
 DEFAULTS.vorne.medienAdresse = '/animationen/';
 Object.assign(DEFAULTS.vorne, { likeSound: '/sounds/likes.mp3', sound_start: '/sounds/start.mp3', sound_pause: '/sounds/pause.mp3', sound_gleich: '/sounds/gleich.mp3', sound_weiter: '/sounds/weiter.mp3', sound_ende: '/sounds/ende.mp3' });
 Object.assign(DEFAULTS.hinten, { video: '/hintergrund/party-schleife.mp4', zockVideo: '/hintergrund/zockerbude.mp4', videoQuer: '/hintergrund/party-schleife-quer.mp4', zockVideoQuer: '/hintergrund/zockerbude-quer.mp4', modusSound: '/sounds/modus.mp3', musik: '/musik/party-schleife-1.mp3' });
-// Kanal-Vorgaben (Umgebungsvariable KANAL): gleicher Container, eigene Daten je Kanal
-const KANAL = String(process.env.KANAL || 'michamodus').toLowerCase();
+// Kanäle (Profile): ein Programm, umschaltbar in Verwaltung und Steuerung; jeder Kanal hat eigene Einstellungen
 const PRESETS = {
   michamodus: { name: 'MichaModus', vorne: {}, hinten: {}, aktion: { titel: 'MichaModus · Steuerung' } },
   '3dbymicha': { name: '3dbymicha',
@@ -35,18 +34,30 @@ const PRESETS = {
     hinten: { video: '/hintergrund/werkstatt.mp4', videoQuer: '/hintergrund/werkstatt-quer.mp4', f2Wann: 'immer', f1Y: 56, f1Hoehe: 30 },
     aktion: { titel: '3dbymicha · Steuerung', modus1Name: 'Werkstatt', modus2Name: 'Zockmodus' } },
 };
-const PRESET = PRESETS[KANAL] || { ...PRESETS.michamodus, name: process.env.KANAL };
-for (const k of ['vorne', 'hinten', 'aktion']) Object.assign(DEFAULTS[k], PRESET[k] || {});
+const BEREICHE = ['vorne', 'hinten', 'aktion'];
+const defaultsFor = (profil, k) => ({ ...DEFAULTS[k], ...((PRESETS[profil] || {})[k] || {}) });
 const SETTINGS_FILE = path.join(DATA, 'einstellungen.json');
 const SECRET_FILE = path.join(DATA, 'geheim.json');
 const readJson = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
 const writeJson = (f, v) => { const t = f + '.tmp'; fs.writeFileSync(t, JSON.stringify(v, null, 2)); fs.renameSync(t, f); };
-let saved = readJson(SETTINGS_FILE, { vorne: {}, hinten: {}, aktion: {}, lumia: { host: '', port: 39231, an: false }, modus: 'party' });
-for (const k of ['vorne', 'hinten', 'aktion']) saved[k] ||= {};
+let saved = readJson(SETTINGS_FILE, {});
+saved.profile ||= {};
+// Übernahme aus der Einzel-Kanal-Version (vor 22.11.2026 abends): alte Werte gehören zum Kanal aus KANAL
+if (saved.vorne || saved.hinten || saved.aktion) {
+  const alt = String(process.env.KANAL || 'michamodus').toLowerCase();
+  saved.profile[alt] = { vorne: saved.vorne || {}, hinten: saved.hinten || {}, aktion: saved.aktion || {} };
+  delete saved.vorne; delete saved.hinten; delete saved.aktion;
+}
+for (const p of Object.keys(PRESETS)) { saved.profile[p] ||= {}; for (const k of BEREICHE) saved.profile[p][k] ||= {}; }
+saved.profil = PRESETS[saved.profil] ? saved.profil : (PRESETS[String(process.env.KANAL || '').toLowerCase()] ? String(process.env.KANAL).toLowerCase() : 'michamodus');
 saved.lumia ||= { host: '', port: 39231, an: false };
+saved.modus ||= 'party';
 let secret = readJson(SECRET_FILE, {});
-const settingsFor = k => ({ ...DEFAULTS[k], ...saved[k] });
+const cur = () => saved.profile[saved.profil];
+const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), ...saved.profile[profil][k] });
+const profilListe = () => Object.entries(PRESETS).map(([id, p]) => ({ id, name: p.name }));
 const saveSettings = () => writeJson(SETTINGS_FILE, saved);
+function broadcastAll() { for (const k of BEREICHE) broadcast('settings', { bereich: k, werte: settingsFor(k) }, [k]); }
 
 // ---------- Live-Verteilung (SSE) ----------
 const clients = new Set();
@@ -101,7 +112,7 @@ function lumiaConnect() {
   if (!an || !host || !secret.lumiaToken) { Object.assign(lumia, { status: 'aus', fehler: an ? 'Adresse oder Schlüssel fehlt' : '' }); return lumiaStatus(); }
   Object.assign(lumia, { status: 'verbinde', fehler: '' }); lumiaStatus();
   try {
-    ws = new WebSocket(`ws://${host}:${Number(port) || 39231}/api?token=${encodeURIComponent(secret.lumiaToken)}&name=${encodeURIComponent(PRESET.name + ' Studio')}`);
+    ws = new WebSocket(`ws://${host}:${Number(port) || 39231}/api?token=${encodeURIComponent(secret.lumiaToken)}&name=${encodeURIComponent('Live-Studio')}`);
   } catch (e) { Object.assign(lumia, { status: 'fehler', fehler: String(e.message || e) }); lumiaStatus(); retry = setTimeout(lumiaConnect, 10000); return; }
   ws.onopen = () => { Object.assign(lumia, { status: 'verbunden', fehler: '', seit: new Date().toISOString() }); lumiaStatus(); };
   // Achtung: Lumia führt jede gesendete Nachricht als Befehl aus – wir senden NICHTS.
@@ -166,19 +177,20 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
-      kanal: PRESET.name, vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus,
+      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus,
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, status: lumia, log,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}) });
     if (p === '/api/settings' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       for (const k of ['vorne', 'hinten', 'aktion']) if (b[k] && typeof b[k] === 'object') {
         for (const [key, v] of Object.entries(b[k])) {
-          if (!(key in DEFAULTS[k]) || !['string', 'number', 'boolean'].includes(typeof v)) continue;
-          if (v === DEFAULTS[k][key]) delete saved[k][key]; else saved[k][key] = typeof v === 'string' ? v.slice(0, 5000) : v;
+          const def = defaultsFor(saved.profil, k);
+          if (!(key in def) || !['string', 'number', 'boolean'].includes(typeof v)) continue;
+          if (v === def[key]) delete cur()[k][key]; else cur()[k][key] = typeof v === 'string' ? v.slice(0, 5000) : v;
         }
         broadcast('settings', { bereich: k, werte: settingsFor(k) }, [k === 'vorne' ? 'vorne' : k === 'hinten' ? 'hinten' : 'aktion']);
       }
-      if (b.reset && ['vorne', 'hinten', 'aktion'].includes(b.reset)) { saved[b.reset] = {}; broadcast('settings', { bereich: b.reset, werte: settingsFor(b.reset) }, [b.reset]); }
+      if (b.reset && BEREICHE.includes(b.reset)) { cur()[b.reset] = {}; broadcast('settings', { bereich: b.reset, werte: settingsFor(b.reset) }, [b.reset]); }
       saveSettings(); return json(res, 200, { ok: true });
     }
     if (p === '/api/lumia' && req.method === 'POST') {
@@ -201,6 +213,12 @@ const server = http.createServer(async (req, res) => {
       broadcast('aktion', a, ['vorne', 'hinten']); remember({ art: 'aktion', quelle: 'knopf', text: a.label || a.id });
       return json(res, 200, { ok: true });
     }
+    if (p === '/api/profil' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      if (!PRESETS[b.profil]) return json(res, 400, { fehler: 'Unbekannter Kanal' });
+      if (b.profil !== saved.profil) { saved.profil = b.profil; saveSettings(); broadcastAll(); broadcast('profil', { profil: saved.profil, name: PRESETS[saved.profil].name }); remember({ art: 'modus', quelle: 'knopf', text: 'Kanal: ' + PRESETS[saved.profil].name }); }
+      return json(res, 200, { ok: true });
+    }
     if (p === '/api/modus' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       saved.modus = b.modus === 'zocken' ? 'zocken' : 'party'; saveSettings();
@@ -211,15 +229,15 @@ const server = http.createServer(async (req, res) => {
       const [, , , bereich, key] = p.split('/');
       const name = String(url.searchParams.get('name') || '');
       const ext = path.extname(name).toLowerCase();
-      if (!['vorne', 'hinten'].includes(bereich) || !(key in DEFAULTS[bereich]) || !UPLOAD_EXT.test(ext)) return json(res, 400, { fehler: 'Feld oder Dateityp ungültig' });
+      if (!['vorne', 'hinten'].includes(bereich) || !(key in defaultsFor(saved.profil, bereich)) || !UPLOAD_EXT.test(ext)) return json(res, 400, { fehler: 'Feld oder Dateityp ungültig' });
       const data = await body(req, 300e6);
       const file = `${bereich}-${key}-${crypto.randomBytes(4).toString('hex')}${ext}`;
       fs.writeFileSync(path.join(UPLOADS, file), data);
-      const old = saved[bereich][key];
-      saved[bereich][key] = '/uploads/' + file; saveSettings();
+      const old = cur()[bereich][key];
+      cur()[bereich][key] = '/uploads/' + file; saveSettings();
       if (old && old.startsWith('/uploads/')) fs.rm(path.join(UPLOADS, path.basename(old)), () => {});
       broadcast('settings', { bereich, werte: settingsFor(bereich) }, [bereich]);
-      return json(res, 200, { ok: true, adresse: saved[bereich][key] });
+      return json(res, 200, { ok: true, adresse: cur()[bereich][key] });
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 404, { fehler: 'unbekannt' });
     if (PAGES[p]) return sendFile(req, res, path.join(PUBLIC, PAGES[p]));

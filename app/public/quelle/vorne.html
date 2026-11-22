@@ -98,13 +98,16 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
     on(ev, cb) { (handlers[ev] ||= []).push(cb); },
     async callCommand(cmd, vars) { const r = await post('/api/aktion', JSON.parse(vars.aktion)); if (!r.ok) throw new Error('Fehler'); },
     async getVariable(name) { return name === 'mm_modus' ? state.modus : null; },
-    async setVariable(name, value) { if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); } },
+    async setVariable(name, value) {
+      if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); }
+      if (name === 'mm_profil') { const r = await post('/api/profil', { profil: value }); if (!r.ok) throw new Error('Fehler'); }
+    },
     async saveStorage() {}, async getStorage() { return null; }, async deleteStorage() {},
   };
   const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
   window.MM_START = async function (start) {
     const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
-    Overlay.data = s[BEREICH] || {}; state.modus = s.modus;
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil;
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {

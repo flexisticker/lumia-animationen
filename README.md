@@ -6,21 +6,15 @@ TikTok LIVE Studio. Lumia Stream liefert nur die TikTok-Ereignisse (Geschenke, L
 | Adresse | Wofür |
 |---|---|
 | `/studio` | Verwaltung: alle Einstellungen, Animationen ansehen, eigene Videos hochladen, Lumia-Verbindung, Testen |
-| `/aktion` | Tablet-Steuerung: Modus (Party/Zocken bzw. Werkstatt/Zocken), Ansagen, Gimmicks, Like-Fontäne, Tests |
+| `/aktion` | Tablet-Steuerung: Kanal, Modus (Party/Zocken bzw. Werkstatt/Zocken), Ansagen, Gimmicks, Like-Fontäne, Tests |
 | `/quelle/hinten` | Browserquelle hinter dir: Hintergrund (2 Modi), Musik, Fenster 1 + 2 für Spiel / Drucker-Kamera |
 | `/quelle/vorne` | Browserquelle vor dir: 37 Animationen, Spendername, Banner + Slogans, Like-Fontäne, Ansagen |
 
 ## Unraid
 
-Ein Image `ghcr.io/flexisticker/live-studio:latest`, zwei Container (Vorlagen in `unraid/`):
-
-| Container | Port | Daten | KANAL |
-|---|---|---|---|
-| michamodus-studio | 8120 | /mnt/user/appdata/michamodus-studio | michamodus |
-| 3dbymicha-studio | 8122 | /mnt/user/appdata/3dbymicha-studio | 3dbymicha |
-
-Updates: Docker → Check for Updates → apply update (GitHub baut bei jedem Push auf `main`). Einstellungen bleiben erhalten.
-Für https (Browserquellen in OBS/LIVE Studio): NPM-Proxy-Hosts z. B. `michamodus.flexisticker.de` → :8120, `3dbymicha.flexisticker.de` → :8122.
+Ein Container `ghcr.io/flexisticker/live-studio:latest` (auch unter dem alten Namen `michamodus-medien:latest`), Port 8120, Daten `/data`.
+**Kanäle MichaModus und 3dbymicha sind umschaltbar** (Verwaltung oben bzw. Steuerung „Kanal“) – jeder Kanal hat eigene Einstellungen,
+die Browserquellen bleiben dieselben und wechseln sofort mit. Updates: Docker → Check for Updates → apply update.
 
 ## Twitch, Querformat, StreamPrint
 

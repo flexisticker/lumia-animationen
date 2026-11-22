@@ -9,7 +9,7 @@ const page = { id: location.hash.slice(1) || 'start', tab: {} };
 
 async function load() {
   [S, SCHEMA] = await Promise.all([fetch('/api/settings', { cache: 'no-store' }).then(r => r.json()), fetch('/schema/schema.json').then(r => r.json())]);
-  LIST = SCHEMA.liste; document.title = S.kanal + ' Studio'; $('.brand b').textContent = S.kanal + ' Studio'; renderNav(); render();
+  LIST = SCHEMA.liste; document.title = S.kanal + ' Studio'; $('.brand b').textContent = 'Live-Studio'; renderNav(); render();
 }
 const PAGES = [
   ['start', 'Übersicht'], ['lumia', 'Lumia-Verbindung'], ['vorne', 'Animationen & Einblendungen'], ['galerie', 'Animationen ansehen'],
@@ -18,6 +18,9 @@ const PAGES = [
 function renderNav() {
   const nav = $('#nav'); nav.innerHTML = '';
   nav.append(h('a', { class: 'steuer', href: '/aktion' }, '🎛️ Steuerung öffnen'));
+  const sel = h('select', { class: 'kanal', onchange: async e => { await post('/api/profil', { profil: e.target.value }); await reload(); renderNav(); } });
+  for (const p of S.profile || []) { const o = h('option', { value: p.id }, 'Kanal: ' + p.name); if (p.id === S.profil) o.selected = true; sel.append(o); }
+  nav.append(h('div', { class: 'kanalbox' }, sel, h('small', {}, 'Alle Einstellungen gelten für den gewählten Kanal. Umschalten wechselt auch die Browserquellen.')));
   for (const [id, label] of PAGES) nav.append(h('button', { class: page.id === id ? 'on' : '', onclick: () => { page.id = id; location.hash = id; renderNav(); render(); } }, label));
 }
 function status(st) {
@@ -163,10 +166,11 @@ function copy(text, btn) {
   const old = () => { const ta = h('textarea'); ta.value = text; document.body.append(ta); ta.select(); document.execCommand('copy'); ta.remove(); done(); };
   if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, old); else old();
 }
-async function reload() { S = await fetch('/api/settings', { cache: 'no-store' }).then(r => r.json()); render(); }
+async function reload() { S = await fetch('/api/settings', { cache: 'no-store' }).then(r => r.json()); document.title = S.kanal + ' Studio'; $('.brand b').textContent = 'Live-Studio'; render(); }
 // Live: Status und Ereignisse
 const es = new EventSource('/api/events?rolle=studio');
 es.addEventListener('lumia', e => { if (!S) return; S.status = JSON.parse(e.data); if (['start', 'lumia'].includes(page.id)) render(); });
 es.addEventListener('log', e => { if (!S) return; const l = JSON.parse(e.data); S.log = [l, ...(S.log || [])].slice(0, 50); const box = $('#log'); if (box) box.prepend(logLine(l)); });
+es.addEventListener('profil', async () => { if (!S) return; await reload(); renderNav(); });
 es.addEventListener('modus', e => { if (!S) return; S.modus = JSON.parse(e.data).modus; if (page.id === 'start') render(); });
 load();
