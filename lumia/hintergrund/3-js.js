@@ -94,7 +94,11 @@ function draw(now) {
     const shown = s > 0.97;
     Object.assign(w.frame.style, { left: r.x - 6 + 'px', top: r.y - 6 + 'px', width: r.w + 'px', height: r.h + 'px' });
     w.frame.classList.toggle('show', shown && w.g('Rahmen') !== false);
-    w.tag.style.top = Math.max(8, r.y - 50) + 'px'; w.tag.style.left = (r.x + r.w / 2) + 'px';
+    // Schild: links/Mitte/rechts am Fenster + Feinverschiebung (in % der Fensterbreite bzw. Bildhöhe)
+    const pos = w.g('SchildPos') || 'mitte', tagW = w.tag.offsetWidth || 0;
+    const bx = pos === 'links' ? r.x + tagW / 2 + 12 : pos === 'rechts' ? r.x + r.w - tagW / 2 - 12 : r.x + r.w / 2;
+    w.tag.style.left = (bx + r.w * num(w.g('SchildX'), 0) / 100) + 'px';
+    w.tag.style.top = Math.max(8, r.y - 50 + cv.height * num(w.g('SchildY'), 0) / 100) + 'px';
     w.tag.classList.toggle('show', shown && !!w.g('Schild'));
   }
   requestAnimationFrame(draw);

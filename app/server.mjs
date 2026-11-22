@@ -45,6 +45,19 @@ const SETTINGS_FILE = path.join(DATA, 'einstellungen.json');
 const SECRET_FILE = path.join(DATA, 'geheim.json');
 const readJson = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
 const writeJson = (f, v) => { const t = f + '.tmp'; fs.writeFileSync(t, JSON.stringify(v, null, 2)); fs.renameSync(t, f); };
+// Prüfen, ob /data wirklich ein Ordner vom Server ist (Unraid-Pfad) – sonst gehen Einstellungen bei jedem Update verloren
+const datenDauerhaft = (() => {
+  if (process.env.NODE_ENV !== 'production') return true;
+  try {
+    const mi = fs.readFileSync('/proc/self/mountinfo', 'utf8').split('\n').map(l => l.split(' '));
+    const m = mi.find(x => x[4] === path.resolve(DATA));
+    if (!m) return false;
+    const quelle = m[3] || '';
+    // anonymes Docker-Volume liegt unter …/docker/volumes/<hash>/_data
+    return !/\/volumes\/[0-9a-f]{20,}\/_data/.test(quelle);
+  } catch { return true; }
+})();
+if (!datenDauerhaft) console.warn('ACHTUNG: ' + DATA + ' ist nicht als Ordner eingebunden – Einstellungen gehen beim Update verloren!');
 let saved = readJson(SETTINGS_FILE, {});
 saved.profile ||= {};
 // Übernahme aus der Einzel-Kanal-Version (vor 22.11.2026 abends): alte Werte gehören zum Kanal aus KANAL
@@ -381,6 +394,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
       kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, musik: musikInfo(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, tts: { ...saved.tts, schluessel: !!secret.elevenlabsKey }, status: lumia, log,
+      datenDauerhaft,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}),
       quellenListe: [...clients].filter(c => c.role === 'vorne' || c.role === 'hinten').map(c => ({ rolle: c.role, format: c.format, pfad: c.pfad, groesse: c.groesse })) });
     if (p === '/api/settings' && req.method === 'POST') {

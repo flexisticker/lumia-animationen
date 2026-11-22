@@ -343,6 +343,62 @@
   },
   "order": 22
  },
+ "f1SchildPos": {
+  "type": "dropdown",
+  "label": "Schild-Position",
+  "value": "mitte",
+  "options": {
+   "links": "links",
+   "mitte": "Mitte",
+   "rechts": "rechts"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1",
+    "f1q"
+   ]
+  },
+  "order": 22.1
+ },
+ "f1SchildX": {
+  "type": "slider",
+  "label": "Schild feiner verschieben (links − / rechts +)",
+  "value": 0,
+  "options": {
+   "min": -50,
+   "max": 50,
+   "step": 1,
+   "suffix": " %"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1",
+    "f1q"
+   ]
+  },
+  "order": 22.2
+ },
+ "f1SchildY": {
+  "type": "slider",
+  "label": "Schild höher/tiefer (− = höher)",
+  "value": 0,
+  "options": {
+   "min": -30,
+   "max": 30,
+   "step": 1,
+   "suffix": " %"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1",
+    "f1q"
+   ]
+  },
+  "order": 22.3
+ },
  "f2Wann": {
   "type": "dropdown",
   "label": "Fenster zeigen",
@@ -516,6 +572,62 @@
    ]
   },
   "order": 33
+ },
+ "f2SchildPos": {
+  "type": "dropdown",
+  "label": "Schild-Position",
+  "value": "mitte",
+  "options": {
+   "links": "links",
+   "mitte": "Mitte",
+   "rechts": "rechts"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2",
+    "f2q"
+   ]
+  },
+  "order": 33.1
+ },
+ "f2SchildX": {
+  "type": "slider",
+  "label": "Schild feiner verschieben (links − / rechts +)",
+  "value": 0,
+  "options": {
+   "min": -50,
+   "max": 50,
+   "step": 1,
+   "suffix": " %"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2",
+    "f2q"
+   ]
+  },
+  "order": 33.2
+ },
+ "f2SchildY": {
+  "type": "slider",
+  "label": "Schild höher/tiefer (− = höher)",
+  "value": 0,
+  "options": {
+   "min": -30,
+   "max": 30,
+   "step": 1,
+   "suffix": " %"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2",
+    "f2q"
+   ]
+  },
+  "order": 33.3
  },
  "videoQuer": {
   "order": 4.1,

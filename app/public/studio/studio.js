@@ -29,6 +29,8 @@ function status(st) {
 }
 function render() {
   const m = $('#main'); m.innerHTML = '';
+  if (S.datenDauerhaft === false) m.append(h('div', { class: 'card warnbox' }, h('b', {}, '⚠ Einstellungen werden nicht dauerhaft gespeichert!'),
+    h('p', {}, 'Der Container hat keinen Daten-Ordner. Bei jedem Update gehen alle Einstellungen verloren. In Unraid beim Container auf „Edit“ → „Add another Path, Port, Variable…“ → Config Type „Path“, Container Path ', h('code', {}, '/data'), ', Host Path ', h('code', {}, '/mnt/user/appdata/live-studio'), ' → Speichern. Danach einmal alles einstellen – ab dann bleibt es erhalten.')));
   ({ start, lumia: lumiaPage, vorne: () => settingsPage('vorne', 'Animationen & Einblendungen', 'Alles, was vor dir im Bild erscheint.'),
     galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik und bis zu zwei Fenster (z. B. Spiel und Drucker-Kamera), durch die man die OBS-Quelle darunter sieht.'),
     aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, sprache: sprachePage }[page.id] || start)(m);
