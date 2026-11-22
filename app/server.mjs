@@ -14,6 +14,7 @@ const DATA = process.env.DATA_DIR || '/data';
 const UPLOADS = path.join(DATA, 'uploads');
 const PORT = Number(process.env.PORT || 8080);
 fs.mkdirSync(UPLOADS, { recursive: true });
+const TTS_DIR = path.join(DATA, 'tts'); fs.mkdirSync(TTS_DIR, { recursive: true });
 
 // ---------- Einstellungen ----------
 const DEFAULTS = {
@@ -81,6 +82,34 @@ saved.obs ||= { host: '', port: 4455, an: false, szeneZocken: '', szeneParty: ''
 // Slogan-Korrektur 22.11.2026: MichaModus = Gaming & Spaß, Drucken gehört zu 3dbymicha
 for (const p of Object.keys(saved.profile)) { const v = saved.profile[p].vorne; if (v && typeof v.slogans === 'string') v.slogans = v.slogans.replace('Hier wird gedruckt, gelacht & gefeiert', p === '3dbymicha' ? 'Hier wird gedruckt, getüftelt & gelacht 😄' : 'Hier wird gezockt, gelacht & gefeiert 🎮'); }
 let secret = readJson(SECRET_FILE, {});
+// Sprachausgabe (ElevenLabs): Schlüssel nur in geheim.json, Stimme/Modell in den Einstellungen, fertige Sätze im Zwischenspeicher /data/tts
+saved.tts ||= { stimme: '', stimmeName: '', modell: 'eleven_multilingual_v2', stabil: 50, aehnlich: 75 };
+const TTS_BASE = process.env.NODE_ENV !== 'production' && process.env.TTS_BASE ? process.env.TTS_BASE : 'https://api.elevenlabs.io';
+const ttsLaufend = new Map(); let ttsMinute = 0, ttsZaehler = 0;
+async function tts(text) {
+  text = String(text || '').replace(/[\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220);
+  if (!text) throw Object.assign(new Error('Kein Text'), { code: 400 });
+  if (!secret.elevenlabsKey || !saved.tts.stimme) throw Object.assign(new Error('Sprachausgabe nicht eingerichtet'), { code: 409 });
+  const t = saved.tts, hash = crypto.createHash('sha256').update([t.stimme, t.modell, t.stabil, t.aehnlich, text].join('|')).digest('hex').slice(0, 32);
+  const file = path.join(TTS_DIR, hash + '.mp3'), url = '/tts/' + hash + '.mp3';
+  if (fs.existsSync(file)) return url;
+  if (ttsLaufend.has(hash)) return ttsLaufend.get(hash);
+  const min = Math.floor(Date.now() / 60000); if (min !== ttsMinute) { ttsMinute = min; ttsZaehler = 0; }
+  if (++ttsZaehler > 40) throw Object.assign(new Error('Zu viele Sprachausgaben pro Minute'), { code: 429 });
+  const job = (async () => {
+    const r = await fetch(`${TTS_BASE}/v1/text-to-speech/${encodeURIComponent(t.stimme)}?output_format=mp3_44100_128`, {
+      method: 'POST', headers: { 'xi-api-key': secret.elevenlabsKey, 'content-type': 'application/json', accept: 'audio/mpeg' },
+      body: JSON.stringify({ text, model_id: t.modell || 'eleven_multilingual_v2', voice_settings: { stability: (Number(t.stabil) || 50) / 100, similarity_boost: (Number(t.aehnlich) || 75) / 100 } }),
+      signal: AbortSignal.timeout(20000) });
+    if (!r.ok) { const e = await r.text().catch(() => ''); throw Object.assign(new Error('ElevenLabs ' + r.status + (r.status === 401 ? ': Schlüssel ungültig' : '') + ' ' + e.slice(0, 160)), { code: 502 }); }
+    const buf = Buffer.from(await r.arrayBuffer()); fs.writeFileSync(file + '.tmp', buf); fs.renameSync(file + '.tmp', file);
+    // Zwischenspeicher klein halten: höchstens 500 Sätze
+    const alle = fs.readdirSync(TTS_DIR).filter(f => f.endsWith('.mp3')).map(f => ({ f, t: fs.statSync(path.join(TTS_DIR, f)).mtimeMs })).sort((a, b) => a.t - b.t);
+    for (const x of alle.slice(0, Math.max(0, alle.length - 500))) fs.rm(path.join(TTS_DIR, x.f), () => {});
+    return url;
+  })().finally(() => ttsLaufend.delete(hash));
+  ttsLaufend.set(hash, job); return job;
+}
 const cur = () => saved.profile[saved.profil];
 const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), ...saved.profile[profil][k] });
 const profilListe = () => Object.entries(PRESETS).map(([id, p]) => ({ id, name: p.name }));
@@ -298,7 +327,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
       kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, musik: musikInfo(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
-      lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, status: lumia, log,
+      lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, tts: { ...saved.tts, schluessel: !!secret.elevenlabsKey }, status: lumia, log,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}) });
     if (p === '/api/settings' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
@@ -352,6 +381,28 @@ const server = http.createServer(async (req, res) => {
       if (b.passwortLoeschen) { delete secret.obsPasswort; writeJson(SECRET_FILE, secret); }
       saveSettings(); obsConnect(); return json(res, 200, { ok: true });
     }
+    if (p === '/api/tts' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      try { return json(res, 200, { ok: true, url: await tts(b.text) }); } catch (e) { return json(res, e.code || 500, { fehler: e.message }); }
+    }
+    if (p === '/api/tts/einstellungen' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      if (typeof b.schluessel === 'string' && b.schluessel.trim()) { secret.elevenlabsKey = b.schluessel.trim(); writeJson(SECRET_FILE, secret); }
+      if (b.schluesselLoeschen) { delete secret.elevenlabsKey; writeJson(SECRET_FILE, secret); }
+      for (const k of ['stimme', 'stimmeName', 'modell']) if (typeof b[k] === 'string') saved.tts[k] = b[k].slice(0, 100);
+      for (const k of ['stabil', 'aehnlich']) if (b[k] !== undefined) saved.tts[k] = Math.max(0, Math.min(100, Number(b[k]) || 0));
+      saveSettings(); return json(res, 200, { ok: true });
+    }
+    if (p === '/api/tts/stimmen' && req.method === 'GET') {
+      if (!secret.elevenlabsKey) return json(res, 409, { fehler: 'Erst den ElevenLabs-Schlüssel speichern' });
+      try {
+        const r = await fetch(TTS_BASE + '/v1/voices', { headers: { 'xi-api-key': secret.elevenlabsKey }, signal: AbortSignal.timeout(15000) });
+        if (!r.ok) return json(res, 502, { fehler: 'ElevenLabs ' + r.status + (r.status === 401 ? ': Schlüssel ungültig' : '') });
+        const d = await r.json();
+        return json(res, 200, { stimmen: (d.voices || []).map(v => ({ id: v.voice_id, name: v.name, art: v.category || '', sprache: (v.labels && (v.labels.language || v.labels.accent)) || '', probe: v.preview_url || '' })) });
+      } catch (e) { return json(res, 502, { fehler: 'ElevenLabs nicht erreichbar' }); }
+    }
+    if (p.startsWith('/tts/') && /^\/tts\/[0-9a-f]{32}\.mp3$/.test(p)) { const f = path.join(TTS_DIR, path.basename(p)); return fs.existsSync(f) ? sendFile(req, res, f) : json(res, 404, {}); }
     if (p === '/api/musik' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       setMusik({ titel: b.titel, lautstaerke: b.lautstaerke }, 'knopf');

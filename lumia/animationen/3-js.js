@@ -136,9 +136,10 @@ function next() {
   const src = videoFor(item.anim);
   if (item.anim.hype !== false) bannerHype();
   if (item.user && on('nameAn')) showCard(item);
+  if (item.alert) setTimeout(() => sayThanks(item), num(D.ttsVerzoegerung, 1500));
   if (src) {
     video.src = src;
-    video.volume = Math.max(0, Math.min(1, num(D.lautstaerke, 80) / 100 * num(D['l_' + item.anim.id], 100) / 100));
+    video.volume = videoVol(item) * duck();
     video.currentTime = 0;
     video.play().then(() => requestAnimationFrame(drawFrame)).catch(() => finish(item));
     video.onended = () => finish(item);
@@ -146,6 +147,42 @@ function next() {
   } else {
     setTimeout(() => finish(item), num(D.anzeigeSekunden, 5) * 1000);
   }
+}
+// ---------- Sprachausgabe (Danke) über das Live-Studio (ElevenLabs) ----------
+const speech = new Audio(); let speechQueue = [], speaking = false;
+function sprechName(n) { return String(n || '').normalize('NFKC').replace(/[^\p{L}\p{N} ._-]/gu, '').replace(/[_.]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 30) || 'du'; }
+function ttsText(item) {
+  const a = item.alert, r = item.roh || {};
+  const tpl = { 'tiktok-gift': D.ttsGeschenk, 'tiktok-follower': D.ttsFolgen, 'twitch-follower': D.ttsFolgen, 'tiktok-share': D.ttsTeilen, 'tiktok-superFan': D.ttsSuperfan,
+    'twitch-giftSubscription': D.ttsGiftsub, 'twitch-bits': D.ttsBits, 'twitch-raid': D.ttsRaid }[a];
+  let t = tpl;
+  if (a === 'twitch-subscriber') t = item.anim.id === 'tw-primesub' ? D.ttsPrime : item.anim.id === 'tw-resub' ? D.ttsResub : item.anim.id === 'tw-giftsub' ? D.ttsGiftsub : D.ttsSub;
+  if (t === undefined) t = /hypetrain|totalLikes|battle/.test(a) ? '' : D.ttsSonst;
+  if (!t) return '';
+  if (a === 'tiktok-gift' && (r.muenzen || 0) < num(D.ttsMinMuenzen, 1)) return '';
+  return String(t).replace(/\{NAME\}/g, sprechName(item.user)).replace(/\{ANZAHL\}/g, a === 'twitch-bits' ? (r.bits || item.amount) : item.amount)
+    .replace(/\{GESCHENK\}/g, r.geschenk || '').replace(/\{MONATE\}/g, r.monate || '').replace(/\{ZUSCHAUER\}/g, r.zuschauer || '')
+    .replace(/\{PLATTFORM\}/g, item.plattform === 'twitch' ? 'Twitch' : 'TikTok');
+}
+async function sayThanks(item) {
+  if (D.ttsAn !== true || item.spoken) return;
+  const text = ttsText(item); if (!text) return;
+  item.spoken = true;
+  try {
+    const r = await fetch('/api/tts', { method: 'POST', headers: { 'content-type': 'application/json', 'x-mm': '1' }, body: JSON.stringify({ text }) });
+    if (!r.ok) return console.warn('Sprachausgabe:', (await r.json().catch(() => ({}))).fehler);
+    speechQueue.push((await r.json()).url); if (!speaking) nextSpeech();
+  } catch (e) { console.warn('Sprachausgabe nicht erreichbar'); }
+}
+const duck = () => (speaking ? 1 - num(D.ttsDucking, 40) / 100 : 1);
+function videoVol(item) { return Math.max(0, Math.min(1, num(D.lautstaerke, 80) / 100 * num(D['l_' + item.anim.id], 100) / 100)); }
+function nextSpeech() {
+  const url = speechQueue.shift();
+  speaking = !!url; if (playing) video.volume = videoVol(playing) * duck();
+  if (!url) return;
+  speech.src = url; speech.volume = Math.max(0, Math.min(1, num(D.lautstaerke, 80) / 100 * num(D.ttsLautstaerke, 100) / 100));
+  const done = () => { speech.onended = speech.onerror = null; nextSpeech(); };
+  speech.onended = done; speech.onerror = done; speech.play().catch(done);
 }
 function stopNow(item) {
   video.onended = video.onerror = null;
@@ -174,6 +211,7 @@ function showCard(item) {
   const user = String(item.user).slice(0, 24);
   [...user].forEach((ch, i) => { const s = el('span', null, ch === ' ' ? ' ' : ch); s.style.animationDelay = (0.25 + i * 0.045) + 's'; name.append(s); });
   setTimeout(() => name.querySelectorAll('span').forEach(s => s.classList.add('shine')), 900 + user.length * 45);
+  if (item.plattform && on('plattformAn', true)) card.prepend(pfBadge(item.plattform));
   card.append(name);
   if (item.text) {
     const sub = el('div', 'sub'); sub.append(document.createTextNode(item.text));
@@ -184,6 +222,16 @@ function showCard(item) {
   let size = 7.2;
   while (name.scrollWidth > innerWidth * 0.86 && size > 3) { size -= 0.3; name.style.fontSize = size + 'vh'; }
   item.card = card;
+}
+// Plattform-Schild (TikTok / Twitch) – nur Schriftzug und Farben, keine Logos
+function pfBadge(p) { const b = el('div', 'pf pf-' + p, p === 'twitch' ? 'Twitch' : 'TikTok'); return b; }
+// Kleines Schild an der Like-Fontäne: „TikTok · Name +12“
+let likeTagEl = null, likeTagT = null;
+function likeTag(user, n) {
+  if (!on('plattformAn', true)) return;
+  if (!likeTagEl) { likeTagEl = el('div', 'liketag'); document.body.append(likeTagEl); }
+  likeTagEl.replaceChildren(pfBadge('tiktok'), document.createTextNode((user ? String(user).slice(0, 20) + ' ' : '') + '+' + n + ' ❤'));
+  likeTagEl.classList.add('show'); clearTimeout(likeTagT); likeTagT = setTimeout(() => likeTagEl.classList.remove('show'), 2500);
 }
 function updateCount(item) {
   if (!item.countEl) return;
@@ -217,7 +265,7 @@ function twitchAlert(data, s) {
   const dyn = data.dynamic || {};
   const amount = Number(s.amount || dyn.value || 1) || 1;
   const user = s.displayname || s.username || '';
-  const base = { user, avatar: s.avatar, amount: 1 };
+  const base = { user, avatar: s.avatar, amount: 1, plattform: 'twitch', alert: data.alert, roh: { monate: Number(s.subMonths || (data.dynamic || {}).subMonths || 0), zuschauer: Number(s.viewers || amount) || 0, bits: amount } };
   switch (data.alert) {
     case 'twitch-follower': return { ...base, anim: entryById('tw-follow'), text: D.twTextFollow || 'folgt jetzt!' };
     case 'twitch-subscriber': {
@@ -244,18 +292,18 @@ function twitchAlert(data, s) {
 function handleAlert(data) {
   const s = data.extraSettings || {};
   if (String(data.alert || '').startsWith('twitch-')) { const it = twitchAlert(data, s); if (it && it.anim) enqueue(it); return; }
-  if (data.alert === 'tiktok-like') { likeBurst(Number(s.amount || s.userLikeCount || (data.dynamic && data.dynamic.value)) || 5); return; }
+  if (data.alert === 'tiktok-like') { const n = Number(s.amount || s.userLikeCount || (data.dynamic && data.dynamic.value)) || 5; likeBurst(n); likeTag(s.username, n); return; }
   if (data.alert === 'tiktok-gift') {
     const amount = Number(s.giftAmount) || 1;
     const coins = (Number(s.coins) || Number(s.value) || 1) * amount;
     if (coins < num(D.minMuenzen, 1)) return;
     const anim = giftAnim(s.giftName, coins);
-    enqueue({ anim, user: s.username, avatar: s.avatar, amount, key: (s.username || '') + '|' + (s.giftName || ''),
+    enqueue({ anim, user: s.username, avatar: s.avatar, amount, key: (s.username || '') + '|' + (s.giftName || ''), plattform: 'tiktok', alert: data.alert, roh: { geschenk: s.giftName || 'Geschenk', muenzen: coins },
       text: (D.geschenkText || 'schickt {GESCHENK}').replace('{GESCHENK}', s.giftName || 'ein Geschenk') });
     return;
   }
   const t = TEXT[data.alert];
-  if (t) enqueue({ anim: entryById(t[0]), user: s.username || (data.alert === 'tiktok-totalLikes' ? 'Ihr alle' : ''), avatar: s.avatar, amount: 1, text: t[1] });
+  if (t) enqueue({ anim: entryById(t[0]), user: s.username || (data.alert === 'tiktok-totalLikes' ? 'Ihr alle' : ''), avatar: s.avatar, amount: 1, text: t[1], plattform: 'tiktok', alert: data.alert });
 }
 
 // Aktionsknöpfe (Aktionszentrale, Lumia-Befehl „Overlay: Inhalt senden“ oder MCP): Inhalt = Animations-ID,

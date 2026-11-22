@@ -12,7 +12,7 @@ async function load() {
   LIST = SCHEMA.liste; document.title = S.kanal + ' Studio'; $('.brand b').textContent = 'Live-Studio'; renderNav(); render();
 }
 const PAGES = [
-  ['start', 'Übersicht'], ['lumia', 'Lumia-Verbindung'], ['vorne', 'Animationen & Einblendungen'], ['galerie', 'Animationen ansehen'],
+  ['start', 'Übersicht'], ['lumia', 'Lumia-Verbindung'], ['sprache', 'Sprachausgabe'], ['vorne', 'Animationen & Einblendungen'], ['galerie', 'Animationen ansehen'],
   ['hinten', 'Hintergrund & Kameras'], ['spiele', 'Spiele & OBS'], ['aktion', 'Tablet-Steuerung'], ['test', 'Testen'], ['quellen', 'Browserquellen für OBS'],
 ];
 function renderNav() {
@@ -31,7 +31,7 @@ function render() {
   const m = $('#main'); m.innerHTML = '';
   ({ start, lumia: lumiaPage, vorne: () => settingsPage('vorne', 'Animationen & Einblendungen', 'Alles, was vor dir im Bild erscheint.'),
     galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik und bis zu zwei Fenster (z. B. Spiel und Drucker-Kamera), durch die man die OBS-Quelle darunter sieht.'),
-    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage }[page.id] || start)(m);
+    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, sprache: sprachePage }[page.id] || start)(m);
 }
 // ---------- Übersicht ----------
 function start(m) {
@@ -49,6 +49,36 @@ function start(m) {
   m.append(h('h2', {}, 'Letzte Ereignisse'), h('div', { class: 'card log', id: 'log' }, ...(S.log || []).map(logLine)));
 }
 const logLine = e => h('div', {}, new Date(e.at).toLocaleTimeString('de-DE') + ' · ' + ({ alert: '🎁', aktion: '👆', modus: '🎮' }[e.art] || '') + ' ' + (e.alert || '') + ' ' + (e.text || '') + (e.quelle ? ' (' + e.quelle + ')' : ''));
+// ---------- Sprachausgabe (ElevenLabs) ----------
+function sprachePage(m) {
+  const T = S.tts || {};
+  m.append(h('h1', {}, 'Sprachausgabe (Danke)'), h('p', { class: 'hint' }, 'Bei Geschenken, Follows, Subs, Bits und Raids sagt eine Stimme „Danke …“ mit dem Namen. Die Stimme kommt von deinem ElevenLabs-Konto. Der Schlüssel bleibt nur auf deinem Server. Die Texte stellst du unter „Animationen & Einblendungen → Sprachausgabe (Danke)“ ein und schaltest sie dort an.'));
+  const key = h('input', { type: 'password', placeholder: T.schluessel ? '•••••••• (gespeichert – nur zum Ändern ausfüllen)' : 'API-Schlüssel aus ElevenLabs (Profil → API Keys)' });
+  const stimme = h('select', {}, h('option', { value: T.stimme || '' }, T.stimme ? (T.stimmeName || T.stimme) : '– erst Stimmen laden –'));
+  const modell = h('select', {}, ...[['eleven_multilingual_v2', 'Multilingual v2 (beste Qualität)'], ['eleven_flash_v2_5', 'Flash v2.5 (schnell, günstig)'], ['eleven_turbo_v2_5', 'Turbo v2.5']]
+    .map(([v, l]) => h('option', { value: v, ...(T.modell === v ? { selected: '' } : {}) }, l)));
+  const stabil = h('input', { type: 'range', min: 0, max: 100, value: T.stabil ?? 50 }), aehnlich = h('input', { type: 'range', min: 0, max: 100, value: T.aehnlich ?? 75 });
+  const info = h('span', { class: 'hint' }, '');
+  const probe = h('audio', { controls: '', style: 'width:100%;margin-top:8px' });
+  const testText = h('input', { type: 'text', value: 'Danke Sandra für 5 Rosen! Willkommen im MichaModus!' });
+  const speichern = () => post('/api/tts/einstellungen', { schluessel: key.value, stimme: stimme.value, stimmeName: stimme.selectedOptions[0] ? stimme.selectedOptions[0].textContent : '', modell: modell.value, stabil: stabil.value, aehnlich: aehnlich.value });
+  const laden = async () => { info.textContent = 'lädt …'; if (key.value) await speichern();
+    const r = await fetch('/api/tts/stimmen'); const d = await r.json();
+    if (!r.ok) { info.textContent = d.fehler || 'Fehler'; return; }
+    stimme.innerHTML = ''; d.stimmen.forEach(v => stimme.append(h('option', { value: v.id, ...(v.id === T.stimme ? { selected: '' } : {}) }, v.name + (v.sprache ? ' · ' + v.sprache : '') + (v.art ? ' (' + v.art + ')' : ''))));
+    info.textContent = d.stimmen.length + ' Stimmen geladen'; };
+  m.append(h('div', { class: 'card' },
+    field('ElevenLabs-Schlüssel', key), h('div', { class: 'row' }, h('button', { class: 'b', onclick: laden }, 'Stimmen laden'), info),
+    field('Stimme', stimme), field('Modell', modell), field('Stabilität (links = lebendiger)', stabil), field('Ähnlichkeit zur Stimme', aehnlich),
+    h('div', { class: 'row', style: 'margin-top:12px' },
+      h('button', { class: 'b p', onclick: async () => { await speichern(); key.value = ''; info.textContent = 'gespeichert'; S = await fetch('/api/settings').then(r => r.json()); } }, 'Speichern'),
+      T.schluessel ? h('button', { class: 'b', onclick: async () => { if (confirm('Schlüssel löschen?')) { await post('/api/tts/einstellungen', { schluesselLoeschen: true }); await reload(); } } }, 'Schlüssel löschen') : null)),
+    h('div', { class: 'card' }, h('b', {}, 'Probe'), field('Text', testText),
+      h('div', { class: 'row' }, h('button', { class: 'b', onclick: async () => { await speichern(); key.value = ''; info.textContent = 'erzeugt …';
+        const r = await post('/api/tts', { text: testText.value }); const d = await r.json();
+        if (!r.ok) { info.textContent = d.fehler || 'Fehler'; return; } info.textContent = ''; probe.src = d.url; probe.play(); } }, '▶ Probe anhören')), probe),
+    h('p', { class: 'hint' }, 'Kosten: ElevenLabs rechnet nach Zeichen ab. Gleiche Sätze (z. B. „Danke fürs Folgen, Anna!“) werden zwischengespeichert und nicht erneut berechnet.'));
+}
 // ---------- Lumia ----------
 function lumiaPage(m) {
   const L = S.lumia;

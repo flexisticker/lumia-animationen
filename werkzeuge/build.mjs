@@ -31,7 +31,7 @@ const cfg = {};
 const add = (key, f) => { cfg[key] = { order: ++order, ...f }; };
 add('bereich', { type: 'dropdown', label: 'Einstellungen für', value: 'allgemein', options: {
   allgemein: 'Allgemein & Ton', banner: 'Banner & Slogans', name: 'Namens-Einblendung', likes: 'Like-Fontäne', szenen: 'Ansagen (Pause, Weiter …)', geschenk: 'Geschenke',
-  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', twitch: 'Twitch', streamprint: 'StreamPrint', knopf: 'Aktionsknöpfe' } });
+  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', twitch: 'Twitch', streamprint: 'StreamPrint', sprache: 'Sprachausgabe (Danke)', knopf: 'Aktionsknöpfe' } });
 const vis = b => ({ visibleIf: { key: 'bereich', equals: [b] } });
 add('lautstaerke', { type: 'slider', label: 'Lautstärke gesamt', value: 80, options: { min: 0, max: 100, step: 5, suffix: '%' }, ...vis('allgemein') });
 add('medienAdresse', { type: 'input', label: 'Adresse der Videos (Ordner, endet mit /)', value: '', placeholder: 'leer = nur hochgeladene Videos', ...vis('allgemein') });
@@ -56,6 +56,24 @@ add('sloganSekunden', { type: 'number', label: 'Wechsel alle … Sekunden', valu
 
 add('nameAn', { type: 'checkbox', label: 'Namen animiert einblenden', value: true, ...vis('name') });
 add('profilbildAn', { type: 'checkbox', label: 'Profilbild zeigen', value: true, ...vis('name') });
+add('plattformAn', { type: 'checkbox', label: 'Plattform anzeigen (TikTok / Twitch)', value: true, ...vis('name') });
+// Sprachausgabe: Stimme und Schlüssel stehen im Studio unter „Sprachausgabe“, hier die Texte. Platzhalter {NAME} {ANZAHL} {GESCHENK} {MONATE} {ZUSCHAUER} {PLATTFORM}
+add('ttsAn', { type: 'checkbox', label: 'Danke per Sprachausgabe', value: false, ...vis('sprache') });
+add('ttsLautstaerke', { type: 'slider', label: 'Lautstärke Sprache', value: 100, options: { min: 0, max: 150, step: 5, suffix: '%' }, ...vis('sprache') });
+add('ttsDucking', { type: 'slider', label: 'Animation leiser, während gesprochen wird', value: 40, options: { min: 0, max: 100, step: 5, suffix: '%' }, ...vis('sprache') });
+add('ttsVerzoegerung', { type: 'number', label: 'Sprechen nach … ms (Combo abwarten)', value: 1500, ...vis('sprache') });
+add('ttsMinMuenzen', { type: 'number', label: 'Geschenke erst ab … Münzen ansagen', value: 1, ...vis('sprache') });
+add('ttsGeschenk', { type: 'input', label: 'Geschenk (TikTok)', value: 'Danke {NAME} für {ANZAHL} {GESCHENK}!', ...vis('sprache') });
+add('ttsFolgen', { type: 'input', label: 'Folgen (TikTok + Twitch)', value: 'Danke fürs Folgen, {NAME}!', ...vis('sprache') });
+add('ttsTeilen', { type: 'input', label: 'Teilen', value: 'Danke fürs Teilen, {NAME}!', ...vis('sprache') });
+add('ttsSuperfan', { type: 'input', label: 'Superfan', value: '{NAME} ist jetzt Superfan – vielen Dank!', ...vis('sprache') });
+add('ttsSub', { type: 'input', label: 'Twitch-Abo', value: 'Danke für dein Abo, {NAME}!', ...vis('sprache') });
+add('ttsPrime', { type: 'input', label: 'Twitch Prime', value: 'Danke für dein Prime-Abo, {NAME}!', ...vis('sprache') });
+add('ttsResub', { type: 'input', label: 'Twitch Resub', value: 'Danke {NAME}, schon {MONATE} Monate dabei!', ...vis('sprache') });
+add('ttsGiftsub', { type: 'input', label: 'Twitch Gift-Subs', value: 'Wahnsinn, {NAME} verschenkt {ANZAHL} Subs – danke!', ...vis('sprache') });
+add('ttsBits', { type: 'input', label: 'Twitch Bits', value: 'Danke {NAME} für {ANZAHL} Bits!', ...vis('sprache') });
+add('ttsRaid', { type: 'input', label: 'Twitch Raid', value: 'Danke für den Raid, {NAME}! Willkommen an alle {ZUSCHAUER} Raider!', ...vis('sprache') });
+add('ttsSonst', { type: 'input', label: 'Andere Ereignisse (leer = nichts sagen)', value: '', ...vis('sprache') });
 add('geschenkText', { type: 'input', label: 'Text unter dem Namen', value: 'schickt {GESCHENK}', ...vis('name') });
 add('namePosition', { type: 'slider', label: 'Höhe der Einblendung', value: 62, options: { min: 20, max: 85, step: 1, suffix: ' %' }, ...vis('name') });
 add('nameFarbe1', { type: 'colorpicker', label: 'Farbe 1', value: '#ff3d7f', ...vis('name') });
