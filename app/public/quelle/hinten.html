@@ -45,6 +45,7 @@ video { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: no
     async setVariable(name, value) {
       if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_spiel') { const r = await post('/api/modus', { modus: 'zocken', spiel: value }); if (!r.ok) throw new Error('Fehler'); }
+      if (name === 'mm_musik') { const r = await post('/api/musik', value); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_profil') { const r = await post('/api/profil', { profil: value }); if (!r.ok) throw new Error('Fehler'); }
     },
     async saveStorage() {}, async getStorage() { return null; }, async deleteStorage() {},
@@ -52,13 +53,15 @@ video { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: no
   const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
   window.MM_START = async function (start) {
     const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
-    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus;
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus; window.MM_MUSIK = s.musik;
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {
       const es = new EventSource('/api/events?rolle=' + ROLE);
       const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
-      es.addEventListener('hallo', e => modusMsg(JSON.parse(e.data)));
+      const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
+      es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); });
+      es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
       es.addEventListener('modus', e => modusMsg(JSON.parse(e.data)));
@@ -90,10 +93,22 @@ const pick = (hoch, quer) => (QUER && quer ? quer : hoch);
 if (D.videoAn !== false && pick(D.video, D.videoQuer)) { vP.src = pick(D.video, D.videoQuer); vP.play().catch(() => {}); }
 if (pick(D.zockVideo, D.zockVideoQuer)) { vZ.src = pick(D.zockVideo, D.zockVideoQuer); vZ.play().catch(() => {}); }
 [vP, vZ].forEach(v => (v.playbackRate = num(D.tempo, 100) / 100));
-if (D.musikAn !== false && D.musik) {
-  m.src = D.musik; m.volume = Math.min(1, num(D.musikLautstaerke, 35) / 100);
-  const start = () => m.play().catch(() => setTimeout(start, 2000)); start();
+// Musik: Start mit Einstellungen, danach steuert die Aktionszentrale Titel und Lautstärke („musik:{datei,lautstaerke}“)
+let musikZiel = Math.min(1, num(D.musikLautstaerke, 35) / 100), musikFade = null;
+const musikStart = () => m.play().catch(() => setTimeout(() => { if (m.getAttribute('src')) musikStart(); }, 2000));
+function fadeTo(vol, ms, done) {
+  clearInterval(musikFade); const from = m.volume, t0 = performance.now();
+  musikFade = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / ms); m.volume = Math.max(0, Math.min(1, from + (vol - from) * k)); if (k >= 1) { clearInterval(musikFade); done && done(); } }, 40);
 }
+function setMusik(x) {
+  if (!x) return;
+  musikZiel = Math.max(0, Math.min(1, num(x.lautstaerke, 35) / 100));
+  const src = (x.titel === 'standard' && D.musikAn === false) ? '' : (x.datei || '');
+  if ((m.getAttribute('src') || '') === src) { if (src) fadeTo(musikZiel, 300); return; }
+  const wechsel = () => { if (!src) { m.pause(); m.removeAttribute('src'); m.load(); return; } m.src = src; m.loop = true; m.volume = 0; musikStart(); fadeTo(musikZiel, 1200); };
+  if (m.getAttribute('src') && !m.paused) fadeTo(0, 700, wechsel); else wechsel();
+}
+if (D.musikAn !== false && D.musik && !(window.MM_MUSIK)) { m.src = D.musik; m.loop = true; m.volume = musikZiel; musikStart(); }
 let mode = D.modus === 'zocken' ? 'zocken' : 'party';
 let t = mode === 'zocken' ? 1 : 0;
 const DUR = num(D.uebergangMs, 1400);
@@ -183,6 +198,7 @@ if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));
   if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
+  if (c.startsWith('musik:')) { try { setMusik(JSON.parse(c.slice(6))); } catch (e) {} }
 });
 window.MMBG = { setMode };
 

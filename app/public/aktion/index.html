@@ -32,6 +32,12 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
 .small .btn { min-height: 84px; font-size: 15px; } .small .btn .ico { font-size: 28px; }
 @media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); } h1 { font-size: 22px; } }
 .head-r{display:flex;gap:8px;align-items:center}.admin{font-size:15px;padding:6px 14px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--muted);text-decoration:none}
+
+.vol-row { display: flex; align-items: center; gap: 14px; background: #1f1233; border-radius: 16px; padding: 14px 18px; margin-bottom: 12px; }
+.vol-row input { flex: 1; height: 34px; accent-color: var(--c3); }
+.vol-row b { min-width: 58px; text-align: right; font-size: 18px; }
+.vol-ico { font-size: 24px; }
+#musik .btn.active { border-color: var(--c3); box-shadow: 0 6px 0 #0b0714, 0 0 0 3px var(--c3) inset; }
 </style></head>
 <body><main class="az">
   <header><h1 id="titel">MichaModus · Aktionszentrale</h1><div class="head-r"><div id="status" class="status">bereit</div><a id="admin" class="admin" href="/studio" style="display:none">⚙️ Verwaltung</a></div></header>
@@ -42,6 +48,9 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
   <div class="grid scenes" id="modes"></div>
   <h2 id="spielTitel" style="display:none">Ich zocke gerade …</h2>
   <div class="grid scenes" id="spiele" style="display:none"></div>
+  <h2 id="musikTitel" style="display:none">Musik</h2>
+  <section id="musikRegler" class="vol-row" style="display:none"><span class="vol-ico">🔈</span><input id="musikVol" type="range" min="0" max="100" step="1"><b id="musikVolWert">35 %</b></section>
+  <div class="grid" id="musik" style="display:none"></div>
   <h2>Ansagen</h2>
   <div class="grid scenes" id="scenes"></div>
   <h2>Gimmicks & Sounds</h2>
@@ -65,6 +74,7 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
     async setVariable(name, value) {
       if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_spiel') { const r = await post('/api/modus', { modus: 'zocken', spiel: value }); if (!r.ok) throw new Error('Fehler'); }
+      if (name === 'mm_musik') { const r = await post('/api/musik', value); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_profil') { const r = await post('/api/profil', { profil: value }); if (!r.ok) throw new Error('Fehler'); }
     },
     async saveStorage() {}, async getStorage() { return null; }, async deleteStorage() {},
@@ -72,13 +82,15 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
   const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
   window.MM_START = async function (start) {
     const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
-    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus;
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus; window.MM_MUSIK = s.musik;
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {
       const es = new EventSource('/api/events?rolle=' + ROLE);
       const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
-      es.addEventListener('hallo', e => modusMsg(JSON.parse(e.data)));
+      const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
+      es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); });
+      es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
       es.addEventListener('modus', e => modusMsg(JSON.parse(e.data)));
@@ -186,6 +198,26 @@ if ((window.MM_SPIELE || []).length) {
     };
     box.append(b);
   });
+}
+
+// Musik (Live-Studio): Titel starten/stoppen und Lautstärke – gilt für alle hinteren Quellen
+if (window.MM_MUSIK) {
+  const box = document.getElementById('musik'), vol = document.getElementById('musikVol'), wert = document.getElementById('musikVolWert');
+  ['musik', 'musikTitel', 'musikRegler'].forEach(id => (document.getElementById(id).style.display = ''));
+  const ICO = { standard: '🎉', hype: '⚡', funk: '🕺', chill: '☕', fantasy: '🐉', space: '🚀', synthwave: '🌆', chiptune: '👾', mittelalter: '🏰', mystisch: '🔮' };
+  const mark = t => box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x.dataset.id === t));
+  const send = async (data, text) => { try { await Overlay.setVariable('mm_musik', data); if (text) setStatus(text, 'ok'); } catch (e) { setStatus('Fehler bei der Musik', 'err'); } };
+  [...window.MM_MUSIK.liste, { id: 'aus', name: 'Musik aus' }].forEach(t => {
+    const b = document.createElement('button'); b.className = 'btn'; b.dataset.id = t.id;
+    b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = t.id === 'aus' ? '⏹️' : (ICO[t.id] || '🎵'); b.lastChild.textContent = t.name;
+    b.onclick = () => { mark(t.id); send({ titel: t.id }, t.id === 'aus' ? 'Musik aus' : 'Musik: ' + t.name); };
+    box.append(b);
+  });
+  const show = m => { mark(m.titel); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
+  show(window.MM_MUSIK);
+  let tm = null;
+  vol.oninput = () => { wert.textContent = vol.value + ' %'; clearTimeout(tm); tm = setTimeout(() => send({ lautstaerke: Number(vol.value) }), 120); };
+  if (window.Overlay) Overlay.on('overlaycontent', d => { const c = String(d.content || ''); if (c.startsWith('musik:')) try { show(JSON.parse(c.slice(6))); } catch (e) {} });
 }
 
 });</script></body></html>

@@ -171,10 +171,12 @@ function spielePage(m) {
       box.append(h('div', { class: 'card' },
         field('Spiel', name), field('Hintergrund hochkant (TikTok)', vid('video')), field('Hintergrund quer (Twitch)', vid('videoQuer')),
         field('Eigene OBS-Szene (optional)', sceneSelect(g.szene, async v => { g.szene = v; await save(); }, '– Gaming-Szene –')),
+        field('Musik beim Zocken', h('select', { onchange: async e => { g.musik = e.target.value; await save(); } },
+          h('option', { value: '' }, '– Musik nicht wechseln –'), ...(S.musik ? S.musik.liste : []).map(x => h('option', { value: x.id, ...(g.musik === x.id ? { selected: '' } : {}) }, x.name)))),
         h('div', { class: 'row' }, h('button', { class: 'b p', onclick: async () => { await save(); await post('/api/modus', { modus: 'zocken', spiel: S.spiele[i].id }); } }, '🎮 Jetzt zocken'),
           h('button', { class: 'b', onclick: async () => { if (confirm('„' + g.name + '“ entfernen?')) { list.splice(i, 1); await save(); draw(); } } }, 'Entfernen'))));
     });
-    box.append(h('button', { class: 'b', onclick: async () => { list.push({ name: 'Neues Spiel', video: '', videoQuer: '', szene: '' }); await save(); list.splice(0, list.length, ...S.spiele.map(x => ({ ...x }))); draw(); } }, '+ Spiel hinzufügen'));
+    box.append(h('button', { class: 'b', onclick: async () => { list.push({ name: 'Neues Spiel', video: '', videoQuer: '', szene: '', musik: '' }); await save(); list.splice(0, list.length, ...S.spiele.map(x => ({ ...x }))); draw(); } }, '+ Spiel hinzufügen'));
   };
   draw();
 }

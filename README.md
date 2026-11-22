@@ -29,6 +29,11 @@ Lumia → Einstellungen → API: Developers API an, LAN-Zugriff erlauben, Schlü
 Im Studio unter **Lumia-Verbindung** IP des Stream-PCs, Port und Schlüssel eintragen. Der Schlüssel liegt nur in `/data/geheim.json`.
 Ausweichweg: Ereignisse per HTTP an `POST /api/ereignis` (Kopf `X-MM: 1`, Lumia-Ereignisformat).
 
+## Musik & Spiele
+
+- Tablet-Steuerung → **Musik**: 10 Titel (Party, EDM, Funk, Lo-Fi, Fantasy, Weltraum, Synthwave, 8-Bit, Mittelalter, Mystisch), „Musik aus“, Lautstärkeregler.
+- Spiele mit eigenem Hintergrund (hoch + quer) und eigener Musik: WoW Forever, Star Citizen, Skerrion, Retro, RPG, Sci-Fi, Jump & Run, Pioneers of Pagonia, Die Siedler 4, Aufbau & Strategie. Weitere im Studio unter „Spiele & OBS“.
+
 ## OBS-Reihenfolge (von unten nach oben)
 
 1. Spielaufnahme und/oder Drucker-Kamera (sichtbar durch Fenster 1/2)

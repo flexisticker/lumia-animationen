@@ -53,6 +53,29 @@ saved.profil = PRESETS[saved.profil] ? saved.profil : (PRESETS[String(process.en
 saved.lumia ||= { host: '', port: 39231, an: false };
 saved.modus ||= 'party';
 saved.spiele ||= [{ id: 'standard', name: 'Allgemein', video: '', videoQuer: '', szene: '' }];
+// Musik-Bibliothek (medien/musik, erzeugt mit fal.ai / ElevenLabs Music) – „standard“ = Musik aus den Hintergrund-Einstellungen
+const MUSIK = [
+  { id: 'standard', name: 'Party (Standard)', datei: '' }, { id: 'hype', name: 'EDM Hype', datei: '/musik/hype.mp3' }, { id: 'funk', name: 'Funky Groove', datei: '/musik/funk.mp3' },
+  { id: 'chill', name: 'Lo-Fi Chill', datei: '/musik/chill.mp3' }, { id: 'fantasy', name: 'Fantasy-Abenteuer', datei: '/musik/fantasy.mp3' }, { id: 'space', name: 'Weltraum', datei: '/musik/space.mp3' },
+  { id: 'synthwave', name: 'Synthwave Retro', datei: '/musik/synthwave.mp3' }, { id: 'chiptune', name: '8-Bit Jump & Run', datei: '/musik/chiptune.mp3' },
+  { id: 'mittelalter', name: 'Mittelalter-Dorf', datei: '/musik/mittelalter.mp3' }, { id: 'mystisch', name: 'Mystisch', datei: '/musik/mystisch.mp3' },
+].filter(x => !x.datei || fs.existsSync(path.join(MEDIA, x.datei)));
+saved.musik ||= { titel: 'standard', lautstaerke: null, vonSpiel: false };
+// Vorgabe-Spiele (22.11.2026): werden einmalig ergänzt, gelöschte kommen nicht wieder
+const SPIEL_VORGABEN = [
+  ['wow-forever', 'WoW Forever', 'wow-forever', 'fantasy'], ['star-citizen', 'Star Citizen', 'star-citizen', 'space'], ['skerrion', 'Skerrion', 'skerrion', 'mystisch'],
+  ['retro', 'Retro-Games', 'retro', 'synthwave'], ['rpg', 'RPG (allgemein)', 'rpg', 'fantasy'], ['scifi', 'Sci-Fi (allgemein)', 'scifi', 'space'],
+  ['jumprun', 'Jump & Run', 'jumprun', 'chiptune'], ['pagonia', 'Pioneers of Pagonia', 'aufbau', 'mittelalter'], ['siedler4', 'Die Siedler 4', 'aufbau', 'mittelalter'],
+  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'],
+];
+saved.spieleVorgaben ||= [];
+for (const [id, name, bild, musik] of SPIEL_VORGABEN) {
+  if (saved.spieleVorgaben.includes(id)) continue;
+  saved.spieleVorgaben.push(id);
+  if (saved.spiele.some(x => x.id === id)) continue;
+  const v = `/hintergrund/spiele/${bild}.mp4`, q = `/hintergrund/spiele/${bild}-quer.mp4`;
+  saved.spiele.push({ id, name, video: fs.existsSync(path.join(MEDIA, v)) ? v : '', videoQuer: fs.existsSync(path.join(MEDIA, q)) ? q : '', szene: '', musik });
+}
 saved.spiel ||= '';
 saved.obs ||= { host: '', port: 4455, an: false, szeneZocken: '', szeneParty: '', folgen: true, steuern: true };
 // Slogan-Korrektur 22.11.2026: MichaModus = Gaming & Spaß, Drucken gehört zu 3dbymicha
@@ -138,6 +161,18 @@ function lumiaConnect() {
 
 // ---------- Modus, Spiel, OBS ----------
 const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '' } : null; };
+// Musik: Titel + Lautstärke für alle hinteren Quellen (Lautstärke null = Wert aus den Hintergrund-Einstellungen)
+const musikInfo = () => {
+  const t = saved.musik.titel, x = MUSIK.find(m => m.id === t);
+  const vol = saved.musik.lautstaerke ?? settingsFor('hinten').musikLautstaerke ?? 35;
+  return { titel: t === 'aus' ? 'aus' : (x ? x.id : 'standard'), datei: t === 'aus' ? '' : (x && x.datei) || settingsFor('hinten').musik || '', lautstaerke: Number(vol), liste: MUSIK.map(({ id, name }) => ({ id, name })) };
+};
+function setMusik(m, quelle) {
+  if (m.titel !== undefined) { saved.musik.titel = m.titel === 'aus' || MUSIK.some(x => x.id === m.titel) ? m.titel : 'standard'; saved.musik.vonSpiel = !!m.vonSpiel; }
+  if (m.lautstaerke !== undefined) saved.musik.lautstaerke = Math.max(0, Math.min(100, Math.round(Number(m.lautstaerke) || 0)));
+  saveSettings(); broadcast('musik', musikInfo());
+  if (m.titel !== undefined && quelle) remember({ art: 'modus', quelle, text: 'Musik: ' + (saved.musik.titel === 'aus' ? 'aus' : (MUSIK.find(x => x.id === saved.musik.titel) || {}).name) });
+}
 function setModus(modus, spielId, quelle, fromObs) {
   const m = modus === 'zocken' ? 'zocken' : 'party';
   const changed = m !== saved.modus || (spielId !== undefined && spielId !== saved.spiel);
@@ -146,6 +181,10 @@ function setModus(modus, spielId, quelle, fromObs) {
   saveSettings();
   if (changed) {
     broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
+    // Musik je Spiel: beim Zocken die Musik des Spiels, zurück in Modus 1 wieder Standard (nur wenn das Spiel sie gesetzt hatte)
+    const sp = saved.spiele.find(x => x.id === saved.spiel);
+    if (m === 'zocken' && sp && sp.musik && sp.musik !== saved.musik.titel && saved.musik.titel !== 'aus') setMusik({ titel: sp.musik, vonSpiel: true });
+    else if (m === 'party' && saved.musik.vonSpiel) setMusik({ titel: 'standard' });
     remember({ art: 'modus', quelle, text: saved.modus + (saved.modus === 'zocken' && spielInfo() ? ' · ' + spielInfo().name : '') });
   }
   if (!fromObs && saved.obs.steuern) {
@@ -253,12 +292,12 @@ const server = http.createServer(async (req, res) => {
       const role = ROLES.includes(url.searchParams.get('rolle')) ? url.searchParams.get('rolle') : 'studio';
       res.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-store', connection: 'keep-alive', 'x-accel-buffering': 'no' });
       const c = { res, role }; clients.add(c); req.on('close', () => clients.delete(c));
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo() })}\n\n`);
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo() })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
-      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
+      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, musik: musikInfo(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, status: lumia, log,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}) });
     if (p === '/api/settings' && req.method === 'POST') {
@@ -313,11 +352,16 @@ const server = http.createServer(async (req, res) => {
       if (b.passwortLoeschen) { delete secret.obsPasswort; writeJson(SECRET_FILE, secret); }
       saveSettings(); obsConnect(); return json(res, 200, { ok: true });
     }
+    if (p === '/api/musik' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      setMusik({ titel: b.titel, lautstaerke: b.lautstaerke }, 'knopf');
+      return json(res, 200, { ok: true, musik: musikInfo() });
+    }
     if (p === '/api/spiele' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       if (!Array.isArray(b.spiele)) return json(res, 400, { fehler: 'ungültig' });
       saved.spiele = b.spiele.slice(0, 50).map(x => ({ id: String(x.id || crypto.randomBytes(4).toString('hex')).replace(/[^a-z0-9-]/gi, '').slice(0, 40) || crypto.randomBytes(4).toString('hex'),
-        name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200) }));
+        name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200), musik: MUSIK.some(m => m.id === x.musik) ? x.musik : '' }));
       if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = '';
       saveSettings(); broadcast('spiele', { spiele: saved.spiele });
       if (saved.modus === 'zocken') broadcast('modus', { modus: saved.modus, spiel: spielInfo() });

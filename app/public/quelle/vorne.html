@@ -101,6 +101,7 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
     async setVariable(name, value) {
       if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_spiel') { const r = await post('/api/modus', { modus: 'zocken', spiel: value }); if (!r.ok) throw new Error('Fehler'); }
+      if (name === 'mm_musik') { const r = await post('/api/musik', value); if (!r.ok) throw new Error('Fehler'); }
       if (name === 'mm_profil') { const r = await post('/api/profil', { profil: value }); if (!r.ok) throw new Error('Fehler'); }
     },
     async saveStorage() {}, async getStorage() { return null; }, async deleteStorage() {},
@@ -108,13 +109,15 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
   const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
   window.MM_START = async function (start) {
     const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
-    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus;
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus; window.MM_MUSIK = s.musik;
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {
       const es = new EventSource('/api/events?rolle=' + ROLE);
       const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
-      es.addEventListener('hallo', e => modusMsg(JSON.parse(e.data)));
+      const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
+      es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); });
+      es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
       es.addEventListener('modus', e => modusMsg(JSON.parse(e.data)));

@@ -90,3 +90,23 @@ if ((window.MM_SPIELE || []).length) {
     box.append(b);
   });
 }
+
+// Musik (Live-Studio): Titel starten/stoppen und Lautstärke – gilt für alle hinteren Quellen
+if (window.MM_MUSIK) {
+  const box = document.getElementById('musik'), vol = document.getElementById('musikVol'), wert = document.getElementById('musikVolWert');
+  ['musik', 'musikTitel', 'musikRegler'].forEach(id => (document.getElementById(id).style.display = ''));
+  const ICO = { standard: '🎉', hype: '⚡', funk: '🕺', chill: '☕', fantasy: '🐉', space: '🚀', synthwave: '🌆', chiptune: '👾', mittelalter: '🏰', mystisch: '🔮' };
+  const mark = t => box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x.dataset.id === t));
+  const send = async (data, text) => { try { await Overlay.setVariable('mm_musik', data); if (text) setStatus(text, 'ok'); } catch (e) { setStatus('Fehler bei der Musik', 'err'); } };
+  [...window.MM_MUSIK.liste, { id: 'aus', name: 'Musik aus' }].forEach(t => {
+    const b = document.createElement('button'); b.className = 'btn'; b.dataset.id = t.id;
+    b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = t.id === 'aus' ? '⏹️' : (ICO[t.id] || '🎵'); b.lastChild.textContent = t.name;
+    b.onclick = () => { mark(t.id); send({ titel: t.id }, t.id === 'aus' ? 'Musik aus' : 'Musik: ' + t.name); };
+    box.append(b);
+  });
+  const show = m => { mark(m.titel); if (document.activeElement !== vol) { vol.value = m.lautstaerke; wert.textContent = m.lautstaerke + ' %'; } };
+  show(window.MM_MUSIK);
+  let tm = null;
+  vol.oninput = () => { wert.textContent = vol.value + ' %'; clearTimeout(tm); tm = setTimeout(() => send({ lautstaerke: Number(vol.value) }), 120); };
+  if (window.Overlay) Overlay.on('overlaycontent', d => { const c = String(d.content || ''); if (c.startsWith('musik:')) try { show(JSON.parse(c.slice(6))); } catch (e) {} });
+}

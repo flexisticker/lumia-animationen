@@ -11,10 +11,22 @@ const pick = (hoch, quer) => (QUER && quer ? quer : hoch);
 if (D.videoAn !== false && pick(D.video, D.videoQuer)) { vP.src = pick(D.video, D.videoQuer); vP.play().catch(() => {}); }
 if (pick(D.zockVideo, D.zockVideoQuer)) { vZ.src = pick(D.zockVideo, D.zockVideoQuer); vZ.play().catch(() => {}); }
 [vP, vZ].forEach(v => (v.playbackRate = num(D.tempo, 100) / 100));
-if (D.musikAn !== false && D.musik) {
-  m.src = D.musik; m.volume = Math.min(1, num(D.musikLautstaerke, 35) / 100);
-  const start = () => m.play().catch(() => setTimeout(start, 2000)); start();
+// Musik: Start mit Einstellungen, danach steuert die Aktionszentrale Titel und Lautstärke („musik:{datei,lautstaerke}“)
+let musikZiel = Math.min(1, num(D.musikLautstaerke, 35) / 100), musikFade = null;
+const musikStart = () => m.play().catch(() => setTimeout(() => { if (m.getAttribute('src')) musikStart(); }, 2000));
+function fadeTo(vol, ms, done) {
+  clearInterval(musikFade); const from = m.volume, t0 = performance.now();
+  musikFade = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / ms); m.volume = Math.max(0, Math.min(1, from + (vol - from) * k)); if (k >= 1) { clearInterval(musikFade); done && done(); } }, 40);
 }
+function setMusik(x) {
+  if (!x) return;
+  musikZiel = Math.max(0, Math.min(1, num(x.lautstaerke, 35) / 100));
+  const src = (x.titel === 'standard' && D.musikAn === false) ? '' : (x.datei || '');
+  if ((m.getAttribute('src') || '') === src) { if (src) fadeTo(musikZiel, 300); return; }
+  const wechsel = () => { if (!src) { m.pause(); m.removeAttribute('src'); m.load(); return; } m.src = src; m.loop = true; m.volume = 0; musikStart(); fadeTo(musikZiel, 1200); };
+  if (m.getAttribute('src') && !m.paused) fadeTo(0, 700, wechsel); else wechsel();
+}
+if (D.musikAn !== false && D.musik && !(window.MM_MUSIK)) { m.src = D.musik; m.loop = true; m.volume = musikZiel; musikStart(); }
 let mode = D.modus === 'zocken' ? 'zocken' : 'party';
 let t = mode === 'zocken' ? 1 : 0;
 const DUR = num(D.uebergangMs, 1400);
@@ -104,5 +116,6 @@ if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));
   if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
+  if (c.startsWith('musik:')) { try { setMusik(JSON.parse(c.slice(6))); } catch (e) {} }
 });
 window.MMBG = { setMode };
