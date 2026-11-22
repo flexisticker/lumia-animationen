@@ -23,6 +23,19 @@ const DEFAULTS = {
 };
 DEFAULTS.vorne.medienAdresse = '/animationen/';
 Object.assign(DEFAULTS.hinten, { video: '/hintergrund/party-schleife.mp4', zockVideo: '/hintergrund/zockerbude.mp4', musik: '/musik/party-schleife-1.mp3' });
+// Kanal-Vorgaben (Umgebungsvariable KANAL): gleicher Container, eigene Daten je Kanal
+const KANAL = String(process.env.KANAL || 'michamodus').toLowerCase();
+const PRESETS = {
+  michamodus: { name: 'MichaModus', vorne: {}, hinten: {}, aktion: { titel: 'MichaModus · Steuerung' } },
+  '3dbymicha': { name: '3dbymicha',
+    vorne: { bannerText: '3dbymicha', slogans: ['Werde Teil von 3dbymicha!', 'Live aus der Druckwerkstatt 🖨️', 'Folgen & zusehen, wie es entsteht',
+      'Like-Herzen an – wir drucken weiter!', 'Wünsch dir ein Modell im Chat 💬', 'Jede Rose zählt 🌹', 'Neu hier? Sag Hallo 👋'].join('\n'),
+      bannerFarbe1: '#ff7a00', bannerFarbe2: '#00c2ff', bannerFarbe3: '#ffd54f' },
+    hinten: { video: '/hintergrund/werkstatt.mp4', f2Wann: 'immer', f1Y: 56, f1Hoehe: 30 },
+    aktion: { titel: '3dbymicha · Steuerung', modus1Name: 'Werkstatt', modus2Name: 'Zockmodus' } },
+};
+const PRESET = PRESETS[KANAL] || { ...PRESETS.michamodus, name: process.env.KANAL };
+for (const k of ['vorne', 'hinten', 'aktion']) Object.assign(DEFAULTS[k], PRESET[k] || {});
 const SETTINGS_FILE = path.join(DATA, 'einstellungen.json');
 const SECRET_FILE = path.join(DATA, 'geheim.json');
 const readJson = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
@@ -62,7 +75,7 @@ function lumiaConnect() {
   if (!an || !host || !secret.lumiaToken) { Object.assign(lumia, { status: 'aus', fehler: an ? 'Adresse oder Schlüssel fehlt' : '' }); return lumiaStatus(); }
   Object.assign(lumia, { status: 'verbinde', fehler: '' }); lumiaStatus();
   try {
-    ws = new WebSocket(`ws://${host}:${Number(port) || 39231}/api?token=${encodeURIComponent(secret.lumiaToken)}&name=MichaModus%20Studio`);
+    ws = new WebSocket(`ws://${host}:${Number(port) || 39231}/api?token=${encodeURIComponent(secret.lumiaToken)}&name=${encodeURIComponent(PRESET.name + ' Studio')}`);
   } catch (e) { Object.assign(lumia, { status: 'fehler', fehler: String(e.message || e) }); lumiaStatus(); retry = setTimeout(lumiaConnect, 10000); return; }
   ws.onopen = () => { Object.assign(lumia, { status: 'verbunden', fehler: '', seit: new Date().toISOString() }); lumiaStatus(); };
   // Achtung: Lumia führt jede gesendete Nachricht als Befehl aus – wir senden NICHTS.
@@ -127,7 +140,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
-      vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus,
+      kanal: PRESET.name, vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus,
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, status: lumia, log,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}) });
     if (p === '/api/settings' && req.method === 'POST') {

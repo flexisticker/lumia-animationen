@@ -9,23 +9,35 @@
     "order": 2,
     "type": "input",
     "label": "Überschrift",
-    "value": "MichaModus · Aktionszentrale"
+    "value": "MichaModus · Steuerung"
+  },
+  "modus1Name": {
+    "order": 3,
+    "type": "input",
+    "label": "Name Modus 1",
+    "value": "Party"
+  },
+  "modus2Name": {
+    "order": 4,
+    "type": "input",
+    "label": "Name Modus 2",
+    "value": "Zockmodus"
   },
   "knoepfe": {
-    "order": 3,
+    "order": 5,
     "type": "textarea",
     "rows": 14,
     "label": "Knöpfe (je Zeile: Animation | Beschriftung | Symbol)",
     "value": "airhorn | Airhorn | 📯\ntorjubel | Torjubel | ⚽\ntrommelwirbel | Trommelwirbel | 🥁\napplaus | Applaus | 👏\nkonfetti | Konfetti | 🎉\nverlosung | Verlosung | 🎡\nfanfare | Fanfare | 🎺\nlacher | Lacher | 😂\nwow | Wow | 🤩\nrimshot | Ba-dum-tss | 🥁\nherzregen | Herzregen | 💖\npartyalarm | Party-Alarm | 🚨"
   },
   "testKnoepfe": {
-    "order": 4,
+    "order": 6,
     "type": "checkbox",
     "label": "Test-Knöpfe für Geschenke und Ereignisse zeigen",
     "value": true
   },
   "nameFeld": {
-    "order": 5,
+    "order": 7,
     "type": "checkbox",
     "label": "Feld für Namen (z. B. Gewinner) zeigen",
     "value": true

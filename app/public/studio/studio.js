@@ -9,11 +9,11 @@ const page = { id: location.hash.slice(1) || 'start', tab: {} };
 
 async function load() {
   [S, SCHEMA] = await Promise.all([fetch('/api/settings', { cache: 'no-store' }).then(r => r.json()), fetch('/schema/schema.json').then(r => r.json())]);
-  LIST = SCHEMA.liste; renderNav(); render();
+  LIST = SCHEMA.liste; document.title = S.kanal + ' Studio'; $('.brand b').textContent = S.kanal + ' Studio'; renderNav(); render();
 }
 const PAGES = [
   ['start', 'Übersicht'], ['lumia', 'Lumia-Verbindung'], ['vorne', 'Animationen & Einblendungen'], ['galerie', 'Animationen ansehen'],
-  ['hinten', 'Hintergrund & Zockmodus'], ['aktion', 'Tablet-Steuerung'], ['test', 'Testen'], ['quellen', 'Browserquellen für OBS'],
+  ['hinten', 'Hintergrund & Kameras'], ['aktion', 'Tablet-Steuerung'], ['test', 'Testen'], ['quellen', 'Browserquellen für OBS'],
 ];
 function renderNav() {
   const nav = $('#nav'); nav.innerHTML = '';
@@ -27,7 +27,7 @@ function status(st) {
 function render() {
   const m = $('#main'); m.innerHTML = '';
   ({ start, lumia: lumiaPage, vorne: () => settingsPage('vorne', 'Animationen & Einblendungen', 'Alles, was vor dir im Bild erscheint.'),
-    galerie, hinten: () => settingsPage('hinten', 'Hintergrund & Zockmodus', 'Alles hinter dir – Party-Bühne, Zockerbude mit Spiel-Fenster und Musik.'),
+    galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik und bis zu zwei Fenster (z. B. Spiel und Drucker-Kamera), durch die man die OBS-Quelle darunter sieht.'),
     aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen }[page.id] || start)(m);
 }
 // ---------- Übersicht ----------
@@ -40,7 +40,7 @@ function start(m) {
     h('span', { class: 'pill' }, 'Tablet: ' + (q.aktion || 0))),
     S.status.fehler ? h('p', { class: 'hint' }, S.status.fehler) : null));
   m.append(h('h2', {}, 'Modus'), h('div', { class: 'row' },
-    ...[['party', '🎉 Party'], ['zocken', '🎮 Zockmodus']].map(([v, l]) => h('button', { class: 'b' + (S.modus === v ? ' p' : ''), onclick: async () => { await post('/api/modus', { modus: v }); S.modus = v; render(); } }, l))));
+    ...[['party', '🎉 ' + (S.aktion.modus1Name || 'Party')], ['zocken', '🎮 ' + (S.aktion.modus2Name || 'Zockmodus')]].map(([v, l]) => h('button', { class: 'b' + (S.modus === v ? ' p' : ''), onclick: async () => { await post('/api/modus', { modus: v }); S.modus = v; render(); } }, l))));
   m.append(h('h2', {}, 'Ansagen'), h('div', { class: 'row' }, ...[['szene:start', 'Startet gleich'], ['szene:pause', 'Pause'], ['szene:gleich', 'Gleich weiter'], ['szene:weiter', "Weiter geht's"], ['szene:ende', 'Ende'], ['szene:aus', 'Ansage weg'], ['likes', 'Like-Fontäne']]
     .map(([id, l]) => h('button', { class: 'b', onclick: () => post('/api/aktion', { id, label: l }) }, l))));
   m.append(h('h2', {}, 'Letzte Ereignisse'), h('div', { class: 'card log', id: 'log' }, ...(S.log || []).map(logLine)));
@@ -146,7 +146,8 @@ function quellen(m) {
   const copyRow = (label, url, text) => h('div', { class: 'card' }, h('b', {}, label), h('p', { class: 'hint' }, text),
     h('div', { class: 'copy' }, h('code', {}, url), h('button', { class: 'b', onclick: e => copy(url, e.target) }, 'Kopieren')));
   m.append(h('h1', {}, 'Browserquellen für OBS / TikTok LIVE Studio'), h('p', { class: 'hint' }, 'Einmal einrichten, danach steuerst du alles hier und am Tablet. Größe der Quellen: 1080 × 1920.'),
-    copyRow('1. Hinten (ganz unten bzw. über der Spielaufnahme)', o + '/quelle/hinten', 'Hintergrund, Zockerbude mit Spiel-Fenster, Musik. Die Spielaufnahme legst du direkt darunter.'),
+    copyRow('0. Ganz unten: Spielaufnahme und/oder Drucker-Kamera', '–', 'Als normale OBS-Quellen (Spielaufnahme, Videoaufnahmegerät, Medienquelle/RTSP). Sie sind durch Fenster 1 und 2 sichtbar – Lage und Größe stellst du unter „Hintergrund & Kameras“ ein und schiebst die Quelle in OBS passend darunter.'),
+    copyRow('1. Hinten', o + '/quelle/hinten', 'Hintergrund (beide Modi), Musik und die Fenster für Spiel und Kamera.'),
     copyRow('2. Deine Kamera (freigestellt)', '–', 'Deine Kamera mit Hintergrund-Entfernung kommt zwischen die beiden Quellen.'),
     copyRow('3. Vorne (ganz oben)', o + '/quelle/vorne', 'Animationen, Spendername, Banner, Like-Fontäne, Ansagen.'),
     copyRow('Tablet-Steuerung', o + '/aktion', 'Auf dem Tablet öffnen und „Zum Startbildschirm hinzufügen“.'),

@@ -98,7 +98,9 @@ const acfg = {};
 let ao = 0;
 const aadd = (k, f) => { acfg[k] = { order: ++ao, ...f }; };
 aadd('befehl', { type: 'input', label: 'Lumia-Befehl, der die Animation sendet', value: 'mm-aktion' });
-aadd('titel', { type: 'input', label: 'Überschrift', value: 'MichaModus · Aktionszentrale' });
+aadd('titel', { type: 'input', label: 'Überschrift', value: 'MichaModus · Steuerung' });
+aadd('modus1Name', { type: 'input', label: 'Name Modus 1', value: 'Party' });
+aadd('modus2Name', { type: 'input', label: 'Name Modus 2', value: 'Zockmodus' });
 aadd('knoepfe', { type: 'textarea', rows: 14, label: 'Knöpfe (je Zeile: Animation | Beschriftung | Symbol)', value:
   knoepfe.filter(a => a.gruppe === 'knopf').map(a => `${a.id} | ${a.label} | ${ICON[a.id] || '✨'}`).join('\n') });
 aadd('testKnoepfe', { type: 'checkbox', label: 'Test-Knöpfe für Geschenke und Ereignisse zeigen', value: true });

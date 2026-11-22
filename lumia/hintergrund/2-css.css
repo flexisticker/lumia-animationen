@@ -14,7 +14,7 @@ video { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: no
   background: conic-gradient(from var(--a, 0deg), var(--f1), var(--f2), var(--f3), var(--f1)); z-index: -1; }
 @property --a { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
 @keyframes spin { to { --a: 360deg; } }
-.tag { position: fixed; left: 50%; transform: translate(-50%, 0) scale(.6); padding: .4vh 2vh; border-radius: 99vh;
+.tag { white-space: nowrap; position: fixed; transform: translate(-50%, 0) scale(.6); padding: .4vh 2vh; border-radius: 99vh;
   font: 800 2.6vh 'Baloo 2', system-ui, sans-serif; color: #fff; letter-spacing: .06em; opacity: 0; transition: opacity .5s, transform .6s cubic-bezier(.2,1.6,.4,1);
   background: linear-gradient(90deg, var(--f1), var(--f2)); box-shadow: 0 0 2vh var(--f2); }
 .tag.show { opacity: 1; transform: translate(-50%, 0) scale(1); }

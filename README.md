@@ -1,65 +1,43 @@
-# MichaModus – Live-Animationen für Lumia Stream
+# Live-Studio für MichaModus und 3dbymicha
 
-Vollbild-Animationen mit Party-Sound für den TikTok-Kanal **MichaModus**, als Custom Overlays für
-[Lumia Stream](https://lumiastream.com). Alles ist in Lumia unter **Configs** ein-/ausschaltbar und änderbar.
+Eigenes Programm für TikTok-Lives: **Verwaltung im Browser** (PC), **Steuerung am Tablet**, zwei **Browserquellen** für OBS /
+TikTok LIVE Studio. Lumia Stream liefert nur die TikTok-Ereignisse (Geschenke, Likes, Follower …), das Studio löst alles selbst aus.
 
-## Was drin ist
+| Adresse | Wofür |
+|---|---|
+| `/studio` | Verwaltung: alle Einstellungen, Animationen ansehen, eigene Videos hochladen, Lumia-Verbindung, Testen |
+| `/aktion` | Tablet-Steuerung: Modus (Party/Zocken bzw. Werkstatt/Zocken), Ansagen, Gimmicks, Like-Fontäne, Tests |
+| `/quelle/hinten` | Browserquelle hinter dir: Hintergrund (2 Modi), Musik, Fenster 1 + 2 für Spiel / Drucker-Kamera |
+| `/quelle/vorne` | Browserquelle vor dir: 37 Animationen, Spendername, Banner + Slogans, Like-Fontäne, Ansagen |
 
-| Overlay | Wo | Inhalt |
-|---|---|---|
-| **MichaModus – Animationen** | vor dir (oberste Ebene) | 37 Animationen (5 s, mit Ton) für Geschenke, Stufen nach Münzwert, Ereignisse und Aktionsknöpfe · animierter Spendername mit Profilbild und × Zähler · Banner „MichaModus“ mit wechselnden Slogans · Like-Fontäne · Ansagen (Startet gleich, Pause, Gleich geht's weiter, Weiter geht's, Ende) |
-| **MichaModus – Hintergrund** | hinter dir (unterste Ebene) | Party-Hintergrund als Schleife + Musikschleife |
-| **MichaModus – Aktionszentrale** | auf dem Tablet im Browser | große Knöpfe für Ansagen, Gimmicks, Like-Fontäne, Test aller Geschenke; Namensfeld (z. B. Gewinner) |
+## Unraid
 
-Dateien: `medien/animationen/*.mp4` (Animationen), `medien/hintergrund/party-schleife.mp4`, `medien/musik/party-schleife-1.mp3`.
-Die fertigen Lumia-Inhalte liegen in `lumia/<overlay>/` – je Reiter eine Datei (1-html, 2-css, 3-js, 4-configs, 5-data).
+Ein Image `ghcr.io/flexisticker/live-studio:latest`, zwei Container (Vorlagen in `unraid/`):
 
-## Einrichten in Lumia (einmalig)
+| Container | Port | Daten | KANAL |
+|---|---|---|---|
+| michamodus-studio | 8120 | /mnt/user/appdata/michamodus-studio | michamodus |
+| 3dbymicha-studio | 8122 | /mnt/user/appdata/3dbymicha-studio | 3dbymicha |
 
-1. **Overlay anlegen:** Lumia → Overlays → neues Overlay (Hochformat 1080 × 1920) → Ebene **Custom Overlay** hinzufügen.
-2. Den Inhalt von `lumia/animationen/1-html.html` in den Reiter **HTML** kopieren, `2-css.css` in **CSS**, `3-js.js` in **JS**,
-   `4-configs.json` in **Configs** und `5-data.json` in **Data**. Speichern.
-3. Dasselbe für `lumia/hintergrund/` (eigene Ebene **unter** der Kamera) und `lumia/aktionszentrale/` (eigenes Overlay, nur fürs Tablet).
-4. **Videos zuordnen** – eine von zwei Möglichkeiten:
-   - in den Configs bei jeder Animation „eigenes Video“ die passende Datei aus `medien/animationen/` hochladen, **oder**
-   - die Dateien an eine Adresse legen, die der Browser erreicht, und unter *Allgemein & Ton → Adresse der Videos* eintragen
-     (Ordner mit `/` am Ende; Dateiname = `<id>.mp4`).
-   Im Hintergrund-Overlay Video und Musik hochladen.
-5. **Befehl für die Knöpfe:** Lumia → Commands → neuer Chat-Befehl **`mm-aktion`** mit der Aktion
-   *Overlay → Inhalt an Custom Overlay senden* (Ziel: Ebene „MichaModus – Animationen“, Inhalt **`{{aktion}}`**).
-   Die Aktionszentrale ruft diesen Befehl auf; derselbe Befehl geht auch per Stream Deck oder Lumia-App.
-6. **Tablet:** Vorschau-Link des Aktionszentrale-Overlays (`https://overlays.lumiastream.com/overlay/…`) auf dem Tablet öffnen,
-   „Zum Startbildschirm hinzufügen“.
-7. In OBS bzw. TikTok LIVE Studio die Overlays als Browserquelle einbinden: Hintergrund ganz unten, Kamera (freigestellt), Animationen oben.
+Updates: Docker → Check for Updates → apply update (GitHub baut bei jedem Push auf `main`). Einstellungen bleiben erhalten.
+Für https (Browserquellen in OBS/LIVE Studio): NPM-Proxy-Hosts z. B. `michamodus.flexisticker.de` → :8120, `3dbymicha.flexisticker.de` → :8122.
 
-## Inhalte, die die Knöpfe senden
+## Lumia
 
-`{{aktion}}` ist JSON, z. B. `{"id":"airhorn"}` oder `{"id":"verlosung","name":"Paul"}`.
-- Animation: `id` = Name aus `animationen.json` (z. B. `airhorn`, `torjubel`, `rose`, `loewe`)
-- Ansagen: `szene:start`, `szene:pause`, `szene:gleich`, `szene:weiter`, `szene:ende`, `szene:aus`
-- Like-Fontäne: `likes` (optional `"anzahl": 50`)
+Lumia → Einstellungen → API: Developers API an, LAN-Zugriff erlauben, Schlüssel kopieren; Windows-Firewall Port 39231 eingehend erlauben.
+Im Studio unter **Lumia-Verbindung** IP des Stream-PCs, Port und Schlüssel eintragen. Der Schlüssel liegt nur in `/data/geheim.json`.
+Ausweichweg: Ereignisse per HTTP an `POST /api/ereignis` (Kopf `X-MM: 1`, Lumia-Ereignisformat).
 
-## TikTok-Ereignisse
+## OBS-Reihenfolge (von unten nach oben)
 
-Geschenk (`tiktok-gift`, zuerst nach Name, sonst Stufe nach Münzen × Anzahl), Like (`tiktok-like` → Fontäne),
-Follower, Teilen, Superfan, Schatzkiste, Like-Ziel (`tiktok-totalLikes`), Battle-Ende.
-Weitere Geschenke ohne eigene Animation: *Allgemein & Ton → Eigene Zuordnung* (`geschenkname = id`).
+1. Spielaufnahme und/oder Drucker-Kamera (sichtbar durch Fenster 1/2)
+2. `/quelle/hinten` (1080 × 1920)
+3. Deine Kamera, freigestellt
+4. `/quelle/vorne` (1080 × 1920) – „Audio über OBS steuern“ an
 
-## Ändern / Erweitern
+## Entwicklung
 
-- Neue Animation: Eintrag in `animationen.json`, Video als `medien/animationen/<id>.mp4`, dann `node werkzeuge/build.mjs`.
-- Quelltexte: `overlay/<overlay>/`, nie direkt in `lumia/` ändern (wird überschrieben).
-- Lokaler Test: `python3 -m http.server` im Repo, dann `test/harness-animationen.html` bzw. `test/harness-aktion.html`.
-
-Videos und Musik: erzeugt mit fal.ai (MiniMax H3 Max, LTX 2.5, ElevenLabs Music), eigene Motive ohne TikTok-Logos.
-
-## Videos auf Unraid bereitstellen (Container mit Auto-Update)
-
-Bei jedem Push auf `main` baut GitHub den Container `ghcr.io/flexisticker/michamodus-medien:latest` – er enthält `medien/`
-und die fertigen Overlay-Dateien (`/lumia/...`). Neue Animationen = Docker-Update in Unraid, nichts kopieren.
-
-1. Vorlage `unraid/michamodus-medien.xml` als Container anlegen, Port 8120 (Unraid ist bei ghcr.io schon angemeldet).
-2. Test: `http://192.168.1.10:8120/animationen/rose.mp4`.
-3. Lumia-Overlays laufen über **https** → NPM-Proxy-Host, z. B. `medien.flexisticker.de` → `192.168.1.10:8120` (Let's Encrypt, „Nur Heimnetz“).
-4. In Lumia: Animationen → Allgemein & Ton → **Adresse der Videos** = `https://medien.flexisticker.de/animationen/`;
-   Hintergrund: `…/hintergrund/party-schleife.mp4`, Zockerbude: `…/hintergrund/zockerbude.mp4`, Musik: `…/musik/party-schleife-1.mp3`.
+- Quellen: `overlay/` (Overlays), `app/server.mjs`, `app/web/` (Studio, Shim, Seitenvorlage). `node werkzeuge/build.mjs` erzeugt `app/public/` und `lumia/`.
+- Lokal: `DATA_DIR=/tmp/d MEDIA_DIR=medien KANAL=michamodus PORT=8121 node app/server.mjs`
+- `lumia/` = ältere Variante als Lumia-Custom-Overlays (weiter nutzbar, nicht mehr nötig).
+- Videos/Musik/Bilder erzeugt mit fal.ai (MiniMax H3 Max, LTX 2.5, nano-banana-2, ElevenLabs Music), eigene Motive ohne TikTok-Logos.

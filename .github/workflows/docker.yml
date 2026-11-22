@@ -21,5 +21,7 @@ jobs:
           context: .
           push: true
           tags: |
+            ghcr.io/flexisticker/live-studio:latest
+            ghcr.io/flexisticker/live-studio:${{ github.sha }}
             ghcr.io/flexisticker/michamodus-medien:latest
             ghcr.io/flexisticker/michamodus-medien:${{ github.sha }}

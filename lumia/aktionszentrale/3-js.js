@@ -55,10 +55,10 @@ async function setMode(m, b) {
   modeBox.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x === b));
   try {
     if (window.Overlay) await Overlay.setVariable('mm_modus', m); else if (window.TEST_SEND) window.TEST_SEND('modus:' + m);
-    setStatus(m === 'zocken' ? 'Zockmodus an' : 'Party-Modus an', 'ok');
+    setStatus((m === 'zocken' ? (D.modus2Name || 'Zockmodus') : (D.modus1Name || 'Party')) + ' an', 'ok');
   } catch (e) { setStatus('Modus konnte nicht gesetzt werden', 'err'); }
 }
-[['party', 'Party', '🎉'], ['zocken', 'Zockmodus', '🎮']].forEach(([m, label, ico]) => {
+[['party', D.modus1Name || 'Party', '🎉'], ['zocken', D.modus2Name || 'Zockmodus', '🎮']].forEach(([m, label, ico]) => {
   const b = document.createElement('button'); b.className = 'btn';
   b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = ico; b.lastChild.textContent = label;
   b.onclick = () => setMode(m, b); modeBox.append(b);

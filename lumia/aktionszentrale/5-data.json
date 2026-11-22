@@ -1,6 +1,8 @@
 {
   "befehl": "mm-aktion",
-  "titel": "MichaModus · Aktionszentrale",
+  "titel": "MichaModus · Steuerung",
+  "modus1Name": "Party",
+  "modus2Name": "Zockmodus",
   "knoepfe": "airhorn | Airhorn | 📯\ntorjubel | Torjubel | ⚽\ntrommelwirbel | Trommelwirbel | 🥁\napplaus | Applaus | 👏\nkonfetti | Konfetti | 🎉\nverlosung | Verlosung | 🎡\nfanfare | Fanfare | 🎺\nlacher | Lacher | 😂\nwow | Wow | 🤩\nrimshot | Ba-dum-tss | 🥁\nherzregen | Herzregen | 💖\npartyalarm | Party-Alarm | 🚨",
   "testKnoepfe": true,
   "nameFeld": true

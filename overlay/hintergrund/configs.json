@@ -1,23 +1,494 @@
 {
-  "modus": { "order": 1, "type": "dropdown", "label": "Modus beim Start", "value": "party", "options": { "party": "Party", "zocken": "Zockmodus" } },
-  "videoAn": { "order": 2, "type": "checkbox", "label": "Party-Hintergrund an", "value": true },
-  "video": { "order": 3, "type": "videoupload", "label": "Party-Hintergrund (Schleife)", "value": "", "accept": "video/mp4,video/webm" },
-  "zockVideo": { "order": 4, "type": "videoupload", "label": "Zockerbude (Schleife)", "value": "", "accept": "video/mp4,video/webm" },
-  "tempo": { "order": 5, "type": "slider", "label": "Tempo der Videos", "value": 100, "options": { "min": 25, "max": 200, "step": 5, "suffix": "%" } },
-  "abdunkeln": { "order": 6, "type": "slider", "label": "Abdunkeln", "value": 0, "options": { "min": 0, "max": 80, "step": 5, "suffix": "%" } },
-  "uebergangMs": { "order": 7, "type": "number", "label": "Dauer des Übergangs (ms)", "value": 1400 },
-  "fensterX": { "order": 8, "type": "slider", "label": "Spiel-Fenster: Mitte waagrecht", "value": 50, "options": { "min": 0, "max": 100, "step": 1, "suffix": "%" } },
-  "fensterY": { "order": 9, "type": "slider", "label": "Spiel-Fenster: Mitte senkrecht", "value": 40, "options": { "min": 0, "max": 100, "step": 1, "suffix": "%" } },
-  "fensterBreite": { "order": 10, "type": "slider", "label": "Spiel-Fenster: Breite", "value": 84, "options": { "min": 10, "max": 100, "step": 1, "suffix": "%" } },
-  "fensterHoehe": { "order": 11, "type": "slider", "label": "Spiel-Fenster: Höhe", "value": 34, "options": { "min": 10, "max": 100, "step": 1, "suffix": "%" } },
-  "fensterRund": { "order": 12, "type": "slider", "label": "Spiel-Fenster: runde Ecken", "value": 24, "options": { "min": 0, "max": 120, "step": 2, "suffix": " px" } },
-  "rahmenAn": { "order": 13, "type": "checkbox", "label": "Leuchtrahmen um das Spiel", "value": true },
-  "rahmenFarbe1": { "order": 14, "type": "colorpicker", "label": "Rahmenfarbe 1", "value": "#00e5ff" },
-  "rahmenFarbe2": { "order": 15, "type": "colorpicker", "label": "Rahmenfarbe 2", "value": "#7c4dff" },
-  "rahmenFarbe3": { "order": 16, "type": "colorpicker", "label": "Rahmenfarbe 3", "value": "#ff3d7f" },
-  "schildAn": { "order": 17, "type": "checkbox", "label": "Schild über dem Fenster", "value": true },
-  "schildText": { "order": 18, "type": "input", "label": "Schild-Text", "value": "🎮 ZOCKMODUS" },
-  "musikAn": { "order": 19, "type": "checkbox", "label": "Musik an", "value": true },
-  "musik": { "order": 20, "type": "soundupload", "label": "Musik (Schleife)", "value": "", "accept": "audio/mpeg,audio/ogg,audio/wav" },
-  "musikLautstaerke": { "order": 21, "type": "slider", "label": "Musik-Lautstärke", "value": 35, "options": { "min": 0, "max": 100, "step": 5, "suffix": "%" } }
+ "bereich": {
+  "type": "dropdown",
+  "label": "Einstellungen für",
+  "value": "bild",
+  "options": {
+   "bild": "Hintergrund & Musik",
+   "f1": "Fenster 1 (z. B. Spiel)",
+   "f2": "Fenster 2 (z. B. Drucker-Kamera)"
+  },
+  "order": 1
+ },
+ "modus": {
+  "type": "dropdown",
+  "label": "Modus beim Start",
+  "value": "party",
+  "options": {
+   "party": "Modus 1 (Party)",
+   "zocken": "Modus 2 (Zocken/Werkstatt)"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 2
+ },
+ "videoAn": {
+  "type": "checkbox",
+  "label": "Hintergrund-Video an",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 3
+ },
+ "video": {
+  "type": "videoupload",
+  "label": "Hintergrund Modus 1 (Schleife)",
+  "value": "",
+  "accept": "video/mp4,video/webm",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 4
+ },
+ "zockVideo": {
+  "type": "videoupload",
+  "label": "Hintergrund Modus 2 (Schleife)",
+  "value": "",
+  "accept": "video/mp4,video/webm",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 5
+ },
+ "tempo": {
+  "type": "slider",
+  "label": "Tempo der Videos",
+  "value": 100,
+  "options": {
+   "min": 25,
+   "max": 200,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 6
+ },
+ "abdunkeln": {
+  "type": "slider",
+  "label": "Abdunkeln",
+  "value": 0,
+  "options": {
+   "min": 0,
+   "max": 80,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 7
+ },
+ "uebergangMs": {
+  "type": "number",
+  "label": "Dauer der Übergänge (ms)",
+  "value": 1400,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 8
+ },
+ "musikAn": {
+  "type": "checkbox",
+  "label": "Musik an",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 9
+ },
+ "musik": {
+  "type": "soundupload",
+  "label": "Musik (Schleife)",
+  "value": "",
+  "accept": "audio/mpeg,audio/ogg,audio/wav",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 10
+ },
+ "musikLautstaerke": {
+  "type": "slider",
+  "label": "Musik-Lautstärke",
+  "value": 35,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 11
+ },
+ "f1Wann": {
+  "type": "dropdown",
+  "label": "Fenster zeigen",
+  "value": "zocken",
+  "options": {
+   "aus": "aus",
+   "immer": "immer",
+   "party": "nur in Modus 1",
+   "zocken": "nur in Modus 2"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 12
+ },
+ "f1X": {
+  "type": "slider",
+  "label": "Mitte waagrecht",
+  "value": 50,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 13
+ },
+ "f1Y": {
+  "type": "slider",
+  "label": "Mitte senkrecht",
+  "value": 40,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 14
+ },
+ "f1Breite": {
+  "type": "slider",
+  "label": "Breite",
+  "value": 84,
+  "options": {
+   "min": 5,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 15
+ },
+ "f1Hoehe": {
+  "type": "slider",
+  "label": "Höhe",
+  "value": 34,
+  "options": {
+   "min": 5,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 16
+ },
+ "f1Rund": {
+  "type": "slider",
+  "label": "Runde Ecken",
+  "value": 24,
+  "options": {
+   "min": 0,
+   "max": 200,
+   "step": 2,
+   "suffix": " px"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 17
+ },
+ "f1Rahmen": {
+  "type": "checkbox",
+  "label": "Leuchtrahmen",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 18
+ },
+ "f1Farbe1": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 1",
+  "value": "#00e5ff",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 19
+ },
+ "f1Farbe2": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 2",
+  "value": "#7c4dff",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 20
+ },
+ "f1Farbe3": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 3",
+  "value": "#ff3d7f",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 21
+ },
+ "f1Schild": {
+  "type": "input",
+  "label": "Schild (leer = kein Schild)",
+  "value": "🎮 ZOCKMODUS",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f1"
+   ]
+  },
+  "order": 22
+ },
+ "f2Wann": {
+  "type": "dropdown",
+  "label": "Fenster zeigen",
+  "value": "aus",
+  "options": {
+   "aus": "aus",
+   "immer": "immer",
+   "party": "nur in Modus 1",
+   "zocken": "nur in Modus 2"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 23
+ },
+ "f2X": {
+  "type": "slider",
+  "label": "Mitte waagrecht",
+  "value": 72,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 24
+ },
+ "f2Y": {
+  "type": "slider",
+  "label": "Mitte senkrecht",
+  "value": 22,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 25
+ },
+ "f2Breite": {
+  "type": "slider",
+  "label": "Breite",
+  "value": 46,
+  "options": {
+   "min": 5,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 26
+ },
+ "f2Hoehe": {
+  "type": "slider",
+  "label": "Höhe",
+  "value": 22,
+  "options": {
+   "min": 5,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 27
+ },
+ "f2Rund": {
+  "type": "slider",
+  "label": "Runde Ecken",
+  "value": 24,
+  "options": {
+   "min": 0,
+   "max": 200,
+   "step": 2,
+   "suffix": " px"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 28
+ },
+ "f2Rahmen": {
+  "type": "checkbox",
+  "label": "Leuchtrahmen",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 29
+ },
+ "f2Farbe1": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 1",
+  "value": "#ffd54f",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 30
+ },
+ "f2Farbe2": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 2",
+  "value": "#ff7a00",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 31
+ },
+ "f2Farbe3": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 3",
+  "value": "#ff3d7f",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 32
+ },
+ "f2Schild": {
+  "type": "input",
+  "label": "Schild (leer = kein Schild)",
+  "value": "🖨️ LIVE VOM DRUCKER",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f2"
+   ]
+  },
+  "order": 33
+ }
 }
