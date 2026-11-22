@@ -1,0 +1,33 @@
+{
+  "befehl": {
+    "order": 1,
+    "type": "input",
+    "label": "Lumia-Befehl, der die Animation sendet",
+    "value": "mm-aktion"
+  },
+  "titel": {
+    "order": 2,
+    "type": "input",
+    "label": "Überschrift",
+    "value": "MichaModus · Aktionszentrale"
+  },
+  "knoepfe": {
+    "order": 3,
+    "type": "textarea",
+    "rows": 14,
+    "label": "Knöpfe (je Zeile: Animation | Beschriftung | Symbol)",
+    "value": "airhorn | Airhorn | 📯\ntorjubel | Torjubel | ⚽\ntrommelwirbel | Trommelwirbel | 🥁\napplaus | Applaus | 👏\nkonfetti | Konfetti | 🎉\nverlosung | Verlosung | 🎡"
+  },
+  "testKnoepfe": {
+    "order": 4,
+    "type": "checkbox",
+    "label": "Test-Knöpfe für Geschenke und Ereignisse zeigen",
+    "value": true
+  },
+  "nameFeld": {
+    "order": 5,
+    "type": "checkbox",
+    "label": "Feld für Namen (z. B. Gewinner) zeigen",
+    "value": true
+  }
+}

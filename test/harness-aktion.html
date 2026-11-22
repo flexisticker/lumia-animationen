@@ -1,0 +1,11 @@
+<!doctype html><meta charset="utf-8"><title>Test Aktionszentrale</title>
+<link rel="stylesheet" href="../lumia/aktionszentrale/2-css.css"><body><div id="host"></div>
+<script>
+window.sent = [];
+window.Overlay = { data: null, on: () => {}, callCommand: async (c, v) => window.sent.push([c, v]) };
+(async () => {
+  Overlay.data = await (await fetch('../lumia/aktionszentrale/5-data.json')).json();
+  document.getElementById('host').innerHTML = await (await fetch('../lumia/aktionszentrale/1-html.html')).text();
+  const s = document.createElement('script'); s.src = '../lumia/aktionszentrale/3-js.js'; document.body.append(s);
+})();
+</script>

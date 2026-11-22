@@ -1,0 +1,16 @@
+<!doctype html><meta charset="utf-8"><title>Test Animationen</title>
+<style>body{margin:0;width:768px;height:1344px}#bgv{position:fixed;inset:0;width:100%;height:100%;object-fit:cover}</style>
+<link rel="stylesheet" href="../lumia/animationen/2-css.css">
+<body><video id="bgv" src="../medien/hintergrund/party-schleife.mp4" autoplay muted loop></video>
+<div id="host"></div>
+<script>
+const handlers = {};
+window.Overlay = { data: null, on: (ev, cb) => (handlers[ev] = cb), callCommand: async () => {} };
+window.fire = (ev, payload) => handlers[ev] && handlers[ev](payload);
+(async () => {
+  Overlay.data = await (await fetch('../lumia/animationen/5-data.json')).json();
+  Overlay.data.medienAdresse = '../medien/animationen/';
+  document.getElementById('host').innerHTML = await (await fetch('../lumia/animationen/1-html.html')).text();
+  const s = document.createElement('script'); s.src = '../lumia/animationen/3-js.js'; document.body.append(s);
+})();
+</script>

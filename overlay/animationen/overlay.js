@@ -1,0 +1,285 @@
+// MichaModus – Animationen (Lumia Custom Overlay, Reiter JS)
+// Spielt zu TikTok-Ereignissen, Aktionsknöpfen und Chat-Befehlen eine Vollbild-Animation mit Ton,
+// blendet den Namen des Spenders ein und zeigt oben das MichaModus-Banner mit wechselnden Slogans.
+// Alle Einstellungen kommen aus dem Reiter „Configs“ (Overlay.data).
+
+const D = (window.Overlay && Overlay.data) || window.TEST_DATA || {};
+const LIST = window.MM_LIST; // wird von werkzeuge/build.mjs eingesetzt
+const num = (v, d) => (v === '' || v == null || isNaN(Number(v)) ? d : Number(v));
+const on = (k, d = true) => (D[k] === undefined ? d : !!D[k]);
+
+// ---------- Banner + Slogans ----------
+const banner = document.getElementById('banner');
+const bannerText = document.getElementById('bannerText');
+const root = document.body.style;
+root.setProperty('--b1', D.bannerFarbe1 || '#ff3d7f');
+root.setProperty('--b2', D.bannerFarbe2 || '#7c4dff');
+root.setProperty('--b3', D.bannerFarbe3 || '#ffd54f');
+root.setProperty('--bannerSize', num(D.bannerGroesse, 7) + 'vh');
+root.setProperty('--bannerTop', num(D.bannerAbstand, 3) + 'vh');
+root.setProperty('--cardTop', num(D.namePosition, 62) + '%');
+if (!on('bannerAn')) banner.classList.add('off');
+const title = D.bannerText || 'MichaModus';
+const slogans = String(D.slogans || '').split('\n').map(s => s.trim()).filter(Boolean);
+function fitBanner() {
+  bannerText.style.fontSize = '';
+  let f = 1;
+  while (bannerText.scrollWidth > innerWidth * 0.92 && f > 0.35) { f -= 0.05; bannerText.style.fontSize = f + 'em'; }
+}
+bannerText.textContent = title; fitBanner();
+let sloganIdx = 0;
+if (on('slogansAn') && slogans.length) {
+  setInterval(() => {
+    const showSlogan = bannerText.textContent === title;
+    bannerText.style.transition = 'opacity .4s'; bannerText.style.opacity = 0;
+    setTimeout(() => {
+      bannerText.textContent = showSlogan ? slogans[sloganIdx++ % slogans.length] : title;
+      fitBanner(); bannerText.style.opacity = 1;
+    }, 400);
+  }, num(D.sloganSekunden, 8) * 1000);
+}
+function bannerHype() { banner.classList.remove('hype'); void banner.offsetWidth; banner.classList.add('hype'); }
+
+// ---------- Video mit herausgerechnetem Schwarz (WebGL) ----------
+const canvas = document.getElementById('fx');
+const video = document.getElementById('clip');
+let gl = null, prog = null, tex = null;
+function initGL() {
+  gl = canvas.getContext('webgl', { premultipliedAlpha: false, alpha: true });
+  if (!gl) { canvas.classList.add('fallback'); return; }
+  const vs = 'attribute vec2 p;varying vec2 uv;void main(){uv=vec2((p.x+1.)/2.,(1.-p.y)/2.);gl_Position=vec4(p,0.,1.);}';
+  const fs = 'precision mediump float;varying vec2 uv;uniform sampler2D t;uniform vec2 k;uniform vec2 sc;uniform vec2 of;' +
+    'void main(){vec2 u=(uv-of)/sc;if(u.x<0.||u.y<0.||u.x>1.||u.y>1.){gl_FragColor=vec4(0.);return;}' +
+    'vec3 c=texture2D(t,u).rgb;float m=max(c.r,max(c.g,c.b));float a=smoothstep(k.x,k.y,m);' +
+    'gl_FragColor=vec4(a>0.001?min(c/max(a,.001),1.):c,a);}';
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+  prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+  [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach(p => gl.texParameteri(gl.TEXTURE_2D, p, gl.CLAMP_TO_EDGE));
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+}
+function resize() { canvas.width = innerWidth * devicePixelRatio; canvas.height = innerHeight * devicePixelRatio; }
+addEventListener('resize', resize); resize(); initGL();
+
+function drawFrame() {
+  if (video.paused || video.ended) { if (gl) gl.clear(gl.COLOR_BUFFER_BIT); return; }
+  if (gl) {
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
+    // Füllend (wie object-fit: cover)
+    const va = video.videoWidth / video.videoHeight, ca = canvas.width / canvas.height;
+    let sx = 1, sy = 1; if (va > ca) sx = va / ca; else sy = ca / va;
+    gl.uniform2f(gl.getUniformLocation(prog, 'sc'), sx, sy);
+    gl.uniform2f(gl.getUniformLocation(prog, 'of'), (1 - sx) / 2, (1 - sy) / 2);
+    const s = num(D.schwarzStaerke, 12) / 100;
+    gl.uniform2f(gl.getUniformLocation(prog, 'k'), s * 0.35, s * 0.35 + 0.18);
+    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  } else {
+    const c = canvas.getContext('2d'); c.clearRect(0, 0, canvas.width, canvas.height);
+    c.drawImage(video, 0, 0, canvas.width, canvas.height);
+  }
+  requestAnimationFrame(drawFrame);
+}
+
+// ---------- Warteschlange ----------
+const queue = [];
+let playing = null;
+
+function entryById(id) { return LIST.find(a => a.id === id); }
+function videoFor(a) { return D['v_' + a.id] || (a.datei && (D.medienAdresse || '') + a.datei) || ''; }
+function enabled(a) { return on('an_' + a.id, true); }
+
+function enqueue(item) {
+  if (!item.anim || !enabled(item.anim)) return;
+  // Gleicher Spender + gleiches Geschenk: nur hochzählen
+  if (item.key && on('comboZusammen')) {
+    if (playing && playing.key === item.key && playing.card) { playing.amount += item.amount; updateCount(playing); return; }
+    const w = queue.find(q => q.key === item.key);
+    if (w) { w.amount += item.amount; return; }
+  }
+  if (queue.length >= num(D.maxWarteschlange, 30)) queue.shift();
+  queue.push(item);
+  if (!playing) next();
+}
+
+function next() {
+  playing = queue.shift() || null;
+  if (!playing) return;
+  const item = playing;
+  const src = videoFor(item.anim);
+  if (item.anim.hype !== false) bannerHype();
+  if (item.user && on('nameAn')) showCard(item);
+  if (src) {
+    video.src = src;
+    video.volume = Math.max(0, Math.min(1, num(D.lautstaerke, 80) / 100 * num(D['l_' + item.anim.id], 100) / 100));
+    video.currentTime = 0;
+    video.play().then(() => requestAnimationFrame(drawFrame)).catch(() => finish(item));
+    video.onended = () => finish(item);
+    video.onerror = () => finish(item);
+  } else {
+    setTimeout(() => finish(item), num(D.anzeigeSekunden, 5) * 1000);
+  }
+}
+function finish(item) {
+  if (playing !== item) return;
+  video.onended = video.onerror = null;
+  if (item.card) { const c = item.card; c.classList.add('out'); setTimeout(() => c.remove(), 500); }
+  setTimeout(() => { playing = null; next(); }, num(D.pauseMs, 250));
+}
+
+// ---------- Namens-Karte ----------
+const GIFT_COLORS = { rose: ['#ff2e63', '#ff9ec7'], loewe: ['#ffb300', '#fff1a8'], galaxie: ['#7c4dff', '#4dd0ff'],
+  universum: ['#7c4dff', '#ffd54f'], teamherz: ['#ff4f8b', '#ffd54f'], folgen: ['#ff3d7f', '#ff9ec7'] };
+function el(t, c, x) { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; }
+function showCard(item) {
+  const [c1, c2] = GIFT_COLORS[item.anim.id] || [D.nameFarbe1 || '#ff3d7f', D.nameFarbe2 || '#ffb347'];
+  const card = el('div', 'card');
+  card.style.setProperty('--c1', c1); card.style.setProperty('--c2', c2);
+  if (item.avatar && on('profilbildAn')) { const img = el('img', 'avatar'); img.src = item.avatar; img.alt = ''; card.append(img); }
+  const name = el('div', 'name');
+  const user = String(item.user).slice(0, 24);
+  [...user].forEach((ch, i) => { const s = el('span', null, ch === ' ' ? ' ' : ch); s.style.animationDelay = (0.25 + i * 0.045) + 's'; name.append(s); });
+  setTimeout(() => name.querySelectorAll('span').forEach(s => s.classList.add('shine')), 900 + user.length * 45);
+  card.append(name);
+  if (item.text) {
+    const sub = el('div', 'sub'); sub.append(document.createTextNode(item.text));
+    if (item.amount > 1 || item.key) { item.countEl = el('span', 'count', '× ' + item.amount); sub.append(item.countEl); }
+    card.append(sub);
+  }
+  document.getElementById('cards').append(card);
+  let size = 7.2;
+  while (name.scrollWidth > innerWidth * 0.86 && size > 3) { size -= 0.3; name.style.fontSize = size + 'vh'; }
+  item.card = card;
+}
+function updateCount(item) {
+  if (!item.countEl) return;
+  item.countEl.textContent = '× ' + item.amount;
+  item.countEl.style.animation = 'none'; void item.countEl.offsetWidth; item.countEl.style.animation = '';
+}
+
+// ---------- Zuordnung Geschenk → Animation ----------
+const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+function giftAnim(giftName, coinsTotal) {
+  const n = norm(giftName);
+  const extra = norm(D.eigeneZuordnung).split('\n'); // Format: "geschenkname = animations-id"
+  for (const line of extra) { const [g, id] = line.split('=').map(s => s && s.trim()); if (g && id && g === n && entryById(id)) return entryById(id); }
+  const direct = LIST.find(a => a.gruppe === 'geschenk' && (a.match || []).some(m => norm(m) === n));
+  if (direct && enabled(direct)) return direct;
+  const tiers = LIST.filter(a => a.gruppe === 'stufe').map(a => ({ a, ab: num(D['ab_' + a.id], a.ab) })).sort((x, y) => y.ab - x.ab);
+  const t = tiers.find(t => coinsTotal >= t.ab);
+  return t ? t.a : null;
+}
+
+// ---------- Ereignisse aus Lumia ----------
+const TEXT = {
+  'tiktok-follower': ['folgen', 'folgt jetzt!'],
+  'tiktok-share': ['teilen', 'hat das Live geteilt!'],
+  'tiktok-superFan': ['superfan', 'ist jetzt Superfan!'],
+  'tiktok-treasureChest': ['schatzkiste', 'wirft eine Schatzkiste!'],
+  'tiktok-totalLikes': ['likeziel', 'Like-Ziel erreicht!'],
+  'tiktok-battleEnd': ['battle-sieg', 'Battle vorbei!'],
+};
+function handleAlert(data) {
+  const s = data.extraSettings || {};
+  if (data.alert === 'tiktok-like') { likeBurst(Number(s.amount || s.userLikeCount || (data.dynamic && data.dynamic.value)) || 5); return; }
+  if (data.alert === 'tiktok-gift') {
+    const amount = Number(s.giftAmount) || 1;
+    const coins = (Number(s.coins) || Number(s.value) || 1) * amount;
+    if (coins < num(D.minMuenzen, 1)) return;
+    const anim = giftAnim(s.giftName, coins);
+    enqueue({ anim, user: s.username, avatar: s.avatar, amount, key: (s.username || '') + '|' + (s.giftName || ''),
+      text: (D.geschenkText || 'schickt {GESCHENK}').replace('{GESCHENK}', s.giftName || 'ein Geschenk') });
+    return;
+  }
+  const t = TEXT[data.alert];
+  if (t) enqueue({ anim: entryById(t[0]), user: s.username || (data.alert === 'tiktok-totalLikes' ? 'Ihr alle' : ''), avatar: s.avatar, amount: 1, text: t[1] });
+}
+
+// Aktionsknöpfe (Aktionszentrale, Lumia-Befehl „Overlay: Inhalt senden“ oder MCP): Inhalt = Animations-ID,
+// optional JSON {"id":"airhorn","name":"Sandra","text":"gewinnt!"}
+function handleContent(raw) {
+  let c = raw; try { c = JSON.parse(raw); } catch (e) { c = { id: String(raw).trim() }; }
+  if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
+  if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
+  const anim = entryById(c.id);
+  if (anim) enqueue({ anim, user: c.name || '', text: c.text || '', amount: 1 });
+}
+
+if (window.Overlay) {
+  Overlay.on('alert', handleAlert);
+  Overlay.on('overlaycontent', (data) => handleContent(data.content));
+}
+
+// ---------- Like-Fontäne ----------
+const likeCv = document.getElementById('likes');
+const lc = likeCv.getContext('2d');
+const parts = [];
+const LIKE_COLORS = String(D.likeFarben || '#ff2e63,#ff6fa5,#ff9ec7,#ffd54f,#b388ff').split(',').map(s => s.trim());
+function likeResize() { likeCv.width = innerWidth; likeCv.height = innerHeight; }
+addEventListener('resize', likeResize); likeResize();
+function heart(x, y, s, color, a, rot) {
+  lc.save(); lc.translate(x, y); lc.rotate(rot); lc.scale(s, s); lc.globalAlpha = a;
+  lc.fillStyle = color; lc.shadowColor = color; lc.shadowBlur = 12;
+  lc.beginPath(); lc.moveTo(0, 6);
+  lc.bezierCurveTo(-14, -4, -8, -16, 0, -8); lc.bezierCurveTo(8, -16, 14, -4, 0, 6);
+  lc.fill(); lc.restore();
+}
+let likeRunning = false;
+function likeLoop() {
+  lc.clearRect(0, 0, likeCv.width, likeCv.height);
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i];
+    p.vy += 0.12; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= 1;
+    const a = Math.min(1, p.life / 30);
+    heart(p.x, p.y, p.s, p.c, a, p.rot);
+    if (p.life <= 0 || p.y > likeCv.height + 40) parts.splice(i, 1);
+  }
+  if (parts.length) requestAnimationFrame(likeLoop); else { likeRunning = false; lc.clearRect(0, 0, likeCv.width, likeCv.height); }
+}
+function likeBurst(count) {
+  if (!on('likeAn')) return;
+  const n = Math.min(num(D.likeMax, 60), Math.max(4, Math.round(Math.sqrt(count) * 3 * num(D.likeMenge, 1.5))));
+  const side = String(D.likePosition || 'rechts');
+  const x0 = side === 'links' ? innerWidth * 0.15 : side === 'mitte' ? innerWidth * 0.5 : innerWidth * 0.85;
+  for (let i = 0; i < n && parts.length < 400; i++) {
+    parts.push({ x: x0 + (Math.random() - 0.5) * 40, y: innerHeight + 10,
+      vx: (Math.random() - 0.5) * 5, vy: -(innerHeight / 55) * (0.75 + Math.random() * 0.5),
+      s: (0.9 + Math.random() * 1.4) * (innerHeight / 900), c: LIKE_COLORS[i % LIKE_COLORS.length],
+      rot: (Math.random() - 0.5) * 0.6, vr: (Math.random() - 0.5) * 0.06, life: 90 + Math.random() * 50 });
+  }
+  if (!likeRunning) { likeRunning = true; requestAnimationFrame(likeLoop); }
+}
+
+// ---------- Ansagen ----------
+const SCENES = {
+  start: ['szeneStart', 'Live startet gleich!', 'Schnapp dir was zu trinken', 0],
+  pause: ['szenePause', 'Kurze Pause', 'Bleib dran – gleich geht\'s weiter', 0],
+  gleich: ['szeneGleich', 'Gleich geht\'s weiter', 'Nicht weggehen', 0],
+  weiter: ['szeneWeiter', 'Weiter geht\'s!', 'Schön, dass du noch da bist', 5],
+  ende: ['szeneEnde', 'Danke & bis bald!', 'Folg MichaModus, dann verpasst du nichts', 0],
+};
+const scene = document.getElementById('scene');
+let sceneTimer = null;
+function showScene(id) {
+  clearTimeout(sceneTimer);
+  if (id === 'aus' || !SCENES[id]) { scene.classList.remove('show'); return; }
+  const [key, t, s, secs] = SCENES[id];
+  const [title, sub] = String(D[key] || (t + ' | ' + s)).split('|').map(x => x.trim());
+  document.getElementById('sceneTitle').textContent = title;
+  const subEl = document.getElementById('sceneSub'); subEl.textContent = sub || '';
+  if (!secs) { const d = document.createElement('span'); d.className = 'dots'; d.innerHTML = '<span>.</span><span>.</span><span>.</span>'; subEl.append(d); }
+  scene.classList.toggle('dim', on('szeneAbdunkeln') && !secs);
+  scene.classList.add('show'); bannerHype();
+  if (id === 'weiter') likeBurst(40);
+  if (secs) sceneTimer = setTimeout(() => scene.classList.remove('show'), secs * 1000);
+}
+
+window.MM = { handleAlert, handleContent, likeBurst, showScene }; // für Testseite

@@ -1,0 +1,7 @@
+{
+  "befehl": "mm-aktion",
+  "titel": "MichaModus · Aktionszentrale",
+  "knoepfe": "airhorn | Airhorn | 📯\ntorjubel | Torjubel | ⚽\ntrommelwirbel | Trommelwirbel | 🥁\napplaus | Applaus | 👏\nkonfetti | Konfetti | 🎉\nverlosung | Verlosung | 🎡",
+  "testKnoepfe": true,
+  "nameFeld": true
+}

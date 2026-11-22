@@ -1,0 +1,9 @@
+{
+  "videoAn": { "order": 1, "type": "checkbox", "label": "Hintergrund-Video an", "value": true },
+  "video": { "order": 2, "type": "videoupload", "label": "Hintergrund-Video (Schleife)", "value": "", "accept": "video/mp4,video/webm" },
+  "tempo": { "order": 3, "type": "slider", "label": "Tempo", "value": 100, "options": { "min": 25, "max": 200, "step": 5, "suffix": "%" } },
+  "abdunkeln": { "order": 4, "type": "slider", "label": "Abdunkeln", "value": 0, "options": { "min": 0, "max": 80, "step": 5, "suffix": "%" } },
+  "musikAn": { "order": 5, "type": "checkbox", "label": "Musik an", "value": true },
+  "musik": { "order": 6, "type": "soundupload", "label": "Musik (Schleife)", "value": "", "accept": "audio/mpeg,audio/ogg,audio/wav" },
+  "musikLautstaerke": { "order": 7, "type": "slider", "label": "Musik-Lautstärke", "value": 35, "options": { "min": 0, "max": 100, "step": 5, "suffix": "%" } }
+}

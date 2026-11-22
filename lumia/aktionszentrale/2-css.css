@@ -1,0 +1,31 @@
+/* MichaModus – Aktionszentrale (auf dem Tablet im Browser öffnen) */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap');
+:root { --bg: #120c1f; --card: #1e1631; --line: #3a2d5c; --text: #fff; --muted: #b9a8e6; --c1: #ff3d7f; --c2: #7c4dff; --c3: #ffd54f; }
+html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font-family: 'Baloo 2', system-ui, sans-serif;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.az { max-width: 1200px; margin: 0 auto; padding: 16px 16px 40px; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { margin: 4px 0; font-size: 28px; font-weight: 800; background: linear-gradient(90deg, var(--c1), var(--c2), var(--c3));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.status { font-size: 15px; padding: 6px 14px; border-radius: 99px; background: var(--card); border: 1px solid var(--line); color: var(--muted); }
+.status.ok { color: #7dffb0; border-color: #2f7a52; } .status.err { color: #ff8a8a; border-color: #7a2f2f; }
+.name-row { display: flex; gap: 8px; margin-top: 12px; }
+.name-row input { flex: 1; font: inherit; font-size: 20px; padding: 12px 16px; border-radius: 14px; border: 1px solid var(--line);
+  background: var(--card); color: var(--text); outline: none; }
+.name-row input:focus { border-color: var(--c2); }
+.name-row .clear { width: 56px; font-size: 26px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); color: var(--muted); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.grid.small { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+.btn { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  min-height: 118px; padding: 10px; border-radius: 20px; border: 1px solid var(--line); cursor: pointer;
+  background: linear-gradient(160deg, #2a1f45, #1a1330); color: var(--text); font: inherit; font-size: 19px; font-weight: 800;
+  box-shadow: 0 6px 0 #0b0714, 0 10px 24px rgba(0,0,0,.35); transition: transform .08s, box-shadow .08s; touch-action: manipulation; }
+.btn .ico { font-size: 44px; line-height: 1; }
+.btn:active, .btn.hit { transform: translateY(5px); box-shadow: 0 1px 0 #0b0714, 0 4px 10px rgba(0,0,0,.35); }
+.btn.hit::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle, rgba(255,255,255,.35), transparent 70%); animation: flash .5s ease-out forwards; }
+@keyframes flash { to { opacity: 0; } }
+.scenes .btn { min-height: 90px; font-size: 18px; background: linear-gradient(160deg, #3b1d4a, #1f1233); }
+.scenes .btn.active { border-color: var(--c3); box-shadow: 0 6px 0 #0b0714, 0 0 0 3px var(--c3) inset; }
+.small .btn { min-height: 84px; font-size: 15px; } .small .btn .ico { font-size: 28px; }
+@media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); } h1 { font-size: 22px; } }
