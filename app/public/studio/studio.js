@@ -50,7 +50,7 @@ function start(m) {
     .map(([id, l]) => h('button', { class: 'b', onclick: () => post('/api/aktion', { id, label: l }) }, l))));
   m.append(h('h2', {}, 'Letzte Ereignisse'), h('div', { class: 'card log', id: 'log' }, ...(S.log || []).map(logLine)));
 }
-const logLine = e => h('div', {}, new Date(e.at).toLocaleTimeString('de-DE') + ' · ' + ({ alert: '🎁', aktion: '👆', modus: '🎮' }[e.art] || '') + ' ' + (e.alert || '') + ' ' + (e.text || '') + (e.quelle ? ' (' + e.quelle + ')' : ''));
+const logLine = e => h('div', {}, new Date(e.at).toLocaleTimeString('de-DE') + ' · ' + ({ alert: '🎁', aktion: '👆', modus: '🎮', fehler: '⚠️' }[e.art] || '') + ' ' + (e.alert || '') + ' ' + (e.text || '') + (e.quelle ? ' (' + e.quelle + ')' : ''));
 // ---------- Sprachausgabe (ElevenLabs) ----------
 function sprachePage(m) {
   const T = S.tts || {};

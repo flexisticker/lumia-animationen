@@ -69,14 +69,14 @@ function initGL() {
 function resize() { const f = Math.min(devicePixelRatio || 1, 1920 / Math.max(innerWidth, innerHeight)); canvas.width = Math.round(innerWidth * Math.max(f, 0.5)); canvas.height = Math.round(innerHeight * Math.max(f, 0.5)); }
 addEventListener('resize', resize); resize(); initGL();
 
-// Leistung: neues Bild nur hochladen, wenn das Video wirklich ein neues Bild hat (25 statt 60 Mal pro Sekunde)
-let letzteZeit = -1;
-const naechstesBild = () => (video.requestVideoFrameCallback ? video.requestVideoFrameCallback(() => drawFrame()) : requestAnimationFrame(drawFrame));
+// Zeichnen: EINE dauerhafte Schleife (requestAnimationFrame). Neues Bild nur hochladen, wenn sich die Videozeit geändert hat.
+// (Vorher requestVideoFrameCallback – das meldet OBS im Live unter Last nicht zuverlässig → Bild blieb stehen, Ton lief weiter.)
+let letzteZeit = -1, letzterTick = 0;
 function drawFrame() {
-  if (video.paused || video.ended) { if (gl) gl.clear(gl.COLOR_BUFFER_BIT); letzteZeit = -1; return; }
-  if (!video.requestVideoFrameCallback && video.currentTime === letzteZeit) return requestAnimationFrame(drawFrame);
+  if (!playing || video.paused || video.ended || video.readyState < 2) return;
+  if (video.currentTime === letzteZeit) return;
   letzteZeit = video.currentTime;
-  if (gl) {
+  if (gl && !gl.isContextLost()) {
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, video);
@@ -91,11 +91,29 @@ function drawFrame() {
     gl.uniform2f(gl.getUniformLocation(prog, 'k'), s * 0.35, s * 0.35 + 0.18);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  } else {
+  } else if (!gl) {
     const c = canvas.getContext('2d'); c.clearRect(0, 0, canvas.width, canvas.height);
     c.drawImage(video, 0, 0, canvas.width, canvas.height);
   }
-  naechstesBild();
+}
+function schleife(t) {
+  requestAnimationFrame(schleife);
+  if (playing && letzterTick && t - letzterTick > 700) diag('Browserquelle stand ' + Math.round(t - letzterTick) + ' ms (OBS ausgelastet?)');
+  letzterTick = t;
+  try { drawFrame(); } catch (e) { diag('Zeichenfehler: ' + e.message); }
+}
+requestAnimationFrame(schleife);
+// Zusätzlich alle 40 ms zeichnen – falls OBS die Bildschleife drosselt
+setInterval(() => { try { drawFrame(); } catch (e) {} }, 40);
+// Grafikkarte überlastet (z. B. Encoder im Live) → WebGL-Kontext weg: wiederherstellen statt eingefrorenem Bild
+canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); diag('WebGL-Kontext verloren'); });
+canvas.addEventListener('webglcontextrestored', () => { diag('WebGL-Kontext wiederhergestellt'); initGL(); letzteZeit = -1; });
+// Fehlerprotokoll an das Live-Studio (Studio → Animationen → Protokoll)
+let diagN = 0;
+function diag(text) {
+  console.warn('[Animation]', text);
+  if (++diagN > 200) return;
+  try { fetch('/api/diag', { method: 'POST', headers: { 'content-type': 'application/json', 'x-mm': '1' }, body: JSON.stringify({ text, anim: playing && playing.anim && playing.anim.id, format: FORMAT }) }).catch(() => {}); } catch (e) {}
 }
 
 // ---------- Warteschlange ----------
@@ -161,9 +179,10 @@ function next() {
     video.src = src;
     video.volume = videoVol(item) * duck();
     video.currentTime = 0;
-    video.play().then(() => { letzteZeit = -1; requestAnimationFrame(drawFrame); }).catch(() => finish(item));
+    letzteZeit = -1;
+    video.play().catch(e => { diag('Abspielen verweigert: ' + e.message); finish(item); });
     video.onended = () => finish(item);
-    video.onerror = () => finish(item);
+    video.onerror = () => { diag('Videofehler ' + (video.error && video.error.code)); finish(item); };
     // Absicherung: in OBS kommt „ended“ nicht immer (Ton minimal länger als Bild) → Bild blieb kurz vor Schluss stehen und die Warteschlange hing
     let lastT = -1, standSeit = 0;
     video.ontimeupdate = () => { if (video.duration && video.duration - video.currentTime < 0.12) finish(item); };
@@ -171,11 +190,11 @@ function next() {
       if (playing !== item) return clearInterval(item.wache);
       const t = video.currentTime, d = video.duration || 0;
       if (d && t >= d - 0.15) return finish(item);                       // am Ende angekommen
-      if (t === lastT && !video.paused) { if (!standSeit) standSeit = performance.now(); else if (performance.now() - standSeit > 1500) return finish(item); }
+      if (t === lastT && !video.paused) { if (!standSeit) standSeit = performance.now(); else if (performance.now() - standSeit > 1500) { diag('Video stand 1,5 s still bei ' + t.toFixed(2) + ' von ' + d.toFixed(2) + ' s (readyState ' + video.readyState + ')'); return finish(item); } }
       else standSeit = 0;                                                  // steht 1,5 s still → beenden
       lastT = t;
     }, 250);
-    item.notaus = setTimeout(() => finish(item), Math.max(4, num(D.maxAnimSekunden, 15)) * 1000); // spätestens nach 15 s
+    item.notaus = setTimeout(() => { diag('Notaus nach Höchstdauer'); finish(item); }, Math.max(4, num(D.maxAnimSekunden, 15)) * 1000); // spätestens nach 15 s
   } else {
     setTimeout(() => finish(item), num(D.anzeigeSekunden, 5) * 1000);
   }

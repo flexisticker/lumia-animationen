@@ -88,3 +88,6 @@
   Fix: alle `medien/animationen/*.mp4` neu kodiert (H.264 crf 24, max. 2,5 Mbit/s, AAC 128k, faststart, Ton = Bildlänge; 513 MB → 126 MB, SSIM 0,99),
   vordere Quelle lädt beim Start alle aktiven Animationen ihres Formats nacheinander als Blob in den Speicher (`vorladen`, `vorrat`, pausiert während einer Animation, abschaltbar `vorladenAn: false`),
   Medien-Cache 1 Tag. Neue Animationen künftig gleich so kodieren. Geprüft (Headless): nach dem Vorladen 0 Netzanfragen beim Abspielen, läuft bis zum Ende.
+- 22.11.2026: **Hängt weiter im Live** → Zeichnen nicht mehr über `requestVideoFrameCallback` (meldet OBS/CEF unter Last nicht zuverlässig: Bild stand, Ton + Zeit liefen weiter, Wächter griff nicht),
+  sondern eine dauerhafte rAF-Schleife `schleife()` + zusätzlich `setInterval` 40 ms (falls OBS rAF drosselt); hochgeladen wird nur bei geänderter Videozeit. WebGL-Kontextverlust wird abgefangen und neu aufgebaut.
+  **Fehlerprotokoll:** Overlay meldet Stillstand, Kontextverlust, Videofehler, Notaus, Pausen der Browserquelle > 700 ms per `POST /api/diag` → Studio „Letzte Ereignisse“ mit ⚠️. Geprüft (Headless): normal und mit abgeschaltetem rAF läuft die Animation durch.

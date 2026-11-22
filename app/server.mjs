@@ -440,6 +440,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/test-chat' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); chatIn({ origin: b.plattform, type: 'chat', data: { extraSettings: { username: b.name, message: b.text, userColor: b.farbe } } }, 'test'); return json(res, 200, { ok: true }); }
     if (p === '/api/chat' && req.method === 'GET') return json(res, 200, { chat: chatLog });
+    if (p === '/api/diag' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); remember({ art: 'fehler', quelle: 'animation ' + String(b.format || '').slice(0, 5), text: String(b.text || '').slice(0, 200) + (b.anim ? ' [' + String(b.anim).slice(0, 40) + ']' : '') }); return json(res, 200, { ok: true }); }
     if (p === '/api/test' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); fireAlert(b, 'test'); return json(res, 200, { ok: true }); }
     if (p === '/api/aktion' && req.method === 'POST') {
       const raw = (await body(req, 4000)).toString();
