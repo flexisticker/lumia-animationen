@@ -2,6 +2,7 @@
   "bereich": "allgemein",
   "lautstaerke": 80,
   "medienAdresse": "",
+  "leistungSparen": true,
   "alphaVideos": true,
   "schwarzStaerke": 12,
   "minMuenzen": 1,

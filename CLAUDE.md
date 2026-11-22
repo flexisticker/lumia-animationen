@@ -95,3 +95,7 @@
   `lumakey=threshold=0:tolerance=0.13:softness=0.12`, `-b:v 1800k -maxrate 2500k -crf 34 -cpu-used 5 -auto-alt-ref 0`; 126 MB). Overlay spielt sie direkt als `<video class="direkt">`
   (object-fit cover/contain je Format) – kein WebGL-Hochladen je Bild mehr (gemessen 0 texImage2D). Einstellung `alphaVideos` (Standard an); eigene hochgeladene Videos (v_/vq_) laufen weiter über WebGL + „Schwarz entfernen“.
   Neue Animationen: MP4 (wie oben) **und** WebM erzeugen. Geprüft (Headless): hoch + quer durchsichtig, Namenskarte darüber, Ende sauber.
+- 22.11.2026: **Hakt weiter, auch Hintergrundfilme im selben Moment** → OBS-Browserquellen teilen sich die Rechenleistung. Hintergrund-Overlay umgebaut: Videos direkt als `<video>` (object-fit cover, Überblendung per opacity,
+  Abdunkeln per Div), Fenster-Loch per `clip-path: path(evenodd, …)` auf `#bg` – kein `drawImage` (Full-HD, 30×/s) mehr; Schleife tut nur bei Änderung (`letzterStand`) etwas.
+  **Leistungsmodus** `leistungSparen` (Standard an, vorne Bereich Allgemein + hinten Bereich Bild): Leuchtschein am Fenster dreht nicht (drehender blur wurde jedes Bild neu gezeichnet),
+  vorne kein fließender Farbverlauf im Banner, kein drehender StreamPrint-Rahmen. Geprüft (Headless): Party/Zocken, Loch voll durchsichtig, Rahmen/Schild wie vorher.

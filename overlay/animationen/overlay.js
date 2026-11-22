@@ -5,6 +5,7 @@
 
 const D = (window.Overlay && Overlay.data) || window.TEST_DATA || {};
 const LIST = window.MM_LIST; // wird von werkzeuge/build.mjs eingesetzt
+if (D.leistungSparen !== false) document.body.classList.add('leicht');
 const num = (v, d) => (v === '' || v == null || isNaN(Number(v)) ? d : Number(v));
 const on = (k, d = true) => (D[k] === undefined ? d : !!D[k]);
 

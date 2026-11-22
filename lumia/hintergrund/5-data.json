@@ -5,6 +5,7 @@
   "video": "",
   "zockVideo": "",
   "tempo": 100,
+  "leistungSparen": true,
   "abdunkeln": 0,
   "uebergangMs": 1400,
   "musikAn": true,

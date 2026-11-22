@@ -4,7 +4,10 @@
 const D = (window.Overlay && Overlay.data) || window.TEST_DATA || {};
 const num = (x, d) => (x === '' || x == null || isNaN(Number(x)) ? d : Number(x));
 const vP = document.getElementById('bgParty'), vZ = document.getElementById('bgZock');
-const cv = document.getElementById('stage'), cx = cv.getContext('2d');
+const bg = document.getElementById('bg'), dimZ = document.getElementById('dimZ'), dimEl = document.getElementById('dim');
+const cv = { width: innerWidth, height: innerHeight };
+let letzterStand = '';
+if (D.leistungSparen !== false) document.body.classList.add('leicht');
 const m = document.getElementById('music');
 const QUER = /-quer\b|format=quer/.test(location.pathname + location.search) ? true : /-hoch\b|format=hoch/.test(location.pathname + location.search) ? false : innerWidth > innerHeight;
 const pick = (hoch, quer) => (QUER && quer ? quer : hoch);
@@ -48,7 +51,7 @@ if (D.musikAn !== false && D.musik && !(window.MM_MUSIK)) { m.src = D.musik; m.l
 let mode = D.modus === 'zocken' ? 'zocken' : 'party';
 let t = mode === 'zocken' ? 1 : 0;
 const DUR = num(D.uebergangMs, 1400);
-function resize() { cv.width = innerWidth; cv.height = innerHeight; }
+function resize() { cv.width = innerWidth; cv.height = innerHeight; letzterStand = ''; }
 addEventListener('resize', resize); resize();
 function cover(v) {
   if (!v.videoWidth) return null;
@@ -79,41 +82,27 @@ function rect(w) {
   return { x: cv.width * num(w.g('X'), 50) / 100 - W / 2, y: cv.height * num(w.g('Y'), 40) / 100 - H / 2, w: W, h: H };
 }
 let last = performance.now();
-let letztesZeichnen = 0;
+
+const rr = (x, y, w, h, r) => { r = Math.max(0, Math.min(r, w / 2, h / 2)); const f = v => v.toFixed(1);
+  return `M${f(x + r)} ${f(y)}H${f(x + w - r)}A${r} ${r} 0 0 1 ${f(x + w)} ${f(y + r)}V${f(y + h - r)}A${r} ${r} 0 0 1 ${f(x + w - r)} ${f(y + h)}H${f(x + r)}A${r} ${r} 0 0 1 ${f(x)} ${f(y + h - r)}V${f(y + r)}A${r} ${r} 0 0 1 ${f(x + r)} ${f(y)}Z`; };
 function draw(now) {
-  // Leistung: die Hintergrund-Videos haben 25 Bilder/s – öfter als ~30× pro Sekunde zu zeichnen kostet nur Rechenzeit
-  const imUebergang = t !== (mode === 'zocken' ? 1 : 0) || WIN.some(w => w.t !== (want(w) ? 1 : 0));
-  if (!imUebergang && now - letztesZeichnen < 32) { requestAnimationFrame(draw); return; }
-  letztesZeichnen = now;
+  requestAnimationFrame(draw);
   const dt = Math.min(100, now - last); last = now;
   const target = mode === 'zocken' ? 1 : 0;
   if (t !== target) t = target > t ? Math.min(1, t + dt / DUR) : Math.max(0, t - dt / DUR);
-  const e = ease(t);
-  cx.globalCompositeOperation = 'source-over'; cx.globalAlpha = 1;
-  cx.clearRect(0, 0, cv.width, cv.height);
-  const cp = cover(vP);
-  if (cp && e < 1) cx.drawImage(vP, ...cp);
-  else if (!cp) { cx.fillStyle = '#120c1f'; cx.fillRect(0, 0, cv.width, cv.height); }
-  if (e > 0) {
-    cx.globalAlpha = e;
-    const cz = cover(vZ);
-    if (cz) cx.drawImage(vZ, ...cz);
-    else if (cp) { cx.drawImage(vP, ...cp); cx.fillStyle = 'rgba(5,10,40,.55)'; cx.fillRect(0, 0, cv.width, cv.height); }
-    cx.globalAlpha = 1;
-  }
-  const dim = num(D.abdunkeln, 0) / 100;
-  if (dim) { cx.fillStyle = `rgba(0,0,0,${dim})`; cx.fillRect(0, 0, cv.width, cv.height); }
+  for (const w of WIN) { const tw = want(w) ? 1 : 0; if (w.t !== tw) w.t = tw > w.t ? Math.min(1, w.t + dt / DUR) : Math.max(0, w.t - dt / DUR); }
+  const stand = t + '|' + WIN.map(w => w.t).join('|') + '|' + (vZ.videoWidth ? 1 : 0);
+  if (stand === letzterStand) return;   // nichts geändert → nichts tun (Videos laufen von selbst)
+  letzterStand = stand;
+  const e = ease(t), hatZ = !!vZ.getAttribute('src');
+  vP.style.opacity = e < 1 || !hatZ ? 1 : 0;
+  vZ.style.opacity = hatZ ? e : 0;
+  dimZ.style.opacity = hatZ ? 0 : e;                       // ohne Zock-Video: Party-Video abgedunkelt
+  dimEl.style.opacity = num(D.abdunkeln, 0) / 100;
+  let loch = '';
   for (const w of WIN) {
-    const tw = want(w) ? 1 : 0;
-    if (w.t !== tw) w.t = tw > w.t ? Math.min(1, w.t + dt / DUR) : Math.max(0, w.t - dt / DUR);
     const s = ease(w.t), r = rect(w);
-    if (s > 0.02) {
-      const ww = r.w * s, hh = r.h * Math.min(1, s * 1.15);
-      // Loch immer voll deckend ausschneiden (vorher erbte es die halbtransparente Abdunkel-Farbe → Schleier über dem Spiel)
-      cx.globalCompositeOperation = 'destination-out'; cx.globalAlpha = 1; cx.fillStyle = '#000';
-      cx.beginPath(); cx.roundRect(r.x + (r.w - ww) / 2, r.y + (r.h - hh) / 2, ww, hh, num(w.g('Rund'), 24)); cx.fill();
-      cx.globalCompositeOperation = 'source-over';
-    }
+    if (s > 0.02) { const ww = r.w * s, hh = r.h * Math.min(1, s * 1.15); loch += rr(r.x + (r.w - ww) / 2, r.y + (r.h - hh) / 2, ww, hh, num(w.g('Rund'), 24)); }
     const shown = s > 0.97;
     Object.assign(w.frame.style, { left: r.x - 6 + 'px', top: r.y - 6 + 'px', width: r.w + 'px', height: r.h + 'px' });
     w.frame.classList.toggle('show', shown && w.g('Rahmen') !== false);
@@ -123,14 +112,16 @@ function draw(now) {
     w.tag.style.left = (bx + r.w * num(w.g('SchildX'), 0) / 100) + 'px';
     w.tag.style.top = Math.max(8, r.y - 50 + cv.height * num(w.g('SchildY'), 0) / 100) + 'px';
     w.tag.classList.toggle('show', shown && !!w.g('Schild'));
+    if (shown && w.g('Schild') && !tagW) letzterStand = '';  // Schildbreite erst nach dem Einblenden bekannt
   }
-  requestAnimationFrame(draw);
+  // Loch (Spielfenster) voll durchsichtig ausschneiden
+  bg.style.clipPath = loch ? `path(evenodd, "M0 0H${cv.width}V${cv.height}H0Z${loch}")` : '';
 }
 requestAnimationFrame(draw);
 function setMode(v) {
   const next = String(v || '').toLowerCase() === 'zocken' ? 'zocken' : 'party';
   if (next !== mode && D.modusSound) { try { const a = new Audio(D.modusSound); a.volume = Math.min(1, num(D.modusSoundLaut, 80) / 100); a.play().catch(() => {}); } catch (e) {} }
-  mode = next;
+  mode = next; letzterStand = '';
 }
 async function poll() {
   try { if (window.Overlay && Overlay.getVariable) { const v = await Overlay.getVariable('mm_modus'); if (v) setMode(v); } } catch (e) {}
@@ -143,6 +134,7 @@ function setSpiel(sp) {
   curSpiel = sp;
   const src = (sp && pick(sp.video, sp.videoQuer)) || zockDefault;
   if (src && vZ.getAttribute('src') !== src) { vZ.src = src; vZ.play().catch(() => {}); }
+  letzterStand = '';
 }
 if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');

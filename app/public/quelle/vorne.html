@@ -111,6 +111,12 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
 .chat-msg.weg { opacity: 0; }
 @keyframes chatIn { from { opacity: 0; transform: translateX(-1em); } }
 .pf-youtube { background: #ff0033; } .pf-kick { background: #1fcf4a; color: #000; } .pf-facebook { background: #1877f2; } .pf-trovo { background: #19d65c; color: #000; } .pf-chat { background: #555; }
+
+/* Leistungsmodus: keine Dauer-Animationen, die jedes Bild neu gezeichnet werden müssen (Farbverlauf-Fluss, drehender Leuchtrahmen) */
+body.leicht .banner span { animation: none; }
+body.leicht .banner.hype span { animation: hype .5s ease-out 3; }
+body.leicht .sp-glow { animation: none; }
+body.leicht .scene-title, body.leicht .scene-sub { animation-duration: 0s !important; }
 </style></head>
 <body><div id="banner" class="banner"><span id="bannerText">MichaModus</span></div>
 <canvas id="fx"></canvas>
@@ -182,6 +188,7 @@ MM_START(function () {
 
 const D = (window.Overlay && Overlay.data) || window.TEST_DATA || {};
 const LIST = window.MM_LIST; // wird von werkzeuge/build.mjs eingesetzt
+if (D.leistungSparen !== false) document.body.classList.add('leicht');
 const num = (v, d) => (v === '' || v == null || isNaN(Number(v)) ? d : Number(v));
 const on = (k, d = true) => (D[k] === undefined ? d : !!D[k]);
 

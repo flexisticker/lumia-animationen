@@ -84,6 +84,18 @@
   },
   "order": 6
  },
+ "leistungSparen": {
+  "type": "checkbox",
+  "label": "Leistungsmodus (Leuchtschein am Fenster steht still – flüssiger im Live)",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 6
+ },
  "abdunkeln": {
   "type": "slider",
   "label": "Abdunkeln",
