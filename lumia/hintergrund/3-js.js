@@ -42,7 +42,9 @@ const ease = x => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
 // Fenster 1 und 2
 const WIN = [1, 2].map(n => {
-  const g = k => D['f' + n + k];
+  // Querformat-Quelle (…-quer): eigene Lage/Größe/Format/Wann, wenn „eigene Lage“ an ist (Hochkant und Quer getrennt einstellbar)
+  const QK = ['Wann', 'X', 'Y', 'Breite', 'Hoehe', 'Format'];
+  const g = k => (QUER && D['f' + n + 'QuerEigen'] !== false && QK.includes(k) && D['f' + n + 'Q' + k] !== undefined && D['f' + n + 'Q' + k] !== '') ? D['f' + n + 'Q' + k] : D['f' + n + k];
   const frame = document.getElementById('frame' + n), tag = document.getElementById('tag' + n);
   frame.style.setProperty('--f1', g('Farbe1') || '#00e5ff'); frame.style.setProperty('--f2', g('Farbe2') || '#7c4dff'); frame.style.setProperty('--f3', g('Farbe3') || '#ff3d7f');
   frame.style.setProperty('--r', num(g('Rund'), 24) + 'px');
