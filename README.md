@@ -58,8 +58,8 @@ Videos und Musik: erzeugt mit fal.ai (MiniMax H3 Max, LTX 2.5, ElevenLabs Music)
 Bei jedem Push auf `main` baut GitHub den Container `ghcr.io/flexisticker/michamodus-medien:latest` – er enthält `medien/`
 und die fertigen Overlay-Dateien (`/lumia/...`). Neue Animationen = Docker-Update in Unraid, nichts kopieren.
 
-1. Vorlage `unraid/michamodus-medien.xml` als Container anlegen, Port 8099 (Unraid ist bei ghcr.io schon angemeldet).
-2. Test: `http://192.168.1.10:8099/animationen/rose.mp4`.
-3. Lumia-Overlays laufen über **https** → NPM-Proxy-Host, z. B. `medien.flexisticker.de` → `192.168.1.10:8099` (Let's Encrypt, „Nur Heimnetz“).
+1. Vorlage `unraid/michamodus-medien.xml` als Container anlegen, Port 8120 (Unraid ist bei ghcr.io schon angemeldet).
+2. Test: `http://192.168.1.10:8120/animationen/rose.mp4`.
+3. Lumia-Overlays laufen über **https** → NPM-Proxy-Host, z. B. `medien.flexisticker.de` → `192.168.1.10:8120` (Let's Encrypt, „Nur Heimnetz“).
 4. In Lumia: Animationen → Allgemein & Ton → **Adresse der Videos** = `https://medien.flexisticker.de/animationen/`;
    Hintergrund: `…/hintergrund/party-schleife.mp4`, Musik: `…/musik/party-schleife-1.mp3`.

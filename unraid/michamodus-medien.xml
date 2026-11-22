@@ -9,5 +9,5 @@
   <Overview>Stellt die MichaModus-Videos, die Musik und die Lumia-Overlay-Dateien bereit. Neue Medien kommen per Docker-Update.</Overview>
   <Category>Tools:</Category>
   <WebUI>http://[IP]:[PORT:8080]/animationen/rose.mp4</WebUI>
-  <Config Name="Port" Target="8080" Default="8099" Mode="tcp" Description="Port im Heimnetz" Type="Port" Display="always" Required="true">8099</Config>
+  <Config Name="Port" Target="8080" Default="8120" Mode="tcp" Description="Port im Heimnetz" Type="Port" Display="always" Required="true">8120</Config>
 </Container>
