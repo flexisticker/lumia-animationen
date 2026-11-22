@@ -144,6 +144,18 @@ function next() {
     video.play().then(() => requestAnimationFrame(drawFrame)).catch(() => finish(item));
     video.onended = () => finish(item);
     video.onerror = () => finish(item);
+    // Absicherung: in OBS kommt „ended“ nicht immer (Ton minimal länger als Bild) → Bild blieb kurz vor Schluss stehen und die Warteschlange hing
+    let lastT = -1, standSeit = 0;
+    video.ontimeupdate = () => { if (video.duration && video.duration - video.currentTime < 0.12) finish(item); };
+    item.wache = setInterval(() => {
+      if (playing !== item) return clearInterval(item.wache);
+      const t = video.currentTime, d = video.duration || 0;
+      if (d && t >= d - 0.15) return finish(item);                       // am Ende angekommen
+      if (t === lastT && !video.paused) { if (!standSeit) standSeit = performance.now(); else if (performance.now() - standSeit > 1500) return finish(item); }
+      else standSeit = 0;                                                  // steht 1,5 s still → beenden
+      lastT = t;
+    }, 250);
+    item.notaus = setTimeout(() => finish(item), Math.max(4, num(D.maxAnimSekunden, 15)) * 1000); // spätestens nach 15 s
   } else {
     setTimeout(() => finish(item), num(D.anzeigeSekunden, 5) * 1000);
   }
@@ -193,7 +205,10 @@ function stopNow(item) {
 }
 function finish(item) {
   if (playing !== item) return;
-  video.onended = video.onerror = null;
+  video.onended = video.onerror = video.ontimeupdate = null;
+  clearInterval(item.wache); clearTimeout(item.notaus);
+  if (!video.paused) video.pause();
+  if (gl) { gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); }
   if (item.card) { const c = item.card; c.classList.add('out'); setTimeout(() => c.remove(), 500); }
   setTimeout(() => { playing = null; next(); }, num(D.pauseMs, 250));
 }
