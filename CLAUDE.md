@@ -62,3 +62,4 @@
   **Like-Fontäne:** TikTok-Likes = genau 1 Herz je Like (gestaffelt, max. `likeMax`, Schalter `likeEinsZuEins`); Knopf/Ansagen weiter als Schwall (`likeMenge`).
 - 22.11.2026 abends: fal-Medien nachgeliefert: hintergrund/spiele/talk(-quer).mp4 (Lounge), hintergrund/brb(-quer).mp4 (leerer Gaming-Stuhl), hintergrund/technik(-quer).mp4
   (Reparatur-Roboter + Testbild), sounds/brb.mp3, sounds/technik.mp3, Stadion-Airhorn als neue Tonspur in animationen/airhorn(-quer).mp4 (ElevenLabs SFX, loudnorm -14).
+- ElevenLabs-Fehler werden jetzt ausgewertet (`elFehler`: missing_permissions → Hinweis auf Berechtigungen „Text to Speech“ + „Voices lesen“, invalid_api_key → neu kopieren, Kontingent), Schlüssel wird von Leerzeichen/Anführungszeichen bereinigt, Stimmen-ID auch von Hand eintragbar (falls nur TTS-Recht).

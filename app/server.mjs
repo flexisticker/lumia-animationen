@@ -98,6 +98,18 @@ let secret = readJson(SECRET_FILE, {});
 saved.tts ||= { stimme: '', stimmeName: '', modell: 'eleven_multilingual_v2', stabil: 50, aehnlich: 75 };
 const TTS_BASE = process.env.NODE_ENV !== 'production' && process.env.TTS_BASE ? process.env.TTS_BASE : 'https://api.elevenlabs.io';
 const ttsLaufend = new Map(); let ttsMinute = 0, ttsZaehler = 0;
+// ElevenLabs-Fehler verständlich machen (z. B. fehlende Berechtigung beim API-Schlüssel statt pauschal „ungültig“)
+async function elFehler(r) {
+  let d = {}; try { d = JSON.parse(await r.text()); } catch {}
+  const det = d.detail || {}, st = String(det.status || det.code || ''), msg = String(det.message || (typeof d.detail === 'string' ? d.detail : '') || '');
+  if (/missing_permissions/.test(st) || /permission/i.test(msg)) {
+    const perm = (msg.match(/permission[s]?\s+([a-z_]+)/i) || [])[1] || '';
+    return 'ElevenLabs: Dem API-Schlüssel fehlt eine Berechtigung' + (perm ? ' („' + perm + '“)' : '') + '. In ElevenLabs unter Developers → API Keys beim Schlüssel „Text to Speech“ und „Voices: Lesen“ erlauben (oder „Uneingeschränkt“).';
+  }
+  if (/invalid_api_key|unauthorized/i.test(st) || r.status === 401) return 'ElevenLabs: Schlüssel wird nicht akzeptiert (' + (st || r.status) + (msg ? ': ' + msg.slice(0, 120) : '') + '). Bitte neu kopieren – ohne Leerzeichen.';
+  if (/quota|credits/i.test(st + msg)) return 'ElevenLabs: Kontingent/Zeichen aufgebraucht (' + msg.slice(0, 120) + ')';
+  return 'ElevenLabs ' + r.status + (st ? ' ' + st : '') + (msg ? ': ' + msg.slice(0, 160) : '');
+}
 async function tts(text) {
   text = String(text || '').replace(/[\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 220);
   if (!text) throw Object.assign(new Error('Kein Text'), { code: 400 });
@@ -113,7 +125,7 @@ async function tts(text) {
       method: 'POST', headers: { 'xi-api-key': secret.elevenlabsKey, 'content-type': 'application/json', accept: 'audio/mpeg' },
       body: JSON.stringify({ text, model_id: t.modell || 'eleven_multilingual_v2', voice_settings: { stability: (Number(t.stabil) || 50) / 100, similarity_boost: (Number(t.aehnlich) || 75) / 100 } }),
       signal: AbortSignal.timeout(20000) });
-    if (!r.ok) { const e = await r.text().catch(() => ''); throw Object.assign(new Error('ElevenLabs ' + r.status + (r.status === 401 ? ': Schlüssel ungültig' : '') + ' ' + e.slice(0, 160)), { code: 502 }); }
+    if (!r.ok) throw Object.assign(new Error(await elFehler(r)), { code: 502 });
     const buf = Buffer.from(await r.arrayBuffer()); fs.writeFileSync(file + '.tmp', buf); fs.renameSync(file + '.tmp', file);
     // Zwischenspeicher klein halten: höchstens 500 Sätze
     const alle = fs.readdirSync(TTS_DIR).filter(f => f.endsWith('.mp3')).map(f => ({ f, t: fs.statSync(path.join(TTS_DIR, f)).mtimeMs })).sort((a, b) => a.t - b.t);
@@ -428,7 +440,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/tts/einstellungen' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
-      if (typeof b.schluessel === 'string' && b.schluessel.trim()) { secret.elevenlabsKey = b.schluessel.trim(); writeJson(SECRET_FILE, secret); }
+      if (typeof b.schluessel === 'string' && b.schluessel.trim()) { secret.elevenlabsKey = b.schluessel.replace(/[\s"'`]/g, ''); writeJson(SECRET_FILE, secret); }
       if (b.schluesselLoeschen) { delete secret.elevenlabsKey; writeJson(SECRET_FILE, secret); }
       for (const k of ['stimme', 'stimmeName', 'modell']) if (typeof b[k] === 'string') saved.tts[k] = b[k].slice(0, 100);
       for (const k of ['stabil', 'aehnlich']) if (b[k] !== undefined) saved.tts[k] = Math.max(0, Math.min(100, Number(b[k]) || 0));
@@ -438,7 +450,7 @@ const server = http.createServer(async (req, res) => {
       if (!secret.elevenlabsKey) return json(res, 409, { fehler: 'Erst den ElevenLabs-Schlüssel speichern' });
       try {
         const r = await fetch(TTS_BASE + '/v1/voices', { headers: { 'xi-api-key': secret.elevenlabsKey }, signal: AbortSignal.timeout(15000) });
-        if (!r.ok) return json(res, 502, { fehler: 'ElevenLabs ' + r.status + (r.status === 401 ? ': Schlüssel ungültig' : '') });
+        if (!r.ok) return json(res, 502, { fehler: await elFehler(r) });
         const d = await r.json();
         return json(res, 200, { stimmen: (d.voices || []).map(v => ({ id: v.voice_id, name: v.name, art: v.category || '', sprache: (v.labels && (v.labels.language || v.labels.accent)) || '', probe: v.preview_url || '' })) });
       } catch (e) { return json(res, 502, { fehler: 'ElevenLabs nicht erreichbar' }); }

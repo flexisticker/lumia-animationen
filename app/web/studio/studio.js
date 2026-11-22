@@ -69,7 +69,9 @@ function sprachePage(m) {
     info.textContent = d.stimmen.length + ' Stimmen geladen'; };
   m.append(h('div', { class: 'card' },
     field('ElevenLabs-Schlüssel', key), h('div', { class: 'row' }, h('button', { class: 'b', onclick: laden }, 'Stimmen laden'), info),
-    field('Stimme', stimme), field('Modell', modell), field('Stabilität (links = lebendiger)', stabil), field('Ähnlichkeit zur Stimme', aehnlich),
+    field('Stimme', stimme),
+    field('… oder Stimmen-ID von Hand (aus ElevenLabs → Voices → „ID kopieren“)', h('input', { type: 'text', placeholder: 'z. B. 21m00Tcm4TlvDq8ikWAM', oninput: e => { const v = e.target.value.trim(); if (!v) return; let o = [...stimme.options].find(x => x.value === v); if (!o) { o = h('option', { value: v }, 'Eigene ID: ' + v); stimme.append(o); } stimme.value = v; } })),
+    field('Modell', modell), field('Stabilität (links = lebendiger)', stabil), field('Ähnlichkeit zur Stimme', aehnlich),
     h('div', { class: 'row', style: 'margin-top:12px' },
       h('button', { class: 'b p', onclick: async () => { await speichern(); key.value = ''; info.textContent = 'gespeichert'; S = await fetch('/api/settings').then(r => r.json()); } }, 'Speichern'),
       T.schluessel ? h('button', { class: 'b', onclick: async () => { if (confirm('Schlüssel löschen?')) { await post('/api/tts/einstellungen', { schluesselLoeschen: true }); await reload(); } } }, 'Schlüssel löschen') : null)),
