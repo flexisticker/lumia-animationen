@@ -160,6 +160,14 @@ function settingsPage(bereich, title, hint) {
     m.append(h('div', { class: 'tabs' }, ...Object.entries(groupField.options).map(([k, l]) => h('button', { class: k === cur ? 'on' : '', onclick: () => { page.tab[bereich] = k; render(); } }, l))));
     fields = fields.filter(([, f]) => !f.visibleIf || [].concat(f.visibleIf.equals).includes(cur));
   }
+  // Warnung: Reiter für ein Format, für das gerade keine Quelle verbunden ist (häufigster Grund für „es ändert sich nichts“)
+  if (bereich === 'hinten' && /^f[12]q?$/.test(page.tab[bereich] || '')) {
+    const t = page.tab[bereich], quer = t.endsWith('q'), ql = (S.quellenListe || []).filter(q => q.rolle === 'hinten');
+    const passend = ql.filter(q => q.format === (quer ? 'quer' : 'hoch')).length, andere = ql.length - passend;
+    if (!passend) m.append(h('div', { class: 'card warnbox' }, h('b', {}, '⚠ Keine ' + (quer ? 'Quer-' : 'Hochkant-') + 'Quelle verbunden'),
+      h('p', {}, 'Änderungen in diesem Reiter siehst du nur in einer Quelle mit der Adresse ', h('code', {}, location.origin + '/quelle/hinten-' + (quer ? 'quer' : 'hoch')), '. ',
+        andere ? 'Deine verbundene Quelle ist ' + (quer ? 'hochkant' : 'quer') + ' – stell im Reiter „' + (quer ? t.slice(0, 2) === 'f1' ? 'Spielfenster – TikTok (hochkant)' : 'Fenster 2 – hochkant' : t === 'f1' ? 'Spielfenster – Twitch (quer)' : 'Fenster 2 – quer') + '“ ein oder ändere in OBS die Adresse der Quelle.' : 'Gerade ist gar keine Hintergrund-Quelle verbunden (OBS offen?).')));
+  }
   const card = h('div', { class: 'card' }); for (const [k, f] of fields) card.append(field(f.label, control(bereich, k, f)));
   m.append(card, h('div', { class: 'row' }, h('button', { class: 'b', onclick: async () => { if (confirm('Alle Einstellungen dieses Bereichs auf Standard zurücksetzen?')) { await post('/api/settings', { reset: bereich }); await reload(); } } }, 'Alles auf Standard')));
 }
