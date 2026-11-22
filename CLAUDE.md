@@ -60,3 +60,5 @@
 - 22.11.2026: **Modus → OBS-Szene mit Rückmeldung:** `setModus` liefert den OBS-Stand (`OK:<Szene>` oder Grund: Kopplung aus, „steuern“ aus, keine Szene eingestellt,
   nicht verbunden, Szene unbekannt), `/api/modus` gibt ihn als `obs` zurück, Steuerung zeigt ihn in der Statusanzeige (`obsMeldung`). Mit Mock-OBS geprüft: Party ↔ Zocken schaltet.
   **Like-Fontäne:** TikTok-Likes = genau 1 Herz je Like (gestaffelt, max. `likeMax`, Schalter `likeEinsZuEins`); Knopf/Ansagen weiter als Schwall (`likeMenge`).
+- 22.11.2026 abends: fal-Medien nachgeliefert: hintergrund/spiele/talk(-quer).mp4 (Lounge), hintergrund/brb(-quer).mp4 (leerer Gaming-Stuhl), hintergrund/technik(-quer).mp4
+  (Reparatur-Roboter + Testbild), sounds/brb.mp3, sounds/technik.mp3, Stadion-Airhorn als neue Tonspur in animationen/airhorn(-quer).mp4 (ElevenLabs SFX, loudnorm -14).
