@@ -279,11 +279,26 @@ let playing = null;
 function entryById(id) { return LIST.find(a => a.id === id); }
 // Format der Quelle: Adresse …-quer / …-hoch (bzw. ?format=), sonst nach Fenstergröße
 const FORMAT = /-quer\b|format=quer/.test(location.pathname + location.search) ? 'quer' : /-hoch\b|format=hoch/.test(location.pathname + location.search) ? 'hoch' : (innerWidth > innerHeight ? 'quer' : 'hoch');
-function videoFor(a) {
+function videoUrl(a) {
   const m = D.medienAdresse || '';
   if (FORMAT === 'quer') { if (D['vq_' + a.id]) return D['vq_' + a.id]; if (!D['v_' + a.id] && a.quer) return m + a.quer; }
   return D['v_' + a.id] || (a.datei && m + a.datei) || '';
 }
+// Vorladen: alle Animationen dieses Formats einmal in den Speicher holen → beim Abspielen kein Nachladen übers Netz
+// (im Live ist das Netz durch den Stream-Upload belegt, dann blieb das Video beim Puffern stehen)
+const vorrat = new Map();
+function videoFor(a) { const u = videoUrl(a); return (u && vorrat.get(u)) || u; }
+async function vorladen() {
+  if (D.vorladenAn === false) return;
+  const urls = [...new Set(LIST.filter(enabled).map(videoUrl).filter(Boolean))];
+  for (const u of urls) {
+    if (vorrat.has(u)) continue;
+    while (playing) await new Promise(r => setTimeout(r, 500)); // nicht während einer Animation laden
+    try { const r = await fetch(u); if (r.ok) vorrat.set(u, URL.createObjectURL(await r.blob())); } catch (e) {}
+    await new Promise(r => setTimeout(r, 150));
+  }
+}
+setTimeout(vorladen, 2000);
 function enabled(a) { return on('an_' + a.id, true); }
 
 function enqueue(item) {

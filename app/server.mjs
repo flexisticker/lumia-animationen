@@ -364,7 +364,7 @@ function sendFile(req, res, file) {
     if (err || !st.isFile()) { res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' }); return res.end('Nicht gefunden'); }
     const type = TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream';
     const head = { 'content-type': type, 'access-control-allow-origin': '*', 'accept-ranges': 'bytes',
-      'cache-control': /\.(mp4|webm|mp3|png|jpg)$/i.test(file) ? 'public, max-age=3600' : 'no-cache' };
+      'cache-control': /\.(mp4|webm|mp3|png|jpg)$/i.test(file) ? 'public, max-age=86400' : 'no-cache' };
     const range = req.headers.range && /bytes=(\d*)-(\d*)/.exec(req.headers.range);
     if (range) {
       const start = range[1] ? Number(range[1]) : 0, end = range[2] ? Math.min(Number(range[2]), st.size - 1) : st.size - 1;
