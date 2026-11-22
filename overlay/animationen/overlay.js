@@ -207,6 +207,7 @@ function handleAlert(data) {
 // optional JSON {"id":"airhorn","name":"Sandra","text":"gewinnt!"}
 function handleContent(raw) {
   let c = raw; try { c = JSON.parse(raw); } catch (e) { c = { id: String(raw).trim() }; }
+  if (String(c.id).startsWith('modus:') || String(raw).startsWith('modus:')) return;
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
   if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
   const anim = entryById(c.id);
@@ -282,4 +283,4 @@ function showScene(id) {
   if (secs) sceneTimer = setTimeout(() => scene.classList.remove('show'), secs * 1000);
 }
 
-window.MM = { handleAlert, handleContent, likeBurst, showScene }; // für Testseite
+window.MM = { handleAlert, handleContent, likeBurst, showScene, busy: () => !!playing || queue.length > 0 || scene.classList.contains('show') };

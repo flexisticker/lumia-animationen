@@ -3,6 +3,7 @@
 // Der Befehl schickt {{aktion}} per „Overlay: Inhalt senden“ an das Overlay „MichaModus – Animationen“.
 const D = (window.Overlay && Overlay.data) || window.TEST_DATA || {};
 const statusEl = document.getElementById('status');
+if (document.documentElement.dataset.rolle === 'aktion') document.getElementById('admin').style.display = '';
 document.getElementById('titel').textContent = D.titel || 'MichaModus · Aktionszentrale';
 const nameIn = document.getElementById('name');
 if (D.nameFeld === false) document.getElementById('nameRow').style.display = 'none';

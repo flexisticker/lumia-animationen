@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MichaModus Studio</title><link rel="icon" href="/icon.png">
+<style>
+:root{--bg:#120c1f;--side:#17102a;--card:#1e1631;--line:#3a2d5c;--text:#fff;--muted:#b9a8e6;--c1:#ff3d7f;--c2:#7c4dff;--c3:#ffd54f;--ok:#7dffb0;--err:#ff8a8a}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+aside{background:var(--side);border-right:1px solid var(--line);padding:16px 12px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;gap:10px;align-items:center;margin-bottom:18px}.brand img{width:40px;height:40px;border-radius:10px}
+.brand b{font-size:18px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));-webkit-background-clip:text;background-clip:text;color:transparent}
+nav button{display:block;width:100%;text-align:left;margin:2px 0;padding:9px 12px;border-radius:10px;border:0;background:none;color:var(--muted);font:inherit;cursor:pointer}
+nav button.on,nav button:hover{background:var(--card);color:var(--text)}
+nav a.steuer{display:block;text-align:center;margin:0 0 14px;padding:14px;border-radius:14px;font-weight:700;font-size:17px;color:#fff;text-decoration:none;background:linear-gradient(90deg,var(--c1),var(--c2))}
+nav .sub{padding-left:24px;font-size:14px}
+main{padding:22px 26px 80px;max-width:1100px;width:100%}
+h1{margin:0 0 4px;font-size:24px}h2{margin:26px 0 10px;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+p.hint{color:var(--muted);margin:4px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.f{display:grid;grid-template-columns:260px 1fr;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid #2a2045}.f:last-child{border-bottom:0}
+.f label{color:var(--muted)}
+input[type=text],input[type=number],input[type=password],textarea,select{width:100%;font:inherit;color:var(--text);background:#140e24;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+textarea{min-height:90px;resize:vertical}input[type=range]{width:calc(100% - 70px);vertical-align:middle}.val{display:inline-block;width:64px;text-align:right;color:var(--muted)}
+input[type=color]{width:56px;height:34px;border:1px solid var(--line);border-radius:8px;background:none;padding:2px}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--c2)}
+button.b{font:inherit;cursor:pointer;color:var(--text);background:#2a1f45;border:1px solid var(--line);border-radius:10px;padding:8px 14px}
+button.b:hover{border-color:var(--c2)}button.p{background:linear-gradient(90deg,var(--c1),var(--c2));border:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pill{display:inline-block;padding:4px 12px;border-radius:99px;border:1px solid var(--line);font-size:13px}
+.pill.ok{color:var(--ok);border-color:#2f7a52}.pill.err{color:var(--err);border-color:#7a2f2f}.pill.warn{color:var(--c3);border-color:#7a6a2f}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}.tabs button{padding:7px 12px;border-radius:99px;border:1px solid var(--line);background:none;color:var(--muted);cursor:pointer;font:inherit}
+.tabs button.on{background:var(--c2);border-color:var(--c2);color:#fff}
+.media{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.media video{width:72px;height:128px;object-fit:cover;border-radius:8px;background:#000;cursor:pointer}
+.media code{color:var(--muted);font-size:12px;word-break:break-all;flex:1;min-width:160px}
+.anims{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.anim{background:#140e24;border:1px solid var(--line);border-radius:12px;overflow:hidden}.anim video{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;background:#000}
+.anim .m{padding:8px}.anim b{display:block;font-size:14px}
+.log{font-size:13px;color:var(--muted);max-height:260px;overflow:auto}.log div{padding:4px 0;border-bottom:1px solid #2a2045}
+.copy{display:flex;gap:8px;align-items:center}.copy code{flex:1;background:#140e24;border:1px solid var(--line);border-radius:8px;padding:7px 10px;word-break:break-all}
+.save{position:fixed;right:20px;bottom:20px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px;display:none;gap:10px;align-items:center;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.save.show{display:flex}
+@media(max-width:860px){.app{grid-template-columns:1fr}aside{position:static;height:auto}.f{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}main{padding:16px}}
+</style></head><body>
+<div class="app"><aside><div class="brand"><img src="/icon.png" alt=""><b>MichaModus Studio</b></div><nav id="nav"></nav></aside>
+<main id="main"></main></div>
+<div class="save" id="save"><span>Änderungen werden gespeichert …</span></div>
+<script src="/studio/studio.js"></script>
+</body></html>

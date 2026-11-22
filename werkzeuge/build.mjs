@@ -116,3 +116,25 @@ const hcfg = JSON.parse(read('overlay/hintergrund/configs.json'));
 fs.writeFileSync(out + 'hintergrund/5-data.json', JSON.stringify(Object.fromEntries(Object.entries(hcfg).map(([k, f]) => [k, f.value ?? ''])), null, 2));
 fs.writeFileSync(out + 'index.html', read('overlay/startseite/index.html').replace('<script>', '<script>window.MM_LIST = ' + JSON.stringify(mmList) + ';</script>\n<script>'));
 console.log(`Fertig: ${items.length} Animationen, ${Object.keys(cfg).length} Einstellungen`);
+
+// ---------- MichaModus Studio (eigenes Programm) ----------
+const A = R + 'app/public/';
+for (const d of ['studio', 'quelle', 'aktion', 'schema']) fs.mkdirSync(A + d, { recursive: true });
+const shim = read('app/web/shim.js');
+const tpl = read('app/web/quelle.html');
+const page = (rolle, titel, dir, tests) => tpl.replace('__ROLLE__', rolle).replace('__TITEL__', titel)
+  .replace('__CSS__', () => read(`overlay/${dir}/overlay.css`)).replace('__HTML__', () => read(`overlay/${dir}/overlay.html`))
+  .replace('__SHIM__', () => shim).replace('__LIST__', () => JSON.stringify(mmList)).replace('__TESTS__', () => JSON.stringify(tests || []))
+  .replace('__JS__', () => read(`overlay/${dir}/overlay.js`));
+fs.writeFileSync(A + 'quelle/vorne.html', page('vorne', 'MichaModus – vorne', 'animationen'));
+fs.writeFileSync(A + 'quelle/hinten.html', page('hinten', 'MichaModus – hinten', 'hintergrund'));
+fs.writeFileSync(A + 'aktion/index.html', page('aktion', 'MichaModus – Steuerung', 'aktionszentrale',
+  knoepfe.filter(a => a.gruppe !== 'knopf').map(a => ({ id: a.id, label: a.label })))
+  .replace('<head>', '<head><link rel="icon" href="/icon.png"><link rel="manifest" href="/aktion/manifest.json"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#120c1f"><link rel="apple-touch-icon" href="/icon.png">'));
+fs.writeFileSync(A + 'aktion/manifest.json', JSON.stringify({ name: 'MichaModus Steuerung', short_name: 'MichaModus', start_url: '/aktion', display: 'standalone', background_color: '#120c1f', theme_color: '#120c1f', icons: [{ src: '/icon.png', sizes: '256x256', type: 'image/png' }] }));
+for (const f of ['index.html', 'studio.js']) fs.writeFileSync(A + 'studio/' + f, read('app/web/studio/' + f));
+fs.writeFileSync(A + 'schema/vorne-data.json', JSON.stringify(data));
+fs.writeFileSync(A + 'schema/aktion-data.json', JSON.stringify(Object.fromEntries(Object.entries(acfg).map(([k, f]) => [k, f.value]))));
+fs.writeFileSync(A + 'schema/hinten-data.json', JSON.stringify(Object.fromEntries(Object.entries(hcfg).map(([k, f]) => [k, f.value ?? '']))));
+fs.writeFileSync(A + 'schema/schema.json', JSON.stringify({ vorne: cfg, hinten: hcfg, aktion: acfg, liste: mmList }));
+console.log('Studio gebaut: app/public');

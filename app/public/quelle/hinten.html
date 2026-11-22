@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="de" data-rolle="hinten"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MichaModus – hinten</title><style>/* MichaModus – Hintergrund mit Zockmodus (hinter dem freigestellten Kamerabild) */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap');
+html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+video { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+#stage { position: fixed; inset: 0; width: 100%; height: 100%; }
+/* Leuchtrahmen um die Spiel-Öffnung */
+.frame { position: fixed; pointer-events: none; opacity: 0; border-radius: var(--r, 24px);
+  transition: opacity .6s; --w: 6px; padding: var(--w);
+  background: conic-gradient(from var(--a, 0deg), var(--f1), var(--f2), var(--f3), var(--f1));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); animation: spin 4s linear infinite; }
+.frame.show { opacity: 1; }
+.frame-glow { position: absolute; inset: -18px; border-radius: inherit; filter: blur(18px); opacity: .7;
+  background: conic-gradient(from var(--a, 0deg), var(--f1), var(--f2), var(--f3), var(--f1)); z-index: -1; }
+@property --a { syntax: '<angle>'; inherits: true; initial-value: 0deg; }
+@keyframes spin { to { --a: 360deg; } }
+.tag { position: fixed; left: 50%; transform: translate(-50%, 0) scale(.6); padding: .4vh 2vh; border-radius: 99vh;
+  font: 800 2.6vh 'Baloo 2', system-ui, sans-serif; color: #fff; letter-spacing: .06em; opacity: 0; transition: opacity .5s, transform .6s cubic-bezier(.2,1.6,.4,1);
+  background: linear-gradient(90deg, var(--f1), var(--f2)); box-shadow: 0 0 2vh var(--f2); }
+.tag.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+</style></head>
+<body><video id="bgParty" muted loop playsinline crossorigin="anonymous"></video>
+<video id="bgZock" muted loop playsinline crossorigin="anonymous"></video>
+<canvas id="stage"></canvas>
+<div id="frame" class="frame"><div class="frame-glow"></div></div>
+<div id="tag" class="tag">🎮 ZOCKMODUS</div>
+<audio id="music" loop></audio>
+
+<script>// MichaModus Studio – Verbindung der Browserquellen/Seiten zum Programm (ersetzt die Lumia-Overlay-Schnittstelle)
+(function () {
+  const ROLE = document.documentElement.dataset.rolle; // vorne | hinten | aktion
+  const BEREICH = { vorne: 'vorne', hinten: 'hinten', aktion: 'aktion' }[ROLE];
+  const handlers = {};
+  const state = { modus: 'party' };
+  const post = (url, data) => fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-mm': '1' }, body: JSON.stringify(data) });
+  window.Overlay = {
+    data: {},
+    on(ev, cb) { (handlers[ev] ||= []).push(cb); },
+    async callCommand(cmd, vars) { const r = await post('/api/aktion', JSON.parse(vars.aktion)); if (!r.ok) throw new Error('Fehler'); },
+    async getVariable(name) { return name === 'mm_modus' ? state.modus : null; },
+    async setVariable(name, value) { if (name === 'mm_modus') { const r = await post('/api/modus', { modus: value }); if (!r.ok) throw new Error('Fehler'); } },
+    async saveStorage() {}, async getStorage() { return null; }, async deleteStorage() {},
+  };
+  const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
+  window.MM_START = async function (start) {
+    const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus;
+    start();
+    let busy = () => window.MM && window.MM.busy && window.MM.busy();
+    function connect() {
+      const es = new EventSource('/api/events?rolle=' + ROLE);
+      es.addEventListener('hallo', e => { state.modus = JSON.parse(e.data).modus; emit('overlaycontent', { content: 'modus:' + state.modus }); });
+      es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
+      es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
+      es.addEventListener('modus', e => { state.modus = JSON.parse(e.data).modus; emit('overlaycontent', { content: 'modus:' + state.modus }); });
+      es.addEventListener('settings', e => {
+        const d = JSON.parse(e.data); if (d.bereich !== BEREICH) return;
+        // Neue Einstellungen: Seite neu laden, sobald gerade nichts läuft
+        const reload = () => (busy() ? setTimeout(reload, 500) : location.reload());
+        setTimeout(reload, 150);
+      });
+      es.onerror = () => { es.close(); setTimeout(connect, 3000); };
+    }
+    connect();
+  };
+})();
+</script>
+<script>window.MM_LIST = [{"id":"rose","gruppe":"geschenk","match":["Rose","Rosa"],"datei":"rose.mp4","label":"Rose"},{"id":"gg","gruppe":"geschenk","match":["GG"],"datei":"gg.mp4","label":"GG"},{"id":"tiktok","gruppe":"geschenk","match":["TikTok"],"datei":"tiktok.mp4","label":"TikTok"},{"id":"fingerherz","gruppe":"geschenk","match":["Finger Heart","Fingerherz"],"datei":"fingerherz.mp4","label":"Fingerherz"},{"id":"teamherz","gruppe":"geschenk","match":["Team Heart","Teamherz","Heart Me"],"datei":"teamherz.mp4","label":"Teamherz"},{"id":"donut","gruppe":"geschenk","match":["Doughnut","Donut"],"datei":"donut.mp4","label":"Donut"},{"id":"parfuem","gruppe":"geschenk","match":["Perfume","Parfüm"],"datei":"parfuem.mp4","label":"Parfüm"},{"id":"handherzen","gruppe":"geschenk","match":["Hand Hearts","Hand-Herzen"],"datei":"handherzen.mp4","label":"Hand-Herzen"},{"id":"sonnenbrille","gruppe":"geschenk","match":["Sunglasses","Sonnenbrille"],"datei":"sonnenbrille.mp4","label":"Sonnenbrille"},{"id":"kanone","gruppe":"geschenk","match":["Money Gun","Confetti","Kanone","Konfetti"],"datei":"kanone.mp4","label":"Konfetti-Kanone"},{"id":"corgi","gruppe":"geschenk","match":["Corgi"],"datei":"corgi.mp4","label":"Corgi"},{"id":"kueken","gruppe":"geschenk","match":["Baby Chicks","Küken"],"datei":"kueken.mp4","label":"Küken"},{"id":"galaxie","gruppe":"geschenk","match":["Galaxy","Galaxie"],"datei":"galaxie.mp4","label":"Galaxie"},{"id":"loewe","gruppe":"geschenk","match":["Lion","Löwe"],"datei":"loewe.mp4","label":"Löwe"},{"id":"universum","gruppe":"geschenk","match":["Universe","Universum"],"datei":"universum.mp4","label":"Universum"},{"id":"stufe-klein","gruppe":"stufe","ab":1,"datei":"stufe-klein.mp4","label":"Stufe klein"},{"id":"stufe-mittel","gruppe":"stufe","ab":100,"datei":"stufe-mittel.mp4","label":"Stufe mittel"},{"id":"stufe-gross","gruppe":"stufe","ab":1000,"datei":"stufe-gross.mp4","label":"Stufe groß"},{"id":"stufe-episch","gruppe":"stufe","ab":10000,"datei":"stufe-episch.mp4","label":"Stufe episch"},{"id":"folgen","gruppe":"ereignis","datei":"folgen.mp4","label":"Neuer Follower"},{"id":"teilen","gruppe":"ereignis","datei":"teilen.mp4","label":"Live geteilt"},{"id":"superfan","gruppe":"ereignis","datei":"superfan.mp4","label":"Superfan"},{"id":"schatzkiste","gruppe":"ereignis","datei":"schatzkiste.mp4","label":"Schatzkiste"},{"id":"likeziel","gruppe":"ereignis","datei":"likeziel.mp4","label":"Like-Ziel"},{"id":"battle-sieg","gruppe":"ereignis","datei":"battle-sieg.mp4","label":"Battle-Ende"},{"id":"airhorn","gruppe":"knopf","datei":"airhorn.mp4","label":"Airhorn"},{"id":"torjubel","gruppe":"knopf","datei":"torjubel.mp4","label":"Torjubel"},{"id":"trommelwirbel","gruppe":"knopf","datei":"trommelwirbel.mp4","label":"Trommelwirbel"},{"id":"applaus","gruppe":"knopf","datei":"applaus.mp4","label":"Applaus"},{"id":"konfetti","gruppe":"knopf","datei":"konfetti.mp4","label":"Konfetti"},{"id":"verlosung","gruppe":"knopf","datei":"verlosung.mp4","label":"Verlosung"},{"id":"fanfare","gruppe":"knopf","datei":"fanfare.mp4","label":"Fanfare"},{"id":"lacher","gruppe":"knopf","datei":"lacher.mp4","label":"Lacher"},{"id":"wow","gruppe":"knopf","datei":"wow.mp4","label":"Wow"},{"id":"rimshot","gruppe":"knopf","datei":"rimshot.mp4","label":"Ba-dum-tss"},{"id":"herzregen","gruppe":"knopf","datei":"herzregen.mp4","label":"Herzregen"},{"id":"partyalarm","gruppe":"knopf","datei":"partyalarm.mp4","label":"Party-Alarm"}]; window.MM_TESTS = [];
+MM_START(function () {
+// MichaModus – Hintergrund (Lumia Custom Overlay, Reiter JS)
+// Party-Schleife + Musik. Zockmodus: Hintergrund wechselt in eine Zockerbude und in der Mitte öffnet sich ein
+// Fenster, durch das man die Spielaufnahme sieht (die Spielquelle liegt in OBS/LIVE Studio UNTER diesem Overlay).
+// Umschalten: Lumia-Variable „mm_modus“ = party | zocken (setzt die Aktionszentrale), oder Config „Modus“.
+const D = (window.Overlay && Overlay.data) || window.TEST_DATA || {};
+const num = (x, d) => (x === '' || x == null || isNaN(Number(x)) ? d : Number(x));
+const vP = document.getElementById('bgParty'), vZ = document.getElementById('bgZock');
+const cv = document.getElementById('stage'), cx = cv.getContext('2d');
+const frame = document.getElementById('frame'), tag = document.getElementById('tag');
+const m = document.getElementById('music');
+const root = document.documentElement.style;
+root.setProperty('--f1', D.rahmenFarbe1 || '#00e5ff'); root.setProperty('--f2', D.rahmenFarbe2 || '#7c4dff'); root.setProperty('--f3', D.rahmenFarbe3 || '#ff3d7f');
+root.setProperty('--r', num(D.fensterRund, 24) + 'px');
+
+if (D.videoAn !== false && D.video) { vP.src = D.video; vP.play().catch(() => {}); }
+if (D.zockVideo) { vZ.src = D.zockVideo; vZ.play().catch(() => {}); }
+[vP, vZ].forEach(v => (v.playbackRate = num(D.tempo, 100) / 100));
+if (D.musikAn !== false && D.musik) {
+  m.src = D.musik; m.volume = Math.min(1, num(D.musikLautstaerke, 35) / 100);
+  const start = () => m.play().catch(() => setTimeout(start, 2000)); start();
+}
+
+let mode = D.modus === 'zocken' ? 'zocken' : 'party';
+let t = mode === 'zocken' ? 1 : 0; // 0 = Party, 1 = Zockmodus (für weiche Übergänge)
+const DUR = num(D.uebergangMs, 1400);
+
+function resize() { cv.width = innerWidth; cv.height = innerHeight; }
+addEventListener('resize', resize); resize();
+
+function cover(v) {
+  if (!v.videoWidth) return null;
+  const va = v.videoWidth / v.videoHeight, ca = cv.width / cv.height;
+  let w = cv.width, h = cv.height; if (va > ca) w = h * va; else h = w / va;
+  return [(cv.width - w) / 2, (cv.height - h) / 2, w, h];
+}
+function hole() {
+  const w = cv.width * num(D.fensterBreite, 84) / 100, h = cv.height * num(D.fensterHoehe, 34) / 100;
+  const x = cv.width * num(D.fensterX, 50) / 100 - w / 2, y = cv.height * num(D.fensterY, 40) / 100 - h / 2;
+  return { x, y, w, h };
+}
+const ease = x => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+let last = performance.now();
+function draw(now) {
+  const dt = now - last; last = now;
+  const target = mode === 'zocken' ? 1 : 0;
+  if (t !== target) t = target > t ? Math.min(1, t + dt / DUR) : Math.max(0, t - dt / DUR);
+  const e = ease(t);
+  cx.clearRect(0, 0, cv.width, cv.height);
+  cx.globalAlpha = 1;
+  // Party-Hintergrund
+  const cp = cover(vP);
+  if (cp && e < 1) { cx.globalAlpha = 1; cx.drawImage(vP, ...cp); }
+  else if (!cp) { cx.fillStyle = '#120c1f'; cx.fillRect(0, 0, cv.width, cv.height); }
+  // Zockerbude (eigenes Video, sonst eingefärbte Party-Bühne)
+  if (e > 0) {
+    cx.globalAlpha = e;
+    const cz = cover(vZ);
+    if (cz) cx.drawImage(vZ, ...cz);
+    else {
+      if (cp) cx.drawImage(vP, ...cp);
+      cx.fillStyle = 'rgba(5,10,40,.55)'; cx.fillRect(0, 0, cv.width, cv.height);
+      cx.globalCompositeOperation = 'color'; cx.fillStyle = '#2b3cff'; cx.fillRect(0, 0, cv.width, cv.height);
+      cx.globalCompositeOperation = 'source-over';
+    }
+    cx.globalAlpha = 1;
+  }
+  // Abdunkeln
+  const dim = num(D.abdunkeln, 0) / 100;
+  if (dim) { cx.fillStyle = `rgba(0,0,0,${dim})`; cx.fillRect(0, 0, cv.width, cv.height); }
+  // Öffnung zum Spiel: wächst aus der Mitte
+  const H = hole();
+  if (e > 0.02) {
+    const s = e, w = H.w * s, h = H.h * Math.min(1, s * 1.15);
+    const x = H.x + (H.w - w) / 2, y = H.y + (H.h - h) / 2;
+    cx.globalCompositeOperation = 'destination-out';
+    cx.beginPath(); cx.roundRect(x, y, w, h, num(D.fensterRund, 24)); cx.fill();
+    cx.globalCompositeOperation = 'source-over';
+  }
+  const on = e > 0.97;
+  Object.assign(frame.style, { left: H.x - 6 + 'px', top: H.y - 6 + 'px', width: H.w + 'px', height: H.h + 'px' });
+  frame.classList.toggle('show', on && D.rahmenAn !== false);
+  tag.style.top = Math.max(8, H.y - 50) + 'px';
+  tag.classList.toggle('show', on && D.schildAn !== false);
+  if (tag.textContent !== (D.schildText || '🎮 ZOCKMODUS')) tag.textContent = D.schildText || '🎮 ZOCKMODUS';
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+
+function setMode(v) { mode = String(v || '').toLowerCase() === 'zocken' ? 'zocken' : 'party'; }
+// Umschalten über die Lumia-Variable (gesetzt von der Aktionszentrale)
+async function poll() {
+  try { if (window.Overlay) { const v = await Overlay.getVariable('mm_modus'); if (v) setMode(v); } } catch (e) {}
+  setTimeout(poll, 800);
+}
+poll();
+if (window.Overlay) Overlay.on('overlaycontent', d => { const c = String(d.content || ''); if (c.startsWith('modus:')) setMode(c.slice(6)); });
+window.MMBG = { setMode };
+
+});</script></body></html>

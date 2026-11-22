@@ -29,3 +29,4 @@ h2 { margin: 22px 0 10px; font-size: 16px; letter-spacing: .08em; text-transform
 .scenes .btn.active { border-color: var(--c3); box-shadow: 0 6px 0 #0b0714, 0 0 0 3px var(--c3) inset; }
 .small .btn { min-height: 84px; font-size: 15px; } .small .btn .ico { font-size: 28px; }
 @media (max-width: 600px) { .grid { grid-template-columns: repeat(2, 1fr); } h1 { font-size: 22px; } }
+.head-r{display:flex;gap:8px;align-items:center}.admin{font-size:15px;padding:6px 14px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--muted);text-decoration:none}
