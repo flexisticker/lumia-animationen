@@ -160,7 +160,9 @@ body.leicht .scene-title, body.leicht .scene-sub { animation-duration: 0s !impor
       const es = new EventSource('/api/events?rolle=' + ROLE + '&format=' + fmt + '&pfad=' + encodeURIComponent(location.pathname) + '&w=' + innerWidth + '&h=' + innerHeight);
       const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
       const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
-      es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); });
+      es.addEventListener('hallo', e => { const d = JSON.parse(e.data);
+        // Neuer Programmstand (Update) → Seite neu laden, sobald nichts läuft (sonst lief alter Code weiter, bis man in OBS neu lädt)
+        if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) { const neu = () => (busy() ? setTimeout(neu, 500) : location.reload()); return neu(); } window.MM_STAND = d.stand; } modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); });
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));

@@ -113,3 +113,5 @@
   Tablet-Knopf „Schreibtisch-Kamera ein/aus“ (`fenster3`, `saved.fenster[3]`, bleibt über Moduswechsel). Schilder werden automatisch kleiner, wenn sie breiter als ihr Fenster sind, und bleiben im Bild. Geprüft (Headless, hoch + quer).
 - 23.11.2026: Schilder über den Fenstern hochkant kleiner (Grundgröße 1,7 vh statt 2,6 vh, quer unverändert), Regler `schildGroesse`/`schildGroesseQuer` (50–200 %, Bereich „Hintergrund & Musik“),
   Abstand zum Fenster nach Schildhöhe statt fest 50 px.
+- 23.11.2026: **„Alle Fensterknöpfe schalten das Drucker-Fenster“** = alte Hintergrund-Seite in OBS (vor dem Update geladen: damals schaltete jeder Knopf alle Fenster). Fix für die Zukunft:
+  Server bildet `STAND` (SHA-1 über app/public), schickt ihn im `hallo`; Shim und Studio laden sich selbst neu, wenn sich der Stand nach einem Update ändert (Neustart ohne Änderung = kein Neuladen). Geprüft (Headless).

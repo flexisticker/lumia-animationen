@@ -294,6 +294,7 @@ function copy(text, btn) {
 async function reload() { S = await fetch('/api/settings', { cache: 'no-store' }).then(r => r.json()); document.title = S.kanal + ' Studio'; $('.brand b').textContent = 'Live-Studio'; render(); }
 // Live: Status und Ereignisse
 const es = new EventSource('/api/events?rolle=studio');
+es.addEventListener('hallo', e => { const d = JSON.parse(e.data); if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) location.reload(); window.MM_STAND = d.stand; } });
 es.addEventListener('lumia', e => { if (!S) return; S.status = JSON.parse(e.data); if (['start', 'lumia'].includes(page.id)) render(); });
 es.addEventListener('log', e => { if (!S) return; const l = JSON.parse(e.data); S.log = [l, ...(S.log || [])].slice(0, 50); const box = $('#log'); if (box) box.prepend(logLine(l)); });
 es.addEventListener('quellen', e => { if (!S) return; S.quellenListe = JSON.parse(e.data);

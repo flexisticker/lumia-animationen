@@ -9,6 +9,9 @@ import crypto from 'node:crypto';
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname);
 const PUBLIC = path.join(ROOT, 'public');
+// Programmstand (Prüfsumme der Oberflächen-Dateien): ändert er sich nach einem Update, laden sich alle Quellen/Seiten selbst neu
+const STAND = (() => { const h = crypto.createHash('sha1'); const lauf = d => { for (const f of fs.readdirSync(d, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) { const q = path.join(d, f.name); if (f.isDirectory()) lauf(q); else h.update(f.name).update(fs.readFileSync(q)); } };
+  try { lauf(PUBLIC); } catch {} return h.digest('hex').slice(0, 12); })();
 const MEDIA = process.env.MEDIA_DIR || path.join(ROOT, 'medien');
 const DATA = process.env.DATA_DIR || '/data';
 const UPLOADS = path.join(DATA, 'uploads');
@@ -440,7 +443,7 @@ const server = http.createServer(async (req, res) => {
       // Studio live informieren, welche Quellen (mit Format) gerade verbunden sind
       const quellenMelden = () => { if (role === 'vorne' || role === 'hinten') broadcast('quellen', quellenListe(), ['studio']); };
       req.on('close', () => { clients.delete(c); quellenMelden(); }); quellenMelden();
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand() })}\n\n`);
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), stand: STAND })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
