@@ -99,3 +99,5 @@
   Abdunkeln per Div), Fenster-Loch per `clip-path: path(evenodd, …)` auf `#bg` – kein `drawImage` (Full-HD, 30×/s) mehr; Schleife tut nur bei Änderung (`letzterStand`) etwas.
   **Leistungsmodus** `leistungSparen` (Standard an, vorne Bereich Allgemein + hinten Bereich Bild): Leuchtschein am Fenster dreht nicht (drehender blur wurde jedes Bild neu gezeichnet),
   vorne kein fließender Farbverlauf im Banner, kein drehender StreamPrint-Rahmen. Geprüft (Headless): Party/Zocken, Loch voll durchsichtig, Rahmen/Schild wie vorher.
+- 23.11.2026: 3dbymicha quer ohne Hintergrund: `medien/hintergrund/werkstatt-quer.mp4` fehlte (Vorgabe verwies darauf). Kostenlos erzeugt als mittiger Ausschnitt aus werkstatt.mp4
+  (crop 1080×608 → 1920×1080, lanczos + unsharp, ohne Ton). Alle anderen Hintergründe haben ihre -quer-Fassung (geprüft). Echte 16:9-Neuerzeugung per fal wäre möglich (vorher fragen/Kosten nennen).
