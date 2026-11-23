@@ -83,7 +83,7 @@ async function setMode(m, b) {
     obsMeldung((m === 'zocken' ? (D.modus2Name || 'Zockmodus') : (D.modus1Name || 'Party')) + ' an', obsInfo);
   } catch (e) { setStatus('Modus konnte nicht gesetzt werden', 'err'); }
 }
-[['party', D.modus1Name || 'Party', '🎉'], ['zocken', D.modus2Name || 'Zockmodus', '🎮']].forEach(([m, label, ico]) => {
+[['party', D.modus1Name || 'Party', '🎉'], ['zocken', D.modus2Name || 'Zockmodus', D.modus2Ico || '🎮']].forEach(([m, label, ico]) => {
   const b = document.createElement('button'); b.className = 'btn';
   b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = ico; b.lastChild.textContent = label;
   b.onclick = () => setMode(m, b); modeBox.append(b);

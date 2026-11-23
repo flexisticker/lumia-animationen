@@ -129,3 +129,5 @@
   (Kacheln „Monitor: Unterstützer“ / „Monitor: Drucker-Kamera“, erneut tippen = aus); 'drucker' schneidet den schrägen Bildschirm als Loch aus (`monLoch` im clip-path) – Drucker-Kamera in OBS darunter legen. Geprüft (Headless).
 - 23.11.2026: **Docker-Icon** = Live-Studio-Logo (`medien/logo/live-studio.svg` → `medien/live-studio-icon.png`, 512 px, transparent), ausgeliefert unter `http://<Unraid>:8120/live-studio-icon.png`,
   in `unraid/live-studio.xml` eingetragen (neuer Dateiname, damit Unraid das Icon neu lädt). `/icon.png` (Mikrofon) bleibt App-Icon fürs iPad.
+- 23.11.2026: Modus 2 heißt bei **3dbymicha „Printmodus“** (Symbol 🖨️, Fensterschild „🖨️ PRINTMODUS“): Preset + einmalige Umstellung alter gespeicherter Standardwerte. Neues Feld `modus2Ico`
+  (Tablet-Steuerung) für das Symbol; Namen (`modus1Name`/`modus2Name`) und Schild (`f1Schild`) waren schon je Kanal einstellbar. Intern bleibt der Modus `zocken`.

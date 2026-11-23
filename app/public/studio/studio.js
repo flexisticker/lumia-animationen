@@ -45,7 +45,7 @@ function start(m) {
     h('span', { class: 'pill' }, 'Tablet: ' + (q.aktion || 0))),
     S.status.fehler ? h('p', { class: 'hint' }, S.status.fehler) : null));
   m.append(h('h2', {}, 'Modus'), h('div', { class: 'row' },
-    ...[['party', '🎉 ' + (S.aktion.modus1Name || 'Party')], ['zocken', '🎮 ' + (S.aktion.modus2Name || 'Zockmodus')]].map(([v, l]) => h('button', { class: 'b' + (S.modus === v ? ' p' : ''), onclick: async () => { await post('/api/modus', { modus: v }); S.modus = v; render(); } }, l))));
+    ...[['party', '🎉 ' + (S.aktion.modus1Name || 'Party')], ['zocken', (S.aktion.modus2Ico || '🎮') + ' ' + (S.aktion.modus2Name || 'Zockmodus')]].map(([v, l]) => h('button', { class: 'b' + (S.modus === v ? ' p' : ''), onclick: async () => { await post('/api/modus', { modus: v }); S.modus = v; render(); } }, l))));
   m.append(h('h2', {}, 'Ansagen'), h('div', { class: 'row' }, ...[['szene:start', 'Startet gleich'], ['szene:pause', 'Pause'], ['szene:gleich', 'Gleich weiter'], ['szene:weiter', "Weiter geht's"], ['szene:ende', 'Ende'], ['szene:aus', 'Ansage weg'], ['likes', 'Like-Fontäne']]
     .map(([id, l]) => h('button', { class: 'b', onclick: () => post('/api/aktion', { id, label: l }) }, l))));
   m.append(h('h2', {}, 'Letzte Ereignisse'), h('div', { class: 'card log', id: 'log' }, ...(S.log || []).map(logLine)));
