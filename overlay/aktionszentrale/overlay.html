@@ -1,10 +1,18 @@
 <main class="az">
   <header><h1 id="titel">MichaModus · Aktionszentrale</h1><div class="head-r"><button id="musikSchnell" class="quick" style="display:none">🔇 Musik aus</button><div id="status" class="status">bereit</div><a id="admin" class="admin" href="/studio" style="display:none">⚙️ Verwaltung</a></div></header>
   <section id="nameRow" class="name-row"><input id="name" placeholder="Name (optional, z. B. Gewinner)" maxlength="24"><button class="clear" id="nameClear">×</button></section>
-  <h2 id="kanalTitel" style="display:none">Kanal</h2>
-  <div class="grid scenes" id="kanaele" style="display:none"></div>
-  <h2>Modus</h2>
-  <div class="grid scenes" id="modes"></div>
+  <section class="oben">
+    <div class="oben-l">
+      <h2 id="kanalTitel" style="display:none">Kanal</h2>
+      <div class="grid scenes" id="kanaele" style="display:none"></div>
+      <h2>Modus</h2>
+      <div class="grid scenes" id="modes"></div>
+    </div>
+    <div class="oben-r">
+      <h2>Kameras & Fenster</h2>
+      <div class="grid scenes fenster" id="fenster"></div>
+    </div>
+  </section>
   <h2 id="spielTitel" style="display:none">Was läuft gerade? (Spiel oder Talk)</h2>
   <div class="grid scenes" id="spiele" style="display:none"></div>
   <h2 id="musikTitel" style="display:none">Musik</h2>

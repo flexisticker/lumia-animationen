@@ -162,7 +162,7 @@ const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), 
 const profilListe = () => Object.entries(PRESETS).map(([id, p]) => ({ id, name: p.name }));
 const saveSettings = () => writeJson(SETTINGS_FILE, saved);
 const quellenListe = () => [...clients].filter(c => c.role === 'vorne' || c.role === 'hinten').map(c => ({ rolle: c.role, format: c.format, pfad: c.pfad, groesse: c.groesse }));
-function broadcastAll() { for (const k of BEREICHE) broadcast('settings', { bereich: k, werte: settingsFor(k) }, [k]); }
+function broadcastAll() { for (const k of BEREICHE) broadcast('settings', { bereich: k, werte: settingsFor(k) }, [k]); fensterMelden(); }
 
 // ---------- Live-Verteilung (SSE) ----------
 const clients = new Set();
@@ -282,6 +282,8 @@ function fensterSichtbar(nr) {
   if (saved.modus === 'zocken' && sp && sp.ohneFenster && w !== 'immer') return false;
   return w === 'immer' || w === saved.modus;
 }
+const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3) });
+const fensterMelden = () => broadcast('fenster', fensterSicht(), ['aktion']);
 function setModus(modus, spielId, quelle, fromObs) {
   const m = modus === 'zocken' ? 'zocken' : 'party';
   const changed = m !== saved.modus || (spielId !== undefined && spielId !== saved.spiel);
@@ -290,7 +292,7 @@ function setModus(modus, spielId, quelle, fromObs) {
   if (spielId !== undefined) saved.spiel = saved.spiele.some(x => x.id === spielId) ? spielId : '';
   saveSettings();
   if (changed) {
-    broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
+    broadcast('modus', { modus: saved.modus, spiel: spielInfo() }); fensterMelden();
     // Musik je Spiel: beim Zocken die Musik des Spiels, zurück in Modus 1 wieder Standard (nur wenn das Spiel sie gesetzt hatte)
     const sp = saved.spiele.find(x => x.id === saved.spiel);
     if (m === 'zocken' && sp && sp.musik && sp.musik !== saved.musik.titel && saved.musik.titel !== 'aus') setMusik({ titel: sp.musik, vonSpiel: true });
@@ -448,7 +450,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
-      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, musik: musikInfo(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
+      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, musik: musikInfo(), fensterSicht: fensterSicht(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, tts: { ...saved.tts, schluessel: !!secret.elevenlabsKey }, status: lumia, log,
       datenDauerhaft,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}),
@@ -491,7 +493,7 @@ const server = http.createServer(async (req, res) => {
       if (a.id === 'fenster') {
         const nr = [2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1;
         const an = a.an === undefined ? !fensterSichtbar(nr) : !!a.an;
-        saved.fenster[nr] = an; a.nr = nr; a.an = an; saveSettings();
+        saved.fenster[nr] = an; a.nr = nr; a.an = an; saveSettings(); fensterMelden();
         a.label = ({ 1: 'Spielfenster ', 2: 'Drucker-Kamera ', 3: 'Schreibtisch-Kamera ' })[nr] + (an ? 'an' : 'aus');
       }
       broadcast('aktion', a, ['vorne', 'hinten']); remember({ art: 'aktion', quelle: 'knopf', text: a.label || a.id });

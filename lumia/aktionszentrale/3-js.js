@@ -32,7 +32,7 @@ function button(box, { id, label, ico }, extra = {}) {
 }
 
 const SCENES = [['szene:start', 'Startet gleich', '⏳'], ['szene:pause', 'Kurze Pause', '☕'], ['szene:gleich', 'Gleich weiter', '⏱️'],
-  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬'], ['fenster', 'Spielfenster ein/aus', '🪟'], ['fenster2', 'Drucker-Kamera ein/aus', '📹'], ['fenster3', 'Schreibtisch-Kamera ein/aus', '🖥️']];
+  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬']];
 const sceneBox = document.getElementById('scenes');
 SCENES.forEach(([id, label, ico]) => {
   const b = button(sceneBox, { id, label, ico });
@@ -146,3 +146,17 @@ if (window.MM_MUSIK) {
   vol.oninput = () => { wert.textContent = vol.value + ' %'; clearTimeout(tm); tm = setTimeout(() => send({ lautstaerke: Number(vol.value) }), 120); };
   if (window.Overlay) Overlay.on('overlaycontent', d => { const c = String(d.content || ''); if (c.startsWith('musik:')) try { show(JSON.parse(c.slice(6))); } catch (e) {} });
 }
+
+// Kameras & Fenster: große Kacheln oben rechts, zeigen an, was gerade zu sehen ist
+const fensterBox = document.getElementById('fenster');
+const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️']].map(([nr, label, ico]) => {
+  const b = document.createElement('button'); b.className = 'btn';
+  b.innerHTML = '<span class="ico"></span><span></span><span class="zu"></span>'; b.children[0].textContent = ico; b.children[1].textContent = label;
+  b.onclick = () => send({ id: nr === 1 ? 'fenster' : 'fenster' + nr, label: label + ' ein/aus' }, b);
+  fensterBox.append(b); return { nr, b };
+});
+function fensterZeigen(sicht) {
+  for (const f of FENSTER) { const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? '● zu sehen' : 'aus'; }
+}
+fensterZeigen(window.MM_FENSTER);
+if (window.Overlay && Overlay.on) Overlay.on('fenster', fensterZeigen);

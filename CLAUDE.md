@@ -115,3 +115,6 @@
   Abstand zum Fenster nach Schildhöhe statt fest 50 px.
 - 23.11.2026: **„Alle Fensterknöpfe schalten das Drucker-Fenster“** = alte Hintergrund-Seite in OBS (vor dem Update geladen: damals schaltete jeder Knopf alle Fenster). Fix für die Zukunft:
   Server bildet `STAND` (SHA-1 über app/public), schickt ihn im `hallo`; Shim und Studio laden sich selbst neu, wenn sich der Stand nach einem Update ändert (Neustart ohne Änderung = kein Neuladen). Geprüft (Headless).
+- 23.11.2026: **Kacheln „Kameras & Fenster“** am iPad oben rechts neben Kanal/Modus (`.oben` zweispaltig, unter 820 px untereinander): Spielfenster 🪟 / Drucker 🖨️ / Schreibtisch 🖥️, leuchten grün mit „● zu sehen“,
+  wenn das Fenster sichtbar ist. Server `fensterSicht()` (alle 3 über `fensterSichtbar`), SSE `fenster` an die Steuerung bei Fensterknopf, Moduswechsel und Einstellungsänderung, Startwert in `/api/settings.fensterSicht`.
+  Die drei Fensterknöpfe bei den Ansagen sind entfallen. Geprüft (Headless): Kachelstand folgt Modus und Knöpfen, Hintergrund schaltet das richtige Fenster.

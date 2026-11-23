@@ -23,7 +23,7 @@
   const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
   window.MM_START = async function (start) {
     const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
-    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus; window.MM_MUSIK = s.musik;
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus; window.MM_MUSIK = s.musik; window.MM_FENSTER = s.fensterSicht;
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {
@@ -36,6 +36,7 @@
         if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) { const neu = () => (busy() ? setTimeout(neu, 500) : location.reload()); return neu(); } window.MM_STAND = d.stand; } modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); });
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
+      es.addEventListener('fenster', e => { window.MM_FENSTER = JSON.parse(e.data); emit('fenster', window.MM_FENSTER); });
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
       es.addEventListener('modus', e => modusMsg(JSON.parse(e.data)));
