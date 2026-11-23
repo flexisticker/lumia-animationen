@@ -91,15 +91,17 @@
   "monSchrift": 100,
   "monDeckkraft": 92,
   "monTests": true,
-  "monX": 49.75,
-  "monY": 47.85,
-  "monBreite": 41,
-  "monHoehe": 34,
+  "monX": 49.6,
+  "monY": 47.6,
+  "monBreite": 42,
+  "monHoehe": 35.5,
   "monQX": 52.15,
   "monQY": 47.6,
   "monQBreite": 29.5,
   "monQHoehe": 31,
   "monPauseStd": 6,
-  "monPerspektive": 6,
-  "monQPerspektive": 0
+  "monPerspektive": 8.5,
+  "monQPerspektive": 0,
+  "monPerspektiveUnten": 6,
+  "monQPerspektiveUnten": 0
 }

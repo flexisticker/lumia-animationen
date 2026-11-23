@@ -151,13 +151,13 @@ function draw(now) {
   // Wand-Monitor: an, nur wenn das Spielfenster nicht zu sehen ist (und je nach Einstellung nur im Zockmodus)
   const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || mode === 'zocken');
   if (monZeigen) {
-    const W = cv.width * num(MQ('Breite'), QUER ? 29.5 : 41) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 31 : 34) / 100;
-    // Perspektive: rechte Kante oben/unten um p % der Höhe kürzer (negativ = linke Kante); Ecken OL, OR, UL, UR
-    const pr = num(MQ('Perspektive'), QUER ? 0 : 6) / 100, dr = H * Math.max(0, pr), dl = H * Math.max(0, -pr);
-    monEl.style.transform = pr ? matrix3d(W, H, [0, dl, W, dr, 0, H - dl, W, H - dr]) : '';
-    const mx = cv.width * num(MQ('X'), QUER ? 52.15 : 49.75) / 100 - W / 2, my = cv.height * num(MQ('Y'), QUER ? 47.6 : 47.85) / 100 - H / 2;
+    const W = cv.width * num(MQ('Breite'), QUER ? 29.5 : 42) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 31 : 35.5) / 100;
+    // Perspektive: rechte obere Ecke um pt % der Höhe tiefer, rechte untere um pb % höher (vermessen an der Lichtleiste der Zockerbude)
+    const pt = num(MQ('Perspektive'), QUER ? 0 : 8.5) / 100, pb = num(MQ('PerspektiveUnten'), QUER ? 0 : 6) / 100, dl = 0;
+    monEl.style.transform = (pt || pb) ? matrix3d(W, H, [0, 0, W, H * pt, 0, H, W, H - H * pb]) : '';
+    const mx = cv.width * num(MQ('X'), QUER ? 52.15 : 49.6) / 100 - W / 2, my = cv.height * num(MQ('Y'), QUER ? 47.6 : 47.6) / 100 - H / 2;
     // Drucker-Kamera im Monitor: schräges Loch ausschneiden, die Kamera liegt in OBS darunter
-    if (monitorAn === 'drucker') { const f = v => v.toFixed(1); monLoch = `M${f(mx)} ${f(my + dl)}L${f(mx + W)} ${f(my + dr)}L${f(mx + W)} ${f(my + H - dr)}L${f(mx)} ${f(my + H - dl)}Z`; }
+    if (monitorAn === 'drucker') { const f = v => v.toFixed(1); monLoch = `M${f(mx)} ${f(my)}L${f(mx + W)} ${f(my + H * pt)}L${f(mx + W)} ${f(my + H - H * pb)}L${f(mx)} ${f(my + H)}Z`; }
     Object.assign(monEl.style, { left: mx + 'px', top: my + 'px', width: W + 'px', height: H + 'px', fontSize: (Math.min(H / (Math.max(1, num(D.monAnzahl, 6)) * (ZWEI ? 2.05 : 1.55) + 1.7 + 1.8 + 0.4), W / (ZWEI ? 16 : 28)) * num(D.monSchrift, 100) / 100).toFixed(1) + 'px' });
     monEl.style.setProperty('--monDeck', num(D.monDeckkraft, 92) / 100);
   }

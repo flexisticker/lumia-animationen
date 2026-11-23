@@ -133,3 +133,6 @@
   (Tablet-Steuerung) für das Symbol; Namen (`modus1Name`/`modus2Name`) und Schild (`f1Schild`) waren schon je Kanal einstellbar. Intern bleibt der Modus `zocken`.
 - 23.11.2026: Wand-Monitor sah aufgeklebt aus (eigener Rand/Leuchten + hellerer Grund = doppelter Rahmen). Jetzt ohne Kante/Schatten, dunkler halbdurchsichtiger Grund, Ränder per `mask-image` weich auslaufend,
   etwas kleiner für Abstand zur Lichtleiste (hoch 41×34 %, quer 29,5×31 %), Leertext kleiner mit Glühen. Geprüft (Headless, leer + mit Einträgen).
+- 23.11.2026: Wand-Monitor-Neigung pixelgenau an der Lichtleiste vermessen: oben fällt sie nach rechts um ~8,5 % der Bildschirmhöhe, unten steigt sie nur ~6 % → getrennte Regler
+  `monPerspektive` (oben, Standard 8,5) und `monPerspektiveUnten` (Standard 6; quer `monQ…` 0/0), linke Kante gerade, Lage hoch 49,6/47,6/42/35,5 %. Auch das Drucker-Loch nutzt diese Ecken.
+  Gemessene Ecken im Browser stimmen mit der Lichtleiste überein (±2 px). Achtung beim Testen: Testläufe auf demselben Server schalten das Spielfenster hin und her.
