@@ -160,7 +160,7 @@ body.leicht .scene-title, body.leicht .scene-sub { animation-duration: 0s !impor
       const es = new EventSource('/api/events?rolle=' + ROLE + '&format=' + fmt + '&pfad=' + encodeURIComponent(location.pathname) + '&w=' + innerWidth + '&h=' + innerHeight);
       const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
       const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
-      es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); });
+      es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + (d.fensterAus ? 'aus' : 'an') }); });
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));

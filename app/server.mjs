@@ -402,7 +402,7 @@ const server = http.createServer(async (req, res) => {
       // Studio live informieren, welche Quellen (mit Format) gerade verbunden sind
       const quellenMelden = () => { if (role === 'vorne' || role === 'hinten') broadcast('quellen', quellenListe(), ['studio']); };
       req.on('close', () => { clients.delete(c); quellenMelden(); }); quellenMelden();
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo() })}\n\n`);
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fensterAus: !!saved.fensterAus })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
@@ -445,6 +445,8 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/aktion' && req.method === 'POST') {
       const raw = (await body(req, 4000)).toString();
       let a; try { a = JSON.parse(raw); } catch { return json(res, 400, { fehler: 'ungültig' }); }
+      // Spielfenster ein-/ausblenden: Stand im Server, damit alle Quellen (hoch/quer) gleich sind – auch nach dem Neuladen
+      if (a.id === 'fenster') { saved.fensterAus = a.an === undefined ? !saved.fensterAus : !a.an; a.an = !saved.fensterAus; saveSettings(); }
       broadcast('aktion', a, ['vorne', 'hinten']); remember({ art: 'aktion', quelle: 'knopf', text: a.label || a.id });
       return json(res, 200, { ok: true });
     }

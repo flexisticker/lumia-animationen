@@ -101,3 +101,5 @@
   vorne kein fließender Farbverlauf im Banner, kein drehender StreamPrint-Rahmen. Geprüft (Headless): Party/Zocken, Loch voll durchsichtig, Rahmen/Schild wie vorher.
 - 23.11.2026: 3dbymicha quer ohne Hintergrund: `medien/hintergrund/werkstatt-quer.mp4` fehlte (Vorgabe verwies darauf). Kostenlos erzeugt als mittiger Ausschnitt aus werkstatt.mp4
   (crop 1080×608 → 1920×1080, lanczos + unsharp, ohne Ton). Alle anderen Hintergründe haben ihre -quer-Fassung (geprüft). Echte 16:9-Neuerzeugung per fal wäre möglich (vorher fragen/Kosten nennen).
+- 23.11.2026: **Knopf „Spielfenster ein/aus“** (🪟, Bereich Ansagen in der Steuerung): `/api/aktion {id:'fenster'}` → Server merkt `saved.fensterAus` (an alle Quellen gleich, auch nach Neuladen via `hallo.fensterAus`),
+  Hintergrund `want()` = false solange aus → Loch, Rahmen, Schild blenden weich aus/ein; Modus bleibt Zocken (Hintergrund/Musik/OBS-Szene unverändert). Geprüft (Headless) inkl. Neuladen.
