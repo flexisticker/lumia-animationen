@@ -103,3 +103,6 @@
   (crop 1080×608 → 1920×1080, lanczos + unsharp, ohne Ton). Alle anderen Hintergründe haben ihre -quer-Fassung (geprüft). Echte 16:9-Neuerzeugung per fal wäre möglich (vorher fragen/Kosten nennen).
 - 23.11.2026: **Knopf „Spielfenster ein/aus“** (🪟, Bereich Ansagen in der Steuerung): `/api/aktion {id:'fenster'}` → Server merkt `saved.fensterAus` (an alle Quellen gleich, auch nach Neuladen via `hallo.fensterAus`),
   Hintergrund `want()` = false solange aus → Loch, Rahmen, Schild blenden weich aus/ein; Modus bleibt Zocken (Hintergrund/Musik/OBS-Szene unverändert). Geprüft (Headless) inkl. Neuladen.
+- 23.11.2026: **Moduswechsel schaltet OBS-Szene nicht** (WebSocket laut Michael verbunden): `obsRequest` wartet jetzt auf die OBS-Antwort (2 s, Fehlertext aus requestStatus.comment), `/api/modus` liefert das echte Ergebnis ans iPad,
+  Fehler auch im Studio-Protokoll (⚠️ obs). Keine Szene eingestellt → automatisch nach Namen (`rateSzene`: zock/gam/spiel/play bzw. party/chat/talk/cam/main); eingestellter Name fehlt → Groß/klein/Leerzeichen tolerant,
+  sonst Namens-Raten, sonst Meldung mit Liste der vorhandenen Szenen. Geprüft mit OBS-Nachbau (`obsmock.mjs` im Scratchpad, Port 4466).

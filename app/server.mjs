@@ -289,15 +289,29 @@ function setModus(modus, spielId, quelle, fromObs) {
   if (!fromObs) {
     const sp = saved.spiele.find(x => x.id === saved.spiel);
     // Spiel mit eigener Szene › Talk-Runde (ohne Spielfenster) → Party-Szene › Zock-Szene
-    const scene = m === 'zocken' ? (sp && sp.szene) || (sp && sp.ohneFenster ? saved.obs.szeneParty || saved.obs.szeneZocken : saved.obs.szeneZocken) : saved.obs.szeneParty;
+    let scene = m === 'zocken' ? (sp && sp.szene) || (sp && sp.ohneFenster ? saved.obs.szeneParty || saved.obs.szeneZocken : saved.obs.szeneZocken) : saved.obs.szeneParty;
+    let geraten = false;
+    if (!scene && saved.obs.an && saved.obs.steuern && obs.status === 'verbunden') { scene = rateSzene(m === 'zocken' && !(sp && sp.ohneFenster) ? 'zocken' : 'party'); geraten = !!scene; }
     if (!saved.obs.an) obsInfo = 'OBS-Kopplung ist aus (Studio → Spiele & OBS)';
     else if (!saved.obs.steuern) obsInfo = '„Modus schaltet die OBS-Szene“ ist aus';
     else if (!scene) obsInfo = 'Keine OBS-Szene für ' + (m === 'zocken' ? (sp ? '„' + sp.name + '“ bzw. den Zockmodus' : 'den Zockmodus') : 'Party') + ' eingestellt (Studio → Spiele & OBS)';
     else if (obs.status !== 'verbunden') obsInfo = 'OBS nicht verbunden' + (obs.fehler ? ': ' + obs.fehler : '');
-    else if (obs.szenen.length && !obs.szenen.includes(scene)) obsInfo = 'OBS-Szene „' + scene + '“ gibt es nicht';
-    else { obsRequest('SetCurrentProgramScene', { sceneName: scene }); obsInfo = 'OK:' + scene; }
+    else if (obs.szenen.length && !obs.szenen.includes(scene)) {
+      // Name weicht ab (Groß/klein, Leerzeichen) oder Szene umbenannt → passende suchen
+      const norm = x => String(x).toLowerCase().replace(/\s+/g, ' ').trim();
+      const treffer = obs.szenen.find(n => norm(n) === norm(scene)) || rateSzene(m === 'zocken' && !(sp && sp.ohneFenster) ? 'zocken' : 'party');
+      if (treffer) { const alt = scene; scene = treffer; geraten = norm(treffer) !== norm(alt); }
+      else obsInfo = 'OBS-Szene „' + scene + '“ gibt es nicht (vorhanden: ' + obs.szenen.join(', ') + ')';
+    }
+    if (!obsInfo && scene && saved.obs.an && saved.obs.steuern && obs.status === 'verbunden') {
+      return obsRequest('SetCurrentProgramScene', { sceneName: scene }).then(r => {
+        if (!r.ok) { remember({ art: 'fehler', quelle: 'obs', text: 'Szene „' + scene + '“ nicht geschaltet – ' + r.fehler }); return 'Szene „' + scene + '“ nicht geschaltet – ' + r.fehler; }
+        return 'OK:' + scene + (geraten ? ' (automatisch nach Namen gewählt – im Studio fest einstellen)' : '');
+      });
+    }
+    if (obsInfo && saved.obs.an) remember({ art: 'fehler', quelle: 'obs', text: obsInfo });
   }
-  return obsInfo;
+  return Promise.resolve(obsInfo);
 }
 
 // OBS (obs-websocket v5, in OBS ab Version 28 eingebaut: Werkzeuge → WebSocket-Server-Einstellungen)
@@ -305,9 +319,21 @@ const obs = { status: 'aus', fehler: '', szenen: [], aktuell: '' };
 let ows = null, oretry = null, lastSetScene = '', lastSetAt = 0, reqId = 0;
 const obsStatus = () => broadcast('obs', obs, ['studio']);
 function obsSend(op, d) { if (ows && ows.readyState === 1) ows.send(JSON.stringify({ op, d })); }
+const obsWartet = new Map();
+// Anfrage an OBS; Promise mit der Antwort (oder Fehlertext nach 2 s)
 function obsRequest(requestType, requestData) {
   if (requestType === 'SetCurrentProgramScene') { lastSetScene = requestData.sceneName; lastSetAt = Date.now(); }
-  obsSend(6, { requestType, requestId: String(++reqId), requestData });
+  const requestId = String(++reqId);
+  obsSend(6, { requestType, requestId, requestData });
+  return new Promise(res => {
+    const t = setTimeout(() => { obsWartet.delete(requestId); res({ ok: false, fehler: 'OBS antwortet nicht' }); }, 2000);
+    obsWartet.set(requestId, st => { clearTimeout(t); obsWartet.delete(requestId); res(st && st.result ? { ok: true } : { ok: false, fehler: 'OBS: ' + ((st && st.comment) || 'Code ' + (st && st.code)) }); });
+  });
+}
+// Szenen automatisch zuordnen, wenn im Studio keine gewählt ist (nach Namen)
+function rateSzene(m) {
+  const re = m === 'zocken' ? /zock|gam(e|ing)|spiel|play/i : /party|chat|talk|plaud|cam|kamera|haupt|main/i;
+  return obs.szenen.find(n => re.test(n)) || '';
 }
 function obsScene(name) {
   obs.aktuell = name; obsStatus();
@@ -344,6 +370,8 @@ function obsConnect() {
       obsScene(msg.d.eventData.sceneName);
     } else if (msg.op === 5 && msg.d && /^Scene(Created|Removed|NameChanged)$/.test(msg.d.eventType)) {
       obsSend(6, { requestType: 'GetSceneList', requestId: 'szenen' });
+    } else if (msg.op === 7 && msg.d && obsWartet.has(msg.d.requestId)) {
+      obsWartet.get(msg.d.requestId)(msg.d.requestStatus);
     } else if (msg.op === 7 && msg.d && msg.d.requestId === 'szenen' && msg.d.responseData) {
       obs.szenen = (msg.d.responseData.scenes || []).map(x => x.sceneName).reverse();
       obs.aktuell = msg.d.responseData.currentProgramSceneName || obs.aktuell; obsStatus();
@@ -470,7 +498,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/modus' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
-      const obsInfo = setModus(b.modus, typeof b.spiel === 'string' ? b.spiel : undefined, 'knopf', false);
+      const obsInfo = await setModus(b.modus, typeof b.spiel === 'string' ? b.spiel : undefined, 'knopf', false);
       return json(res, 200, { ok: true, obs: obsInfo });
     }
     if (p === '/api/obs' && req.method === 'POST') {
