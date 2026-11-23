@@ -103,5 +103,7 @@
   "monPerspektive": 8.5,
   "monQPerspektive": 0,
   "monPerspektiveUnten": 6,
-  "monQPerspektiveUnten": 0
+  "monQPerspektiveUnten": 0,
+  "monFrei": 30,
+  "monQFrei": 15
 }

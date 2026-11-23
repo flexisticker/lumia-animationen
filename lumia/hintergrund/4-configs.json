@@ -1714,5 +1714,41 @@
    ]
   },
   "order": 80.206
+ },
+ "monFrei": {
+  "type": "slider",
+  "label": "Hochkant: unten freihalten (da sitzt du davor)",
+  "value": 30,
+  "options": {
+   "min": 0,
+   "max": 80,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.069
+ },
+ "monQFrei": {
+  "type": "slider",
+  "label": "Quer: unten freihalten",
+  "value": 15,
+  "options": {
+   "min": 0,
+   "max": 80,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.0695
  }
 }

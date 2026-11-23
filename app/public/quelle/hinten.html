@@ -52,6 +52,7 @@ body.leicht .frame-glow { --a: 0deg; }
 .monitor.zwei .mon-txt b, .monitor.zwei .mon-txt span { display: block; overflow: hidden; text-overflow: ellipsis; }
 .monitor.zwei .mon-txt span { font-size: .72em; margin-top: .12em; }
 .monitor.zwei .mon-txt span::before { content: attr(data-pf) ' · '; opacity: .75; }
+.mon-liste { overflow: hidden; -webkit-mask-image: linear-gradient(#000 calc(100% - 1.6em), transparent); mask-image: linear-gradient(#000 calc(100% - 1.6em), transparent); }
 </style></head>
 <body><div id="bg"><video id="bgParty" muted loop playsinline crossorigin="anonymous"></video>
 <video id="bgZock" muted loop playsinline crossorigin="anonymous"></video>
@@ -204,6 +205,8 @@ const SCHILD_PX = innerHeight * (QUER ? 0.026 : 0.017) * num(QUER ? D.schildGroe
 const monEl = document.getElementById('monitor'), monListe = monEl.querySelector('.mon-liste');
 monEl.querySelector('.mon-titel').textContent = D.monTitel || '🏆 Danke an euch!';
 let monitorAn = false, monDaten = [], monGesehen = null;
+// unteren Teil des Monitors freihalten (dort sitzt man davor – Schrift soll nicht durchscheinen)
+const FREI = Math.max(0, Math.min(0.8, num(QUER ? D.monQFrei : D.monFrei, QUER ? 15 : 30) / 100));
 // Perspektive: Rechteck (0,0,w,h) auf vier Ecken abbilden (CSS matrix3d) – damit die Anzeige schräg im Bildschirm sitzt
 function adj(m) { return [m[4]*m[8]-m[5]*m[7], m[2]*m[7]-m[1]*m[8], m[1]*m[5]-m[2]*m[4], m[5]*m[6]-m[3]*m[8], m[0]*m[8]-m[2]*m[6], m[2]*m[3]-m[0]*m[5], m[3]*m[7]-m[4]*m[6], m[1]*m[6]-m[0]*m[7], m[0]*m[4]-m[1]*m[3]]; }
 function mul(a, b) { const c = []; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { let s = 0; for (let k = 0; k < 3; k++) s += a[3*i+k] * b[3*k+j]; c[3*i+j] = s; } return c; }
@@ -283,7 +286,8 @@ function draw(now) {
     const mx = cv.width * num(MQ('X'), QUER ? 52.15 : 49.6) / 100 - W / 2, my = cv.height * num(MQ('Y'), QUER ? 47.6 : 47.6) / 100 - H / 2;
     // Drucker-Kamera im Monitor: schräges Loch ausschneiden, die Kamera liegt in OBS darunter
     if (monitorAn === 'drucker') { const f = v => v.toFixed(1); monLoch = `M${f(mx)} ${f(my)}L${f(mx + W)} ${f(my + H * pt)}L${f(mx + W)} ${f(my + H - H * pb)}L${f(mx)} ${f(my + H)}Z`; }
-    Object.assign(monEl.style, { left: mx + 'px', top: my + 'px', width: W + 'px', height: H + 'px', fontSize: (Math.min(H / (Math.max(1, num(D.monAnzahl, 6)) * (ZWEI ? 2.05 : 1.55) + 1.7 + 1.8 + 0.4), W / (ZWEI ? 16 : 28)) * num(D.monSchrift, 100) / 100).toFixed(1) + 'px' });
+    Object.assign(monEl.style, { left: mx + 'px', top: my + 'px', width: W + 'px', height: H + 'px', fontSize: (Math.min(H * (1 - FREI) / (Math.max(1, num(D.monAnzahl, 6)) * (ZWEI ? 2.05 : 1.55) + 1.7 + 1.8 + 0.4), W / (ZWEI ? 16 : 28)) * num(D.monSchrift, 100) / 100).toFixed(1) + 'px' });
+    monListe.style.maxHeight = (H * (1 - FREI) - parseFloat(monEl.style.fontSize) * 3.2).toFixed(0) + 'px';
     monEl.style.setProperty('--monDeck', num(D.monDeckkraft, 92) / 100);
   }
   monEl.classList.toggle('show', monZeigen && monitorAn === 'liste');

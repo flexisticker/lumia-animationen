@@ -139,3 +139,5 @@
 - 23.11.2026: Spielfenster-Knopf gilt jetzt dauerhaft (Wunsch Michael): kein Zurücksetzen von `saved.fenster[1]` bzw. `zwang[1]` beim Moduswechsel mehr – aus bleibt aus (auch nach Werkstatt/Party ↔ Zocken und Neuladen), bis man es wieder einschaltet.
 - 23.11.2026: **Neues Musik-Genre „Lo-Fi Talk (Loft)“** (`lofi`, 5 Titel `medien/musik/lofi.mp3`, `lofi-2…5.mp3`, je ~2½ min): Stable Audio 2.5 (150 s, guidance 7, Freigabe Michael, ca. 1 $),
   Stille weg, loudnorm I −16, Ein-/Ausblenden, MP3 160k. Talk-Runde nutzt jetzt `lofi` (Vorgabe + Umstellung gespeicherter „chill“). Prompts: Lo-fi/Chillhop, Rhodes, Jazz-Gitarre, Vinyl, Loft/Coffee-Shop, ohne Gesang, 70–85 BPM.
+- 23.11.2026: Wand-Monitor: unterer Teil bleibt frei (dort sitzt Michael davor, Schrift schien durch): `monFrei` (hoch, Standard 30 %) / `monQFrei` (quer 15 %), Liste nur im oberen Bereich,
+  Schrift danach berechnet, `.mon-liste` mit max-height + weichem Ausblenden unten (mask). Geprüft (Headless, 8 Einträge).
