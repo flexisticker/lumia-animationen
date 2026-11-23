@@ -127,3 +127,5 @@
   Regler `monPerspektive`/`monQPerspektive`, Lage-Vorgaben exakt auf den Bildschirm (hoch 49,75/47,85/44,5/37,3 %, quer 52,15/47,6/31,9/34 %). Schrift nach Breite/Höhe (`W/16` zweizeilig, `W/28` einzeilig), Innenabstand in em.
   iPad-Kacheln nur sichtbar, wenn der Monitor sichtbar sein kann (`monitorMoeglich`: kein Spielfenster + Zockmodus bzw. „immer“). **Zwei Arten:** `saved.monitor` = 'liste' | 'drucker' | false
   (Kacheln „Monitor: Unterstützer“ / „Monitor: Drucker-Kamera“, erneut tippen = aus); 'drucker' schneidet den schrägen Bildschirm als Loch aus (`monLoch` im clip-path) – Drucker-Kamera in OBS darunter legen. Geprüft (Headless).
+- 23.11.2026: **Docker-Icon** = Live-Studio-Logo (`medien/logo/live-studio.svg` → `medien/live-studio-icon.png`, 512 px, transparent), ausgeliefert unter `http://<Unraid>:8120/live-studio-icon.png`,
+  in `unraid/live-studio.xml` eingetragen (neuer Dateiname, damit Unraid das Icon neu lädt). `/icon.png` (Mikrofon) bleibt App-Icon fürs iPad.
