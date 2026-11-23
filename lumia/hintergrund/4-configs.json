@@ -1490,7 +1490,7 @@
  "monX": {
   "type": "slider",
   "label": "Hochkant: Mitte waagrecht",
-  "value": 50,
+  "value": 49.75,
   "options": {
    "min": 0,
    "max": 100,
@@ -1508,7 +1508,7 @@
  "monY": {
   "type": "slider",
   "label": "Hochkant: Mitte senkrecht",
-  "value": 48,
+  "value": 47.85,
   "options": {
    "min": 0,
    "max": 100,
@@ -1526,7 +1526,7 @@
  "monBreite": {
   "type": "slider",
   "label": "Hochkant: Breite",
-  "value": 45,
+  "value": 44.5,
   "options": {
    "min": 0,
    "max": 100,
@@ -1544,7 +1544,7 @@
  "monHoehe": {
   "type": "slider",
   "label": "Hochkant: Höhe",
-  "value": 37,
+  "value": 37.3,
   "options": {
    "min": 0,
    "max": 100,
@@ -1562,7 +1562,7 @@
  "monQX": {
   "type": "slider",
   "label": "Quer: Mitte waagrecht",
-  "value": 52,
+  "value": 52.15,
   "options": {
    "min": 0,
    "max": 100,
@@ -1580,7 +1580,7 @@
  "monQY": {
   "type": "slider",
   "label": "Quer: Mitte senkrecht",
-  "value": 48,
+  "value": 47.6,
   "options": {
    "min": 0,
    "max": 100,
@@ -1598,7 +1598,7 @@
  "monQBreite": {
   "type": "slider",
   "label": "Quer: Breite",
-  "value": 32,
+  "value": 31.9,
   "options": {
    "min": 0,
    "max": 100,
@@ -1642,5 +1642,41 @@
    ]
   },
   "order": 80.075
+ },
+ "monPerspektive": {
+  "type": "slider",
+  "label": "Hochkant: Perspektive (rechte Seite kürzer, − = linke)",
+  "value": 6,
+  "options": {
+   "min": -20,
+   "max": 20,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.165
+ },
+ "monQPerspektive": {
+  "type": "slider",
+  "label": "Quer: Perspektive (rechte Seite kürzer, − = linke)",
+  "value": 0,
+  "options": {
+   "min": -20,
+   "max": 20,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.205
  }
 }

@@ -147,14 +147,15 @@ if (window.MM_MUSIK) {
 
 // Kameras & Fenster: große Kacheln oben rechts, zeigen an, was gerade zu sehen ist
 const fensterBox = document.getElementById('fenster');
-const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Wand-Monitor', '📺']].map(([nr, label, ico]) => {
+const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Monitor: Unterstützer', '📺'], ['monitor-drucker', 'Monitor: Drucker-Kamera', '🖨️']].map(([nr, label, ico]) => {
   const b = document.createElement('button'); b.className = 'btn';
   b.innerHTML = '<span class="ico"></span><span></span><span class="zu"></span>'; b.children[0].textContent = ico; b.children[1].textContent = label;
-  b.onclick = () => send({ id: nr === 'monitor' ? 'monitor' : nr === 1 ? 'fenster' : 'fenster' + nr, label: label + ' ein/aus' }, b);
+  b.onclick = () => send({ id: typeof nr === 'string' ? nr : nr === 1 ? 'fenster' : 'fenster' + nr, label: label + ' ein/aus' }, b);
   fensterBox.append(b); return { nr, b };
 });
 function fensterZeigen(sicht) {
-  for (const f of FENSTER) { const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? (f.nr === 'monitor' ? '● an' : '● zu sehen') : 'aus'; }
+  for (const f of FENSTER) { if (String(f.nr).startsWith('monitor')) f.b.style.display = sicht && sicht.monitorMoeglich ? '' : 'none';
+    const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? (String(f.nr).startsWith('monitor') ? '● an' : '● zu sehen') : 'aus'; }
 }
 fensterZeigen(window.MM_FENSTER);
 if (window.Overlay && Overlay.on) Overlay.on('fenster', fensterZeigen);

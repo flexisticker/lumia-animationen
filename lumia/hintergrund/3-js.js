@@ -79,6 +79,13 @@ const SCHILD_PX = innerHeight * (QUER ? 0.026 : 0.017) * num(QUER ? D.schildGroe
 const monEl = document.getElementById('monitor'), monListe = monEl.querySelector('.mon-liste');
 monEl.querySelector('.mon-titel').textContent = D.monTitel || '🏆 Danke an euch!';
 let monitorAn = false, monDaten = [], monGesehen = null;
+// Perspektive: Rechteck (0,0,w,h) auf vier Ecken abbilden (CSS matrix3d) – damit die Anzeige schräg im Bildschirm sitzt
+function adj(m) { return [m[4]*m[8]-m[5]*m[7], m[2]*m[7]-m[1]*m[8], m[1]*m[5]-m[2]*m[4], m[5]*m[6]-m[3]*m[8], m[0]*m[8]-m[2]*m[6], m[2]*m[3]-m[0]*m[5], m[3]*m[7]-m[4]*m[6], m[1]*m[6]-m[0]*m[7], m[0]*m[4]-m[1]*m[3]]; }
+function mul(a, b) { const c = []; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) { let s = 0; for (let k = 0; k < 3; k++) s += a[3*i+k] * b[3*k+j]; c[3*i+j] = s; } return c; }
+function mulv(m, v) { return [m[0]*v[0]+m[1]*v[1]+m[2]*v[2], m[3]*v[0]+m[4]*v[1]+m[5]*v[2], m[6]*v[0]+m[7]*v[1]+m[8]*v[2]]; }
+function basis(p) { const m = [p[0], p[2], p[4], p[1], p[3], p[5], 1, 1, 1]; const v = mulv(adj(m), [p[6], p[7], 1]); return mul(m, [v[0], 0, 0, 0, v[1], 0, 0, 0, v[2]]); }
+function matrix3d(w, h, q) { const t = mul(basis(q), adj(basis([0, 0, w, 0, 0, h, w, h]))); for (let i = 0; i < 9; i++) t[i] /= t[8];
+  return 'matrix3d(' + [t[0], t[3], 0, t[6], t[1], t[4], 0, t[7], 0, 0, 1, 0, t[2], t[5], 0, t[8]].join(',') + ')'; }
 const ZWEI = !QUER; if (ZWEI) monEl.classList.add('zwei'); // hochkant: Name und Angabe untereinander (schmaler Bildschirm)
 const MQ = k => (QUER && D['monQ' + k] !== undefined && D['monQ' + k] !== '' ? D['monQ' + k] : D['mon' + k]);
 function monZeichnen() {
@@ -95,7 +102,7 @@ function monZeichnen() {
   monGesehen = new Set(monDaten.map(e => e.id)); // beim ersten Zeichnen nichts animieren, danach nur neue Einträge
 }
 monZeichnen();
-if (window.Overlay) Overlay.on('letzte', d => { if (d.monitor !== undefined) monitorAn = !!d.monitor; const neu = (d.liste || []).map(e => e.id).join() !== monDaten.map(e => e.id).join(); monDaten = d.liste || []; if (neu) monZeichnen(); letzterStand = ''; });
+if (window.Overlay) Overlay.on('letzte', d => { if (d.monitor !== undefined) monitorAn = d.monitor === true ? 'liste' : d.monitor || false; const neu = (d.liste || []).map(e => e.id).join() !== monDaten.map(e => e.id).join(); monDaten = d.liste || []; if (neu) monZeichnen(); letzterStand = ''; });
 let curSpiel = null, zwang = { 1: null, 2: null, 3: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
 function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
 function rect(w) {
@@ -140,14 +147,22 @@ function draw(now) {
     w.tag.classList.toggle('show', shown && !!w.g('Schild'));
     if (shown && w.g('Schild') && !tagW) letzterStand = '';  // Schildbreite erst nach dem Einblenden bekannt
   }
+  let monLoch = '';
   // Wand-Monitor: an, nur wenn das Spielfenster nicht zu sehen ist (und je nach Einstellung nur im Zockmodus)
   const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || mode === 'zocken');
   if (monZeigen) {
-    const W = cv.width * num(MQ('Breite'), QUER ? 32 : 45) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 34 : 37) / 100;
-    Object.assign(monEl.style, { left: cv.width * num(MQ('X'), QUER ? 52 : 50) / 100 - W / 2 + 'px', top: cv.height * num(MQ('Y'), 48) / 100 - H / 2 + 'px', width: W + 'px', height: H + 'px', fontSize: (Math.min(H * 0.84 / ((Math.max(1, num(D.monAnzahl, 6)) * (ZWEI ? 2.05 : 1.55)) + 1.7 * 1.55), W * 0.9 / (ZWEI ? 14 : 21)) * num(D.monSchrift, 100) / 100).toFixed(1) + 'px' });
+    const W = cv.width * num(MQ('Breite'), QUER ? 31.9 : 44.5) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 34 : 37.3) / 100;
+    // Perspektive: rechte Kante oben/unten um p % der Höhe kürzer (negativ = linke Kante); Ecken OL, OR, UL, UR
+    const pr = num(MQ('Perspektive'), QUER ? 0 : 6) / 100, dr = H * Math.max(0, pr), dl = H * Math.max(0, -pr);
+    monEl.style.transform = pr ? matrix3d(W, H, [0, dl, W, dr, 0, H - dl, W, H - dr]) : '';
+    const mx = cv.width * num(MQ('X'), QUER ? 52.15 : 49.75) / 100 - W / 2, my = cv.height * num(MQ('Y'), QUER ? 47.6 : 47.85) / 100 - H / 2;
+    // Drucker-Kamera im Monitor: schräges Loch ausschneiden, die Kamera liegt in OBS darunter
+    if (monitorAn === 'drucker') { const f = v => v.toFixed(1); monLoch = `M${f(mx)} ${f(my + dl)}L${f(mx + W)} ${f(my + dr)}L${f(mx + W)} ${f(my + H - dr)}L${f(mx)} ${f(my + H - dl)}Z`; }
+    Object.assign(monEl.style, { left: mx + 'px', top: my + 'px', width: W + 'px', height: H + 'px', fontSize: (Math.min(H / (Math.max(1, num(D.monAnzahl, 6)) * (ZWEI ? 2.05 : 1.55) + 1.7 + 1.8 + 0.4), W / (ZWEI ? 16 : 28)) * num(D.monSchrift, 100) / 100).toFixed(1) + 'px' });
     monEl.style.setProperty('--monDeck', num(D.monDeckkraft, 92) / 100);
   }
-  monEl.classList.toggle('show', monZeigen);
+  monEl.classList.toggle('show', monZeigen && monitorAn === 'liste');
+  if (monLoch) loch += monLoch;
   // Loch (Spielfenster) voll durchsichtig ausschneiden
   bg.style.clipPath = loch ? `path(evenodd, "M0 0H${cv.width}V${cv.height}H0Z${loch}")` : '';
 }
@@ -175,7 +190,7 @@ if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));
   if (c.startsWith('fenster:')) { try { zwang = { 1: null, 2: null, 3: null, ...JSON.parse(c.slice(8)) }; } catch (e) {} letzterStand = ''; }
-  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'monitor') { monitorAn = !!a.an; letzterStand = ''; } if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
+  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'monitor') { monitorAn = a.art || false; letzterStand = ''; } if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
   if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
   if (c.startsWith('musik:')) { try { setMusik(JSON.parse(c.slice(6))); } catch (e) {} }
 });

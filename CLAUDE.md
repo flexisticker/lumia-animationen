@@ -123,3 +123,7 @@
   neue Liste nach `monPauseStd` (6) Std. ohne Ereignis; SSE `letzte` an hinten, Startwert im `hallo`. Tablet-Kachel „📺 Wand-Monitor“ (`/api/aktion {id:'monitor'}`, `saved.monitor`).
   Sichtbar nur wenn an, Spielfenster nicht zu sehen und (`monWann`) im Zockmodus bzw. immer. Einstellungen Reiter „Wand-Monitor“: Titel, Leertext, Anzahl, Schrift, Deckkraft, Tests zeigen, Lage hoch/quer
   (Standard hoch 50/48/45/37 %, quer 52/48/32/34 % = Bildschirm der Zockerbude). Hochkant zweizeilig (Name / Plattform · Angabe), quer einzeilig mit Plattform-Schild. Schrift passt sich Breite und Höhe an. Geprüft (Headless).
+- 23.11.2026: Wand-Monitor **perspektivisch** (vermessen: hochkant rechte Seite oben/unten je ~6 % der Höhe kürzer, quer gerade): `matrix3d` aus 4 Ecken (`basis/adj/mul`, transform-origin 0 0),
+  Regler `monPerspektive`/`monQPerspektive`, Lage-Vorgaben exakt auf den Bildschirm (hoch 49,75/47,85/44,5/37,3 %, quer 52,15/47,6/31,9/34 %). Schrift nach Breite/Höhe (`W/16` zweizeilig, `W/28` einzeilig), Innenabstand in em.
+  iPad-Kacheln nur sichtbar, wenn der Monitor sichtbar sein kann (`monitorMoeglich`: kein Spielfenster + Zockmodus bzw. „immer“). **Zwei Arten:** `saved.monitor` = 'liste' | 'drucker' | false
+  (Kacheln „Monitor: Unterstützer“ / „Monitor: Drucker-Kamera“, erneut tippen = aus); 'drucker' schneidet den schrägen Bildschirm als Loch aus (`monLoch` im clip-path) – Drucker-Kamera in OBS darunter legen. Geprüft (Headless).

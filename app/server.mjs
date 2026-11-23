@@ -310,7 +310,10 @@ function fensterSichtbar(nr) {
   if (saved.modus === 'zocken' && sp && sp.ohneFenster && w !== 'immer') return false;
   return w === 'immer' || w === saved.modus;
 }
-const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: !!saved.monitor });
+// Wand-Monitor nur sinnvoll, wenn kein Spielfenster offen ist und (je nach Einstellung) im Zockmodus → nur dann Kachel am iPad zeigen
+const monitorArt = () => (saved.monitor === true ? 'liste' : saved.monitor || '');
+const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || saved.modus === 'zocken');
+const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste', 'monitor-drucker': monitorArt() === 'drucker', monitorMoeglich: monitorMoeglich() });
 const fensterMelden = () => broadcast('fenster', fensterSicht(), ['aktion']);
 function setModus(modus, spielId, quelle, fromObs) {
   const m = modus === 'zocken' ? 'zocken' : 'party';
@@ -473,7 +476,7 @@ const server = http.createServer(async (req, res) => {
       // Studio live informieren, welche Quellen (mit Format) gerade verbunden sind
       const quellenMelden = () => { if (role === 'vorne' || role === 'hinten') broadcast('quellen', quellenListe(), ['studio']); };
       req.on('close', () => { clients.delete(c); quellenMelden(); }); quellenMelden();
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), monitor: !!saved.monitor, letzte, stand: STAND })}\n\n`);
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), monitor: monitorArt(), letzte, stand: STAND })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
@@ -517,7 +520,12 @@ const server = http.createServer(async (req, res) => {
       const raw = (await body(req, 4000)).toString();
       let a; try { a = JSON.parse(raw); } catch { return json(res, 400, { fehler: 'ungültig' }); }
       // Spielfenster ein-/ausblenden: Stand im Server, damit alle Quellen (hoch/quer) gleich sind – auch nach dem Neuladen
-      if (a.id === 'monitor') { saved.monitor = a.an === undefined ? !saved.monitor : !!a.an; a.an = saved.monitor; saveSettings(); a.label = 'Wand-Monitor ' + (a.an ? 'an' : 'aus'); fensterMelden(); }
+      // Wand-Monitor: aus | 'liste' (letzte Unterstützer) | 'drucker' (Loch für die Drucker-Kamera); Kachel erneut = aus
+      if (a.id === 'monitor' || a.id === 'monitor-drucker') {
+        const ziel = a.id === 'monitor' ? 'liste' : 'drucker';
+        saved.monitor = monitorArt() === ziel ? false : ziel; a.id = 'monitor'; a.art = saved.monitor || ''; a.an = !!saved.monitor; saveSettings();
+        a.label = 'Wand-Monitor ' + (saved.monitor === 'drucker' ? 'zeigt die Drucker-Kamera' : saved.monitor ? 'zeigt die Unterstützer' : 'aus'); fensterMelden();
+      }
       if (a.id === 'fenster2' || a.id === 'fenster3') { a.nr = Number(a.id.slice(7)); a.id = 'fenster'; }
       if (a.id === 'fenster') {
         const nr = [2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1;
