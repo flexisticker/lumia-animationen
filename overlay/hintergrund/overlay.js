@@ -170,7 +170,6 @@ requestAnimationFrame(draw);
 function setMode(v) {
   const next = String(v || '').toLowerCase() === 'zocken' ? 'zocken' : 'party';
   if (next !== mode && D.modusSound) { try { const a = new Audio(D.modusSound); a.volume = Math.min(1, num(D.modusSoundLaut, 80) / 100); a.play().catch(() => {}); } catch (e) {} }
-  if (next !== mode) zwang[1] = null; // Spielfenster-Knopf gilt bis zum nächsten Moduswechsel
   mode = next; letzterStand = '';
 }
 async function poll() {

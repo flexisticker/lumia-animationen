@@ -321,7 +321,6 @@ const fensterMelden = () => broadcast('fenster', fensterSicht(), ['aktion']);
 function setModus(modus, spielId, quelle, fromObs) {
   const m = modus === 'zocken' ? 'zocken' : 'party';
   const changed = m !== saved.modus || (spielId !== undefined && spielId !== saved.spiel);
-  if (m !== saved.modus && saved.fenster) saved.fenster[1] = null; // Spielfenster wieder wie eingestellt; Drucker-Kamera bleibt wie geschaltet
   saved.modus = m;
   if (spielId !== undefined) saved.spiel = saved.spiele.some(x => x.id === spielId) ? spielId : '';
   saveSettings();
