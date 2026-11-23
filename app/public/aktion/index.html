@@ -77,7 +77,7 @@ header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-t
   window.Overlay = {
     data: {},
     on(ev, cb) { (handlers[ev] ||= []).push(cb); },
-    async callCommand(cmd, vars) { const r = await post('/api/aktion', JSON.parse(vars.aktion)); if (!r.ok) throw new Error('Fehler'); },
+    async callCommand(cmd, vars) { const r = await post('/api/aktion', JSON.parse(vars.aktion)); if (!r.ok) throw new Error('Fehler'); return r.json().catch(() => ({})); },
     async getVariable(name) { return name === 'mm_modus' ? state.modus : null; },
     async setVariable(name, value) {
       if (name === 'mm_modus' || name === 'mm_spiel') {
@@ -100,7 +100,7 @@ header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-t
       const es = new EventSource('/api/events?rolle=' + ROLE + '&format=' + fmt + '&pfad=' + encodeURIComponent(location.pathname) + '&w=' + innerWidth + '&h=' + innerHeight);
       const modusMsg = d => { state.modus = d.modus; emit('overlaycontent', { content: 'spiel:' + JSON.stringify(d.spiel || null) }); emit('overlaycontent', { content: 'modus:' + state.modus }); };
       const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
-      es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + (d.fensterAus ? 'aus' : 'an') }); });
+      es.addEventListener('hallo', e => { const d = JSON.parse(e.data); modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); });
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
@@ -137,9 +137,10 @@ async function send(payload, btn) {
   btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit');
   const aktion = JSON.stringify(payload);
   try {
-    if (window.Overlay) await Overlay.callCommand(D.befehl || 'mm-aktion', { aktion });
+    let r = null;
+    if (window.Overlay) r = await Overlay.callCommand(D.befehl || 'mm-aktion', { aktion });
     else if (window.TEST_SEND) window.TEST_SEND(aktion);
-    setStatus('gesendet: ' + (payload.label || payload.id), 'ok');
+    setStatus(r && r.label && /^fenster/.test(payload.id) ? r.label : 'gesendet: ' + (payload.label || payload.id), 'ok');
   } catch (e) { setStatus('Fehler – Befehl „' + (D.befehl || 'mm-aktion') + '“ vorhanden?', 'err'); }
 }
 function button(box, { id, label, ico }, extra = {}) {
@@ -152,7 +153,7 @@ function button(box, { id, label, ico }, extra = {}) {
 }
 
 const SCENES = [['szene:start', 'Startet gleich', '⏳'], ['szene:pause', 'Kurze Pause', '☕'], ['szene:gleich', 'Gleich weiter', '⏱️'],
-  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬'], ['fenster', 'Spielfenster ein/aus', '🪟']];
+  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬'], ['fenster', 'Spielfenster ein/aus', '🪟'], ['fenster2', 'Drucker-Kamera ein/aus', '📹']];
 const sceneBox = document.getElementById('scenes');
 SCENES.forEach(([id, label, ico]) => {
   const b = button(sceneBox, { id, label, ico });

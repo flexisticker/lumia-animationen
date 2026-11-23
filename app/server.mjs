@@ -270,9 +270,19 @@ function setMusik(m, quelle) {
   saveSettings(); broadcast('musik', musikInfo());
   if (m.titel !== undefined && quelle) remember({ art: 'modus', quelle, text: 'Musik: ' + (saved.musik.titel === 'aus' ? 'aus' : (MUSIK.find(x => x.id === saved.musik.titel) || {}).name) });
 }
+// Fenster (1 = Spiel, 2 = Drucker-Kamera) per Knopf erzwingen: true/false, null = wie im Studio eingestellt („Fenster zeigen“)
+saved.fenster ||= { 1: saved.fensterAus ? false : null, 2: null }; delete saved.fensterAus;
+const fensterStand = () => ({ 1: saved.fenster[1] ?? null, 2: saved.fenster[2] ?? null });
+function fensterSichtbar(nr) {
+  if (saved.fenster[nr] === true || saved.fenster[nr] === false) return saved.fenster[nr];
+  const w = settingsFor('hinten')['f' + nr + 'Wann'] || 'aus', sp = saved.spiele.find(x => x.id === saved.spiel);
+  if (saved.modus === 'zocken' && sp && sp.ohneFenster && w !== 'immer') return false;
+  return w === 'immer' || w === saved.modus;
+}
 function setModus(modus, spielId, quelle, fromObs) {
   const m = modus === 'zocken' ? 'zocken' : 'party';
   const changed = m !== saved.modus || (spielId !== undefined && spielId !== saved.spiel);
+  if (m !== saved.modus && saved.fenster) saved.fenster[1] = null; // Spielfenster wieder wie eingestellt; Drucker-Kamera bleibt wie geschaltet
   saved.modus = m;
   if (spielId !== undefined) saved.spiel = saved.spiele.some(x => x.id === spielId) ? spielId : '';
   saveSettings();
@@ -430,7 +440,7 @@ const server = http.createServer(async (req, res) => {
       // Studio live informieren, welche Quellen (mit Format) gerade verbunden sind
       const quellenMelden = () => { if (role === 'vorne' || role === 'hinten') broadcast('quellen', quellenListe(), ['studio']); };
       req.on('close', () => { clients.delete(c); quellenMelden(); }); quellenMelden();
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fensterAus: !!saved.fensterAus })}\n\n`);
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand() })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
@@ -474,9 +484,15 @@ const server = http.createServer(async (req, res) => {
       const raw = (await body(req, 4000)).toString();
       let a; try { a = JSON.parse(raw); } catch { return json(res, 400, { fehler: 'ungültig' }); }
       // Spielfenster ein-/ausblenden: Stand im Server, damit alle Quellen (hoch/quer) gleich sind – auch nach dem Neuladen
-      if (a.id === 'fenster') { saved.fensterAus = a.an === undefined ? !saved.fensterAus : !a.an; a.an = !saved.fensterAus; saveSettings(); }
+      if (a.id === 'fenster2') { a.id = 'fenster'; a.nr = 2; }
+      if (a.id === 'fenster') {
+        const nr = a.nr == 2 ? 2 : 1;
+        const an = a.an === undefined ? !fensterSichtbar(nr) : !!a.an;
+        saved.fenster[nr] = an; a.nr = nr; a.an = an; saveSettings();
+        a.label = (nr === 2 ? 'Drucker-Kamera ' : 'Spielfenster ') + (an ? 'an' : 'aus');
+      }
       broadcast('aktion', a, ['vorne', 'hinten']); remember({ art: 'aktion', quelle: 'knopf', text: a.label || a.id });
-      return json(res, 200, { ok: true });
+      return json(res, 200, { ok: true, label: a.label });
     }
     if (p === '/api/profil' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');

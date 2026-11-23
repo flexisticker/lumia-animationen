@@ -106,3 +106,6 @@
 - 23.11.2026: **Moduswechsel schaltet OBS-Szene nicht** (WebSocket laut Michael verbunden): `obsRequest` wartet jetzt auf die OBS-Antwort (2 s, Fehlertext aus requestStatus.comment), `/api/modus` liefert das echte Ergebnis ans iPad,
   Fehler auch im Studio-Protokoll (⚠️ obs). Keine Szene eingestellt → automatisch nach Namen (`rateSzene`: zock/gam/spiel/play bzw. party/chat/talk/cam/main); eingestellter Name fehlt → Groß/klein/Leerzeichen tolerant,
   sonst Namens-Raten, sonst Meldung mit Liste der vorhandenen Szenen. Geprüft mit OBS-Nachbau (`obsmock.mjs` im Scratchpad, Port 4466).
+- 23.11.2026: **Drucker-Kamera per Tablet zuschalten:** Knopf „📹 Drucker-Kamera ein/aus“ (id `fenster2` → Server `fenster` nr 2). Fensterknöpfe jetzt je Fenster: `saved.fenster {1,2}` = true/false/null
+  (null = wie „Fenster zeigen“ im Studio; `fensterSichtbar(nr)` berechnet den aktuellen Stand fürs Umschalten), ersetzt `fensterAus`. Spielfenster-Zwang (1) gilt bis zum nächsten Moduswechsel,
+  Drucker-Kamera (2) bleibt über Moduswechsel/Neuladen. iPad zeigt das echte Ergebnis („Drucker-Kamera an“) – `/api/aktion` liefert `label`, Shim-`callCommand` gibt die Antwort zurück. Geprüft (Headless).

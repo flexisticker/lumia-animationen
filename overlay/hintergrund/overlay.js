@@ -73,8 +73,8 @@ const WIN = [1, 2].map(n => {
   tag.textContent = g('Schild') || '';
   return { n, g, frame, tag, t: 0 };
 });
-let curSpiel = null, fensterAus = false;
-function want(w) { if (fensterAus) return false; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
+let curSpiel = null, zwang = { 1: null, 2: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
+function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
 function rect(w) {
   const W = cv.width * num(w.g('Breite'), 80) / 100;
   const fmt = { '16:9': 16 / 9, '4:3': 4 / 3, '9:16': 9 / 16, '1:1': 1 }[w.g('Format')];
@@ -121,6 +121,7 @@ requestAnimationFrame(draw);
 function setMode(v) {
   const next = String(v || '').toLowerCase() === 'zocken' ? 'zocken' : 'party';
   if (next !== mode && D.modusSound) { try { const a = new Audio(D.modusSound); a.volume = Math.min(1, num(D.modusSoundLaut, 80) / 100); a.play().catch(() => {}); } catch (e) {} }
+  if (next !== mode) zwang[1] = null; // Spielfenster-Knopf gilt bis zum nächsten Moduswechsel
   mode = next; letzterStand = '';
 }
 async function poll() {
@@ -139,8 +140,8 @@ function setSpiel(sp) {
 if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));
-  if (c.startsWith('fenster:')) { fensterAus = c.slice(8) === 'aus'; letzterStand = ''; }
-  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'fenster') { fensterAus = a.an === false; letzterStand = ''; } } catch (e) {} }
+  if (c.startsWith('fenster:')) { try { zwang = { 1: null, 2: null, ...JSON.parse(c.slice(8)) }; } catch (e) {} letzterStand = ''; }
+  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'fenster') { zwang[a.nr == 2 ? 2 : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
   if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
   if (c.startsWith('musik:')) { try { setMusik(JSON.parse(c.slice(6))); } catch (e) {} }
 });
