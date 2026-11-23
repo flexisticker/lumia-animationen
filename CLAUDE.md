@@ -131,3 +131,5 @@
   in `unraid/live-studio.xml` eingetragen (neuer Dateiname, damit Unraid das Icon neu lädt). `/icon.png` (Mikrofon) bleibt App-Icon fürs iPad.
 - 23.11.2026: Modus 2 heißt bei **3dbymicha „Printmodus“** (Symbol 🖨️, Fensterschild „🖨️ PRINTMODUS“): Preset + einmalige Umstellung alter gespeicherter Standardwerte. Neues Feld `modus2Ico`
   (Tablet-Steuerung) für das Symbol; Namen (`modus1Name`/`modus2Name`) und Schild (`f1Schild`) waren schon je Kanal einstellbar. Intern bleibt der Modus `zocken`.
+- 23.11.2026: Wand-Monitor sah aufgeklebt aus (eigener Rand/Leuchten + hellerer Grund = doppelter Rahmen). Jetzt ohne Kante/Schatten, dunkler halbdurchsichtiger Grund, Ränder per `mask-image` weich auslaufend,
+  etwas kleiner für Abstand zur Lichtleiste (hoch 41×34 %, quer 29,5×31 %), Leertext kleiner mit Glühen. Geprüft (Headless, leer + mit Einträgen).

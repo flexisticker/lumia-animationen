@@ -27,9 +27,10 @@ body.leicht .frame-glow { --a: 0deg; }
 
 /* Wand-Monitor: letzte Unterstützer auf dem dunklen Bildschirm im Hintergrund */
 .monitor { position: fixed; transform-origin: 0 0; opacity: 0; transition: opacity .8s; pointer-events: none; overflow: hidden; box-sizing: border-box;
-  border-radius: .3vh; padding: .9em 1.3em; font-family: 'Baloo 2', system-ui, sans-serif; color: #fff;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(124,77,255,.22), rgba(6,8,22,.88) 60%), repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
-  box-shadow: inset 0 0 3vh rgba(0,229,255,.18); }
+  padding: .9em 1.3em; font-family: 'Baloo 2', system-ui, sans-serif; color: #fff;
+  /* wie vom Bildschirm selbst ausgestrahlt: dunkel wie der Bildschirm, keine eigene Kante, Ränder laufen weich aus */
+  background: radial-gradient(120% 80% at 50% 10%, rgba(124,77,255,.16), rgba(6,8,22,.55) 70%), repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px);
+  -webkit-mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, #000 70%, transparent 100%); mask-image: radial-gradient(ellipse 75% 75% at 50% 50%, #000 70%, transparent 100%); }
 .monitor.show { opacity: var(--monDeck, .92); }
 .mon-titel { font-weight: 800; letter-spacing: .08em; text-align: center; color: #7dffd9; text-shadow: 0 0 1.2vh rgba(0,229,255,.7); margin-bottom: .7em; white-space: nowrap; line-height: 1; overflow: hidden; text-overflow: ellipsis; }
 .mon-zeile { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: .5em; margin: 0 0 .55em 0; line-height: 1; white-space: nowrap; }
@@ -42,7 +43,7 @@ body.leicht .frame-glow { --a: 0deg; }
 .mon-txt { overflow: hidden; text-overflow: ellipsis; }
 .mon-txt b { font-weight: 800; }
 .mon-txt span { opacity: .8; font-weight: 600; }
-.mon-leer { text-align: center; opacity: .6; font-weight: 700; margin-top: 10%; }
+.mon-leer { text-align: center; opacity: .75; font-weight: 700; margin-top: 1.2em; font-size: .8em; text-shadow: 0 0 1vh rgba(124,77,255,.6); }
 @keyframes monRein { from { opacity: 0; transform: translateY(-80%); } }
 .monitor.zwei .mon-zeile { grid-template-columns: auto 1fr; margin-bottom: .5em; }
 .monitor.zwei .mon-pf { display: none; }

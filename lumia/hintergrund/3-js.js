@@ -151,7 +151,7 @@ function draw(now) {
   // Wand-Monitor: an, nur wenn das Spielfenster nicht zu sehen ist (und je nach Einstellung nur im Zockmodus)
   const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || mode === 'zocken');
   if (monZeigen) {
-    const W = cv.width * num(MQ('Breite'), QUER ? 31.9 : 44.5) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 34 : 37.3) / 100;
+    const W = cv.width * num(MQ('Breite'), QUER ? 29.5 : 41) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 31 : 34) / 100;
     // Perspektive: rechte Kante oben/unten um p % der Höhe kürzer (negativ = linke Kante); Ecken OL, OR, UL, UR
     const pr = num(MQ('Perspektive'), QUER ? 0 : 6) / 100, dr = H * Math.max(0, pr), dl = H * Math.max(0, -pr);
     monEl.style.transform = pr ? matrix3d(W, H, [0, dl, W, dr, 0, H - dl, W, H - dr]) : '';

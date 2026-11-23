@@ -1526,7 +1526,7 @@
  "monBreite": {
   "type": "slider",
   "label": "Hochkant: Breite",
-  "value": 44.5,
+  "value": 41,
   "options": {
    "min": 0,
    "max": 100,
@@ -1544,7 +1544,7 @@
  "monHoehe": {
   "type": "slider",
   "label": "Hochkant: Höhe",
-  "value": 37.3,
+  "value": 34,
   "options": {
    "min": 0,
    "max": 100,
@@ -1598,7 +1598,7 @@
  "monQBreite": {
   "type": "slider",
   "label": "Quer: Breite",
-  "value": 31.9,
+  "value": 29.5,
   "options": {
    "min": 0,
    "max": 100,
@@ -1616,7 +1616,7 @@
  "monQHoehe": {
   "type": "slider",
   "label": "Quer: Höhe",
-  "value": 34,
+  "value": 31,
   "options": {
    "min": 0,
    "max": 100,
