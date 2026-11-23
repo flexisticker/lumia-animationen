@@ -17,7 +17,7 @@ async function send(payload, btn) {
     let r = null;
     if (window.Overlay) r = await Overlay.callCommand(D.befehl || 'mm-aktion', { aktion });
     else if (window.TEST_SEND) window.TEST_SEND(aktion);
-    setStatus(r && r.label && /^fenster/.test(payload.id) ? r.label : 'gesendet: ' + (payload.label || payload.id), 'ok');
+    setStatus(r && r.label && /^(fenster|monitor)/.test(payload.id) ? r.label : 'gesendet: ' + (payload.label || payload.id), 'ok');
   } catch (e) { setStatus('Fehler – Befehl „' + (D.befehl || 'mm-aktion') + '“ vorhanden?', 'err'); }
 }
 function button(box, { id, label, ico }, extra = {}) {
@@ -147,14 +147,14 @@ if (window.MM_MUSIK) {
 
 // Kameras & Fenster: große Kacheln oben rechts, zeigen an, was gerade zu sehen ist
 const fensterBox = document.getElementById('fenster');
-const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️']].map(([nr, label, ico]) => {
+const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Wand-Monitor', '📺']].map(([nr, label, ico]) => {
   const b = document.createElement('button'); b.className = 'btn';
   b.innerHTML = '<span class="ico"></span><span></span><span class="zu"></span>'; b.children[0].textContent = ico; b.children[1].textContent = label;
-  b.onclick = () => send({ id: nr === 1 ? 'fenster' : 'fenster' + nr, label: label + ' ein/aus' }, b);
+  b.onclick = () => send({ id: nr === 'monitor' ? 'monitor' : nr === 1 ? 'fenster' : 'fenster' + nr, label: label + ' ein/aus' }, b);
   fensterBox.append(b); return { nr, b };
 });
 function fensterZeigen(sicht) {
-  for (const f of FENSTER) { const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? '● zu sehen' : 'aus'; }
+  for (const f of FENSTER) { const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? (f.nr === 'monitor' ? '● an' : '● zu sehen') : 'aus'; }
 }
 fensterZeigen(window.MM_FENSTER);
 if (window.Overlay && Overlay.on) Overlay.on('fenster', fensterZeigen);

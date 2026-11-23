@@ -83,5 +83,21 @@
   "f3QY": 80,
   "f3QBreite": 22,
   "f3QHoehe": 22,
-  "f3QFormat": "frei"
+  "f3QFormat": "frei",
+  "monWann": "zocken",
+  "monTitel": "🏆 Danke an euch!",
+  "monLeer": "Noch keine Unterstützer – sei der Erste! 💜",
+  "monAnzahl": 6,
+  "monSchrift": 100,
+  "monDeckkraft": 92,
+  "monTests": true,
+  "monX": 50,
+  "monY": 48,
+  "monBreite": 45,
+  "monHoehe": 37,
+  "monQX": 52,
+  "monQY": 48,
+  "monQBreite": 32,
+  "monQHoehe": 34,
+  "monPauseStd": 6
 }

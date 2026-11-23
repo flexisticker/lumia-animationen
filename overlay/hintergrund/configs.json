@@ -10,7 +10,8 @@
    "f2": "Fenster 2 – hochkant",
    "f2q": "Fenster 2 – quer",
    "f3": "Fenster 3 – hochkant",
-   "f3q": "Fenster 3 – quer"
+   "f3q": "Fenster 3 – quer",
+   "mon": "Wand-Monitor (letzte Unterstützer)"
   },
   "order": 1
  },
@@ -1385,5 +1386,261 @@
     "f3q"
    ]
   }
+ },
+ "monWann": {
+  "type": "dropdown",
+  "label": "Zeigen (wenn per Knopf an und kein Spielfenster offen)",
+  "value": "zocken",
+  "options": {
+   "zocken": "nur im Zockmodus",
+   "immer": "in beiden Modi"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.01
+ },
+ "monTitel": {
+  "type": "input",
+  "label": "Überschrift",
+  "value": "🏆 Danke an euch!",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.02
+ },
+ "monLeer": {
+  "type": "input",
+  "label": "Text, solange noch niemand da war",
+  "value": "Noch keine Unterstützer – sei der Erste! 💜",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.03
+ },
+ "monAnzahl": {
+  "type": "number",
+  "label": "Anzahl Einträge",
+  "value": 6,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.04
+ },
+ "monSchrift": {
+  "type": "slider",
+  "label": "Schriftgröße",
+  "value": 100,
+  "options": {
+   "min": 50,
+   "max": 200,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.05
+ },
+ "monDeckkraft": {
+  "type": "slider",
+  "label": "Deckkraft des Bildschirms",
+  "value": 92,
+  "options": {
+   "min": 20,
+   "max": 100,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.06
+ },
+ "monTests": {
+  "type": "checkbox",
+  "label": "Test-Ereignisse mit anzeigen",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.07
+ },
+ "monX": {
+  "type": "slider",
+  "label": "Hochkant: Mitte waagrecht",
+  "value": 50,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.08
+ },
+ "monY": {
+  "type": "slider",
+  "label": "Hochkant: Mitte senkrecht",
+  "value": 48,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.09
+ },
+ "monBreite": {
+  "type": "slider",
+  "label": "Hochkant: Breite",
+  "value": 45,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.1
+ },
+ "monHoehe": {
+  "type": "slider",
+  "label": "Hochkant: Höhe",
+  "value": 37,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.11
+ },
+ "monQX": {
+  "type": "slider",
+  "label": "Quer: Mitte waagrecht",
+  "value": 52,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.12
+ },
+ "monQY": {
+  "type": "slider",
+  "label": "Quer: Mitte senkrecht",
+  "value": 48,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.13
+ },
+ "monQBreite": {
+  "type": "slider",
+  "label": "Quer: Breite",
+  "value": 32,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.14
+ },
+ "monQHoehe": {
+  "type": "slider",
+  "label": "Quer: Höhe",
+  "value": 34,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 0.5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.15
+ },
+ "monPauseStd": {
+  "type": "number",
+  "label": "Neue Liste nach … Stunden Pause (neuer Stream)",
+  "value": 6,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "mon"
+   ]
+  },
+  "order": 80.075
  }
 }

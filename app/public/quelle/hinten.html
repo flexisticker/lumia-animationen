@@ -26,10 +26,36 @@ body.leicht .frame-glow { --a: 0deg; }
   font: 800 2.6vh 'Baloo 2', system-ui, sans-serif; color: #fff; letter-spacing: .06em; opacity: 0; transition: opacity .5s, transform .6s cubic-bezier(.2,1.6,.4,1);
   background: linear-gradient(90deg, var(--f1), var(--f2)); box-shadow: 0 0 2vh var(--f2); }
 .tag.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+/* Wand-Monitor: letzte Unterstützer auf dem dunklen Bildschirm im Hintergrund */
+.monitor { position: fixed; opacity: 0; transition: opacity .8s; pointer-events: none; overflow: hidden; box-sizing: border-box;
+  border-radius: .6vh; padding: 3% 5%; font-family: 'Baloo 2', system-ui, sans-serif; color: #fff;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(124,77,255,.22), rgba(6,8,22,.88) 60%), repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px);
+  box-shadow: inset 0 0 3vh rgba(0,229,255,.18); }
+.monitor.show { opacity: var(--monDeck, .92); }
+.mon-titel { font-weight: 800; letter-spacing: .08em; text-align: center; color: #7dffd9; text-shadow: 0 0 1.2vh rgba(0,229,255,.7); margin-bottom: .7em; white-space: nowrap; line-height: 1; overflow: hidden; text-overflow: ellipsis; }
+.mon-zeile { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: .5em; margin: 0 0 .55em 0; line-height: 1; white-space: nowrap; }
+.mon-zeile.neu { animation: monRein .7s cubic-bezier(.2,1.4,.4,1); }
+.mon-zeile:first-child { text-shadow: 0 0 1vh rgba(255,213,79,.6); }
+.mon-ico { font-size: 1.15em; }
+.mon-pf { font-size: .55em; font-weight: 800; letter-spacing: .06em; padding: .15em .5em; border-radius: 99em; }
+.mon-pf.tiktok { background: #111; box-shadow: 0 0 0 1px #25f4ee, 0 0 0 2px #fe2c55; }
+.mon-pf.twitch { background: #9146ff; }
+.mon-txt { overflow: hidden; text-overflow: ellipsis; }
+.mon-txt b { font-weight: 800; }
+.mon-txt span { opacity: .8; font-weight: 600; }
+.mon-leer { text-align: center; opacity: .6; font-weight: 700; margin-top: 10%; }
+@keyframes monRein { from { opacity: 0; transform: translateY(-80%); } }
+.monitor.zwei .mon-zeile { grid-template-columns: auto 1fr; margin-bottom: .5em; }
+.monitor.zwei .mon-pf { display: none; }
+.monitor.zwei .mon-txt b, .monitor.zwei .mon-txt span { display: block; overflow: hidden; text-overflow: ellipsis; }
+.monitor.zwei .mon-txt span { font-size: .72em; margin-top: .12em; }
+.monitor.zwei .mon-txt span::before { content: attr(data-pf) ' · '; opacity: .75; }
 </style></head>
 <body><div id="bg"><video id="bgParty" muted loop playsinline crossorigin="anonymous"></video>
 <video id="bgZock" muted loop playsinline crossorigin="anonymous"></video>
 <div id="dimZ"></div><div id="dim"></div></div>
+<div id="monitor" class="monitor"><div class="mon-titel"></div><div class="mon-liste"></div></div>
 <div id="frame1" class="frame"><div class="frame-glow"></div></div>
 <div id="frame2" class="frame"><div class="frame-glow"></div></div>
 <div id="frame3" class="frame"><div class="frame-glow"></div></div>
@@ -73,9 +99,10 @@ body.leicht .frame-glow { --a: 0deg; }
       const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
       es.addEventListener('hallo', e => { const d = JSON.parse(e.data);
         // Neuer Programmstand (Update) → Seite neu laden, sobald nichts läuft (sonst lief alter Code weiter, bis man in OBS neu lädt)
-        if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) { const neu = () => (busy() ? setTimeout(neu, 500) : location.reload()); return neu(); } window.MM_STAND = d.stand; } modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); });
+        if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) { const neu = () => (busy() ? setTimeout(neu, 500) : location.reload()); return neu(); } window.MM_STAND = d.stand; } modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); emit('letzte', { liste: d.letzte || [], monitor: d.monitor }); });
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
+      es.addEventListener('letzte', e => emit('letzte', { liste: JSON.parse(e.data) }));
       es.addEventListener('fenster', e => { window.MM_FENSTER = JSON.parse(e.data); emit('fenster', window.MM_FENSTER); });
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));
@@ -172,6 +199,27 @@ const WIN = [1, 2, 3].map(n => {
 });
 // Schildgröße: hochkant kleiner (schmales Bild), einstellbar in Prozent je Format
 const SCHILD_PX = innerHeight * (QUER ? 0.026 : 0.017) * num(QUER ? D.schildGroesseQuer : D.schildGroesse, 100) / 100;
+// Wand-Monitor
+const monEl = document.getElementById('monitor'), monListe = monEl.querySelector('.mon-liste');
+monEl.querySelector('.mon-titel').textContent = D.monTitel || '🏆 Danke an euch!';
+let monitorAn = false, monDaten = [], monGesehen = null;
+const ZWEI = !QUER; if (ZWEI) monEl.classList.add('zwei'); // hochkant: Name und Angabe untereinander (schmaler Bildschirm)
+const MQ = k => (QUER && D['monQ' + k] !== undefined && D['monQ' + k] !== '' ? D['monQ' + k] : D['mon' + k]);
+function monZeichnen() {
+  const max = Math.max(1, num(D.monAnzahl, 6)), liste = monDaten.filter(e => D.monTests !== false || !e.test).slice(0, max);
+  monListe.textContent = '';
+  if (!liste.length) { const l = document.createElement('div'); l.className = 'mon-leer'; l.textContent = D.monLeer || 'Noch keine Unterstützer – sei der Erste! 💜'; monListe.append(l); return; }
+  for (const e of liste) {
+    const z = document.createElement('div'); z.className = 'mon-zeile' + (monGesehen && !monGesehen.has(e.id) ? ' neu' : '');
+    const i = document.createElement('span'); i.className = 'mon-ico'; i.textContent = e.icon;
+    const pf = document.createElement('span'); pf.className = 'mon-pf ' + e.plattform; pf.textContent = e.plattform === 'twitch' ? 'TWITCH' : 'TIKTOK';
+    const t = document.createElement('span'); t.className = 'mon-txt'; const b = document.createElement('b'); b.textContent = e.name + ' '; const sp = document.createElement('span'); sp.textContent = e.text; sp.dataset.pf = e.plattform === 'twitch' ? 'Twitch' : 'TikTok'; t.append(b, sp);
+    z.append(i, pf, t); monListe.append(z);
+  }
+  monGesehen = new Set(monDaten.map(e => e.id)); // beim ersten Zeichnen nichts animieren, danach nur neue Einträge
+}
+monZeichnen();
+if (window.Overlay) Overlay.on('letzte', d => { if (d.monitor !== undefined) monitorAn = !!d.monitor; const neu = (d.liste || []).map(e => e.id).join() !== monDaten.map(e => e.id).join(); monDaten = d.liste || []; if (neu) monZeichnen(); letzterStand = ''; });
 let curSpiel = null, zwang = { 1: null, 2: null, 3: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
 function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
 function rect(w) {
@@ -190,7 +238,7 @@ function draw(now) {
   const target = mode === 'zocken' ? 1 : 0;
   if (t !== target) t = target > t ? Math.min(1, t + dt / DUR) : Math.max(0, t - dt / DUR);
   for (const w of WIN) { const tw = want(w) ? 1 : 0; if (w.t !== tw) w.t = tw > w.t ? Math.min(1, w.t + dt / DUR) : Math.max(0, w.t - dt / DUR); }
-  const stand = t + '|' + WIN.map(w => w.t).join('|') + '|' + (vZ.videoWidth ? 1 : 0);
+  const stand = t + '|' + WIN.map(w => w.t).join('|') + '|' + (vZ.videoWidth ? 1 : 0) + '|' + monitorAn;
   if (stand === letzterStand) return;   // nichts geändert → nichts tun (Videos laufen von selbst)
   letzterStand = stand;
   const e = ease(t), hatZ = !!vZ.getAttribute('src');
@@ -216,6 +264,14 @@ function draw(now) {
     w.tag.classList.toggle('show', shown && !!w.g('Schild'));
     if (shown && w.g('Schild') && !tagW) letzterStand = '';  // Schildbreite erst nach dem Einblenden bekannt
   }
+  // Wand-Monitor: an, nur wenn das Spielfenster nicht zu sehen ist (und je nach Einstellung nur im Zockmodus)
+  const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || mode === 'zocken');
+  if (monZeigen) {
+    const W = cv.width * num(MQ('Breite'), QUER ? 32 : 45) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 34 : 37) / 100;
+    Object.assign(monEl.style, { left: cv.width * num(MQ('X'), QUER ? 52 : 50) / 100 - W / 2 + 'px', top: cv.height * num(MQ('Y'), 48) / 100 - H / 2 + 'px', width: W + 'px', height: H + 'px', fontSize: (Math.min(H * 0.84 / ((Math.max(1, num(D.monAnzahl, 6)) * (ZWEI ? 2.05 : 1.55)) + 1.7 * 1.55), W * 0.9 / (ZWEI ? 14 : 21)) * num(D.monSchrift, 100) / 100).toFixed(1) + 'px' });
+    monEl.style.setProperty('--monDeck', num(D.monDeckkraft, 92) / 100);
+  }
+  monEl.classList.toggle('show', monZeigen);
   // Loch (Spielfenster) voll durchsichtig ausschneiden
   bg.style.clipPath = loch ? `path(evenodd, "M0 0H${cv.width}V${cv.height}H0Z${loch}")` : '';
 }
@@ -243,7 +299,7 @@ if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));
   if (c.startsWith('fenster:')) { try { zwang = { 1: null, 2: null, 3: null, ...JSON.parse(c.slice(8)) }; } catch (e) {} letzterStand = ''; }
-  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
+  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'monitor') { monitorAn = !!a.an; letzterStand = ''; } if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
   if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
   if (c.startsWith('musik:')) { try { setMusik(JSON.parse(c.slice(6))); } catch (e) {} }
 });

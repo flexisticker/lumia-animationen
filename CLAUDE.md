@@ -118,3 +118,8 @@
 - 23.11.2026: **Kacheln „Kameras & Fenster“** am iPad oben rechts neben Kanal/Modus (`.oben` zweispaltig, unter 820 px untereinander): Spielfenster 🪟 / Drucker 🖨️ / Schreibtisch 🖥️, leuchten grün mit „● zu sehen“,
   wenn das Fenster sichtbar ist. Server `fensterSicht()` (alle 3 über `fensterSichtbar`), SSE `fenster` an die Steuerung bei Fensterknopf, Moduswechsel und Einstellungsänderung, Startwert in `/api/settings.fensterSicht`.
   Die drei Fensterknöpfe bei den Ansagen sind entfallen. Geprüft (Headless): Kachelstand folgt Modus und Knöpfen, Hintergrund schaltet das richtige Fenster.
+- 23.11.2026: **Wand-Monitor** (Hintergrund, `#monitor`): zeigt im dunklen Bildschirm der Zockerbude die letzten Unterstützer (neueste oben, rutschen von oben rein, nur neue Zeilen animiert).
+  Server `monitorEintrag()` aus `fireAlert` (TikTok Geschenk/Follow/Teilen/Superfan/Schatzkiste, Twitch Follow/Sub/Gift-Sub/Bits/Raid/Hype Train; Likes nicht), `letzte` (max. 50) in `saved.letzte` → bleibt über Neustart/Update,
+  neue Liste nach `monPauseStd` (6) Std. ohne Ereignis; SSE `letzte` an hinten, Startwert im `hallo`. Tablet-Kachel „📺 Wand-Monitor“ (`/api/aktion {id:'monitor'}`, `saved.monitor`).
+  Sichtbar nur wenn an, Spielfenster nicht zu sehen und (`monWann`) im Zockmodus bzw. immer. Einstellungen Reiter „Wand-Monitor“: Titel, Leertext, Anzahl, Schrift, Deckkraft, Tests zeigen, Lage hoch/quer
+  (Standard hoch 50/48/45/37 %, quer 52/48/32/34 % = Bildschirm der Zockerbude). Hochkant zweizeilig (Name / Plattform · Angabe), quer einzeilig mit Plattform-Schild. Schrift passt sich Breite und Höhe an. Geprüft (Headless).

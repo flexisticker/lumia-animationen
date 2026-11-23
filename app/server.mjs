@@ -213,9 +213,37 @@ function chatIn(e, quelle) {
   chatLog.push(m); if (chatLog.length > 40) chatLog.shift();
   broadcast('chat', m, ['vorne', 'studio']);
 }
+// Wand-Monitor im Hintergrund: die letzten Unterstützer (Follows, Geschenke, Subs, Bits, Raids …)
+// bleibt den ganzen Stream erhalten (auch über Neustart/Update), neuer Stream = nach mehr als `monPauseStd` (6) Stunden ohne Ereignis
+const letzte = Array.isArray(saved.letzte) ? saved.letzte : [];
+const streamPause = () => (Number(settingsFor('hinten').monPauseStd) || 6) * 3600e3;
+function monitorEintrag(a, source) {
+  const s = a.extraSettings || {}, d = a.dynamic || {}, n = x => Number(x) || 0;
+  const name = String(s.displayname || s.username || '').slice(0, 40), al = a.alert;
+  const tw = al.startsWith('twitch-'), plan = String(s.subPlan || s.tier || '');
+  let icon = '', text = '';
+  if (al === 'tiktok-gift') { const m = n(s.giftAmount) || 1; icon = /rose/i.test(s.giftName || '') ? '🌹' : '🎁'; text = (m > 1 ? m + '× ' : '') + (s.giftName || 'Geschenk'); }
+  else if (al === 'tiktok-follower' || al === 'twitch-follower') { icon = '➕'; text = 'folgt jetzt'; }
+  else if (al === 'tiktok-share') { icon = '🔁'; text = 'hat das Live geteilt'; }
+  else if (al === 'tiktok-superFan') { icon = '⭐'; text = 'ist jetzt Superfan'; }
+  else if (al === 'tiktok-treasureChest') { icon = '💰'; text = 'öffnet eine Schatzkiste'; }
+  else if (al === 'twitch-subscriber') { icon = '💜'; const mo = n(s.subMonths || d.subMonths); text = /prime/i.test(plan) ? 'abonniert mit Prime' : mo > 1 ? mo + ' Monate Abo' : 'abonniert'; }
+  else if (al === 'twitch-giftSubscription') { icon = '🎁'; text = 'verschenkt ' + (n(s.giftAmount || s.amount || d.value) || 1) + ' Sub(s)'; }
+  else if (al === 'twitch-bits') { icon = '💎'; text = (n(s.amount || d.value) || 1) + ' Bits'; }
+  else if (al === 'twitch-raid') { icon = '🚀'; text = 'Raid mit ' + (n(s.viewers || s.amount || d.value) || 1); }
+  else if (al === 'twitch-hypetrainStarted') { icon = '🚂'; text = 'Hype Train gestartet'; }
+  else return;
+  if (!name && !al.startsWith('twitch-hypetrain')) return;
+  if (letzte.length && Date.now() - letzte[0].at > streamPause()) letzte.length = 0; // neuer Stream → neue Liste
+  letzte.unshift({ id: crypto.randomBytes(4).toString('hex'), at: Date.now(), plattform: tw ? 'twitch' : 'tiktok', icon, name: name || 'Hype Train', text: String(text).slice(0, 60), test: source === 'test' });
+  letzte.length = Math.min(letzte.length, 50);
+  saved.letzte = letzte; saveSettings();
+  broadcast('letzte', letzte, ['hinten']);
+}
 function fireAlert(alert, source) {
   if (!alert || typeof alert.alert !== 'string') return;
   broadcast('alert', alert, ['vorne']);
+  monitorEintrag(alert, source);
   forwardStreamPrint(alert, source);
   const s = alert.extraSettings || {};
   remember({ art: 'alert', quelle: source, alert: alert.alert, text: [s.username, s.giftName, s.giftAmount && '× ' + s.giftAmount, s.amount && !s.giftName ? s.amount : ''].filter(Boolean).join(' ') });
@@ -282,7 +310,7 @@ function fensterSichtbar(nr) {
   if (saved.modus === 'zocken' && sp && sp.ohneFenster && w !== 'immer') return false;
   return w === 'immer' || w === saved.modus;
 }
-const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3) });
+const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: !!saved.monitor });
 const fensterMelden = () => broadcast('fenster', fensterSicht(), ['aktion']);
 function setModus(modus, spielId, quelle, fromObs) {
   const m = modus === 'zocken' ? 'zocken' : 'party';
@@ -445,7 +473,7 @@ const server = http.createServer(async (req, res) => {
       // Studio live informieren, welche Quellen (mit Format) gerade verbunden sind
       const quellenMelden = () => { if (role === 'vorne' || role === 'hinten') broadcast('quellen', quellenListe(), ['studio']); };
       req.on('close', () => { clients.delete(c); quellenMelden(); }); quellenMelden();
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), stand: STAND })}\n\n`);
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), monitor: !!saved.monitor, letzte, stand: STAND })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
@@ -489,6 +517,7 @@ const server = http.createServer(async (req, res) => {
       const raw = (await body(req, 4000)).toString();
       let a; try { a = JSON.parse(raw); } catch { return json(res, 400, { fehler: 'ungültig' }); }
       // Spielfenster ein-/ausblenden: Stand im Server, damit alle Quellen (hoch/quer) gleich sind – auch nach dem Neuladen
+      if (a.id === 'monitor') { saved.monitor = a.an === undefined ? !saved.monitor : !!a.an; a.an = saved.monitor; saveSettings(); a.label = 'Wand-Monitor ' + (a.an ? 'an' : 'aus'); fensterMelden(); }
       if (a.id === 'fenster2' || a.id === 'fenster3') { a.nr = Number(a.id.slice(7)); a.id = 'fenster'; }
       if (a.id === 'fenster') {
         const nr = [2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1;

@@ -47,7 +47,7 @@ header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-t
 /* Oben: links Kanal & Modus, rechts Kameras & Fenster (Kacheln leuchten, wenn das Fenster zu sehen ist) */
 .oben { display: grid; grid-template-columns: auto 1fr; gap: 0 28px; align-items: start; }
 .oben-l .grid { grid-template-columns: repeat(2, 150px); }
-.fenster { grid-template-columns: repeat(3, 1fr); }
+.fenster { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
 .fenster .btn { min-height: 120px; }
 .fenster .btn .zu { display: block; font-size: 13px; opacity: .7; font-weight: 700; margin-top: 2px; }
 .fenster .btn.active { background: linear-gradient(160deg, #0e5a52, #133047); }

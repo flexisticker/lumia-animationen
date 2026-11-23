@@ -75,6 +75,27 @@ const WIN = [1, 2, 3].map(n => {
 });
 // Schildgröße: hochkant kleiner (schmales Bild), einstellbar in Prozent je Format
 const SCHILD_PX = innerHeight * (QUER ? 0.026 : 0.017) * num(QUER ? D.schildGroesseQuer : D.schildGroesse, 100) / 100;
+// Wand-Monitor
+const monEl = document.getElementById('monitor'), monListe = monEl.querySelector('.mon-liste');
+monEl.querySelector('.mon-titel').textContent = D.monTitel || '🏆 Danke an euch!';
+let monitorAn = false, monDaten = [], monGesehen = null;
+const ZWEI = !QUER; if (ZWEI) monEl.classList.add('zwei'); // hochkant: Name und Angabe untereinander (schmaler Bildschirm)
+const MQ = k => (QUER && D['monQ' + k] !== undefined && D['monQ' + k] !== '' ? D['monQ' + k] : D['mon' + k]);
+function monZeichnen() {
+  const max = Math.max(1, num(D.monAnzahl, 6)), liste = monDaten.filter(e => D.monTests !== false || !e.test).slice(0, max);
+  monListe.textContent = '';
+  if (!liste.length) { const l = document.createElement('div'); l.className = 'mon-leer'; l.textContent = D.monLeer || 'Noch keine Unterstützer – sei der Erste! 💜'; monListe.append(l); return; }
+  for (const e of liste) {
+    const z = document.createElement('div'); z.className = 'mon-zeile' + (monGesehen && !monGesehen.has(e.id) ? ' neu' : '');
+    const i = document.createElement('span'); i.className = 'mon-ico'; i.textContent = e.icon;
+    const pf = document.createElement('span'); pf.className = 'mon-pf ' + e.plattform; pf.textContent = e.plattform === 'twitch' ? 'TWITCH' : 'TIKTOK';
+    const t = document.createElement('span'); t.className = 'mon-txt'; const b = document.createElement('b'); b.textContent = e.name + ' '; const sp = document.createElement('span'); sp.textContent = e.text; sp.dataset.pf = e.plattform === 'twitch' ? 'Twitch' : 'TikTok'; t.append(b, sp);
+    z.append(i, pf, t); monListe.append(z);
+  }
+  monGesehen = new Set(monDaten.map(e => e.id)); // beim ersten Zeichnen nichts animieren, danach nur neue Einträge
+}
+monZeichnen();
+if (window.Overlay) Overlay.on('letzte', d => { if (d.monitor !== undefined) monitorAn = !!d.monitor; const neu = (d.liste || []).map(e => e.id).join() !== monDaten.map(e => e.id).join(); monDaten = d.liste || []; if (neu) monZeichnen(); letzterStand = ''; });
 let curSpiel = null, zwang = { 1: null, 2: null, 3: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
 function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
 function rect(w) {
@@ -93,7 +114,7 @@ function draw(now) {
   const target = mode === 'zocken' ? 1 : 0;
   if (t !== target) t = target > t ? Math.min(1, t + dt / DUR) : Math.max(0, t - dt / DUR);
   for (const w of WIN) { const tw = want(w) ? 1 : 0; if (w.t !== tw) w.t = tw > w.t ? Math.min(1, w.t + dt / DUR) : Math.max(0, w.t - dt / DUR); }
-  const stand = t + '|' + WIN.map(w => w.t).join('|') + '|' + (vZ.videoWidth ? 1 : 0);
+  const stand = t + '|' + WIN.map(w => w.t).join('|') + '|' + (vZ.videoWidth ? 1 : 0) + '|' + monitorAn;
   if (stand === letzterStand) return;   // nichts geändert → nichts tun (Videos laufen von selbst)
   letzterStand = stand;
   const e = ease(t), hatZ = !!vZ.getAttribute('src');
@@ -119,6 +140,14 @@ function draw(now) {
     w.tag.classList.toggle('show', shown && !!w.g('Schild'));
     if (shown && w.g('Schild') && !tagW) letzterStand = '';  // Schildbreite erst nach dem Einblenden bekannt
   }
+  // Wand-Monitor: an, nur wenn das Spielfenster nicht zu sehen ist (und je nach Einstellung nur im Zockmodus)
+  const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || mode === 'zocken');
+  if (monZeigen) {
+    const W = cv.width * num(MQ('Breite'), QUER ? 32 : 45) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 34 : 37) / 100;
+    Object.assign(monEl.style, { left: cv.width * num(MQ('X'), QUER ? 52 : 50) / 100 - W / 2 + 'px', top: cv.height * num(MQ('Y'), 48) / 100 - H / 2 + 'px', width: W + 'px', height: H + 'px', fontSize: (Math.min(H * 0.84 / ((Math.max(1, num(D.monAnzahl, 6)) * (ZWEI ? 2.05 : 1.55)) + 1.7 * 1.55), W * 0.9 / (ZWEI ? 14 : 21)) * num(D.monSchrift, 100) / 100).toFixed(1) + 'px' });
+    monEl.style.setProperty('--monDeck', num(D.monDeckkraft, 92) / 100);
+  }
+  monEl.classList.toggle('show', monZeigen);
   // Loch (Spielfenster) voll durchsichtig ausschneiden
   bg.style.clipPath = loch ? `path(evenodd, "M0 0H${cv.width}V${cv.height}H0Z${loch}")` : '';
 }
@@ -146,7 +175,7 @@ if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));
   if (c.startsWith('fenster:')) { try { zwang = { 1: null, 2: null, 3: null, ...JSON.parse(c.slice(8)) }; } catch (e) {} letzterStand = ''; }
-  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
+  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'monitor') { monitorAn = !!a.an; letzterStand = ''; } if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
   if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
   if (c.startsWith('musik:')) { try { setMusik(JSON.parse(c.slice(6))); } catch (e) {} }
 });
