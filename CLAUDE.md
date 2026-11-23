@@ -137,3 +137,5 @@
   `monPerspektive` (oben, Standard 8,5) und `monPerspektiveUnten` (Standard 6; quer `monQ…` 0/0), linke Kante gerade, Lage hoch 49,6/47,6/42/35,5 %. Auch das Drucker-Loch nutzt diese Ecken.
   Gemessene Ecken im Browser stimmen mit der Lichtleiste überein (±2 px). Achtung beim Testen: Testläufe auf demselben Server schalten das Spielfenster hin und her.
 - 23.11.2026: Spielfenster-Knopf gilt jetzt dauerhaft (Wunsch Michael): kein Zurücksetzen von `saved.fenster[1]` bzw. `zwang[1]` beim Moduswechsel mehr – aus bleibt aus (auch nach Werkstatt/Party ↔ Zocken und Neuladen), bis man es wieder einschaltet.
+- 23.11.2026: **Neues Musik-Genre „Lo-Fi Talk (Loft)“** (`lofi`, 5 Titel `medien/musik/lofi.mp3`, `lofi-2…5.mp3`, je ~2½ min): Stable Audio 2.5 (150 s, guidance 7, Freigabe Michael, ca. 1 $),
+  Stille weg, loudnorm I −16, Ein-/Ausblenden, MP3 160k. Talk-Runde nutzt jetzt `lofi` (Vorgabe + Umstellung gespeicherter „chill“). Prompts: Lo-fi/Chillhop, Rhodes, Jazz-Gitarre, Vinyl, Loft/Coffee-Shop, ohne Gesang, 70–85 BPM.

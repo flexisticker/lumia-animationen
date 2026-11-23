@@ -77,7 +77,7 @@ saved.spiele ||= [{ id: 'standard', name: 'Allgemein', video: '', videoQuer: '',
 // Musik-Bibliothek (medien/musik, erzeugt mit fal.ai / ElevenLabs Music) – „standard“ = Musik aus den Hintergrund-Einstellungen
 const MUSIK = [
   { id: 'standard', name: 'Party (Standard)', datei: '' }, { id: 'hype', name: 'EDM Hype', datei: '/musik/hype.mp3' }, { id: 'funk', name: 'Funky Groove', datei: '/musik/funk.mp3' },
-  { id: 'chill', name: 'Lo-Fi Chill', datei: '/musik/chill.mp3' }, { id: 'fantasy', name: 'Fantasy-Abenteuer', datei: '/musik/fantasy.mp3' }, { id: 'space', name: 'Weltraum', datei: '/musik/space.mp3' },
+  { id: 'chill', name: 'Lo-Fi Chill', datei: '/musik/chill.mp3' }, { id: 'lofi', name: 'Lo-Fi Talk (Loft)', datei: '/musik/lofi.mp3' }, { id: 'fantasy', name: 'Fantasy-Abenteuer', datei: '/musik/fantasy.mp3' }, { id: 'space', name: 'Weltraum', datei: '/musik/space.mp3' },
   { id: 'synthwave', name: 'Synthwave Retro', datei: '/musik/synthwave.mp3' }, { id: 'chiptune', name: '8-Bit Jump & Run', datei: '/musik/chiptune.mp3' },
   { id: 'mittelalter', name: 'Mittelalter-Dorf', datei: '/musik/mittelalter.mp3' }, { id: 'mystisch', name: 'Mystisch', datei: '/musik/mystisch.mp3' },
 ].filter(x => !x.datei || fs.existsSync(path.join(MEDIA, x.datei)));
@@ -94,7 +94,7 @@ const SPIEL_VORGABEN = [
   ['wow-forever', 'WoW Forever', 'wow-forever', 'fantasy'], ['star-citizen', 'Star Citizen', 'star-citizen', 'space'], ['skerrion', 'Skerrion', 'skerrion', 'mystisch'],
   ['retro', 'Retro-Games', 'retro', 'synthwave'], ['rpg', 'RPG (allgemein)', 'rpg', 'fantasy'], ['scifi', 'Sci-Fi (allgemein)', 'scifi', 'space'],
   ['jumprun', 'Jump & Run', 'jumprun', 'chiptune'], ['pagonia', 'Pioneers of Pagonia', 'aufbau', 'mittelalter'], ['siedler4', 'Die Siedler 4', 'aufbau', 'mittelalter'],
-  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'], ['talk', 'Talk-Runde', 'talk', 'chill', true],
+  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'], ['talk', 'Talk-Runde', 'talk', 'lofi', true],
 ];
 saved.spieleVorgaben ||= [];
 for (const [id, name, bild, musik, ohneFenster] of SPIEL_VORGABEN) {
@@ -117,6 +117,8 @@ saved.obs ||= { host: '', port: 4455, an: false, szeneZocken: '', szeneParty: ''
 // 23.11.2026: Modus 2 heißt bei 3dbymicha „Printmodus“ (alte gespeicherte Standardwerte umstellen)
 { const p3 = saved.profile && saved.profile['3dbymicha'];
   if (p3) { if (p3.aktion && p3.aktion.modus2Name === 'Zockmodus') p3.aktion.modus2Name = 'Printmodus'; if (p3.hinten && p3.hinten.f1Schild === '🎮 ZOCKMODUS') p3.hinten.f1Schild = '🖨️ PRINTMODUS'; } }
+// 23.11.2026: Talk-Runde bekommt die neue Lo-Fi-Talk-Playlist (nur wenn noch die alte Vorgabe „chill“ eingestellt ist)
+for (const sp of saved.spiele || []) if (sp.id === 'talk' && sp.musik === 'chill') sp.musik = 'lofi';
 // Slogan-Korrektur 22.11.2026: MichaModus = Gaming & Spaß, Drucken gehört zu 3dbymicha
 for (const p of Object.keys(saved.profile)) { const v = saved.profile[p].vorne; if (v && typeof v.slogans === 'string') v.slogans = v.slogans.replace('Hier wird gedruckt, gelacht & gefeiert', p === '3dbymicha' ? 'Hier wird gedruckt, getüftelt & gelacht 😄' : 'Hier wird gezockt, gelacht & gefeiert 🎮'); }
 let secret = readJson(SECRET_FILE, {});
