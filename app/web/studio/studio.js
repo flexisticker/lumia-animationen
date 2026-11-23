@@ -161,7 +161,7 @@ function settingsPage(bereich, title, hint) {
     fields = fields.filter(([, f]) => !f.visibleIf || [].concat(f.visibleIf.equals).includes(cur));
   }
   // Warnung: Reiter für ein Format, für das gerade keine Quelle verbunden ist (häufigster Grund für „es ändert sich nichts“)
-  if (bereich === 'hinten' && /^f[12]q?$/.test(page.tab[bereich] || '')) {
+  if (bereich === 'hinten' && /^f[123]q?$/.test(page.tab[bereich] || '')) {
     const t = page.tab[bereich], quer = t.endsWith('q'), ql = (S.quellenListe || []).filter(q => q.rolle === 'hinten');
     const passend = ql.filter(q => q.format === (quer ? 'quer' : 'hoch')).length, andere = ql.length - passend;
     if (!passend) m.append(h('div', { class: 'card warnbox' }, h('b', {}, '⚠ Keine ' + (quer ? 'Quer-' : 'Hochkant-') + 'Quelle verbunden'),

@@ -8,7 +8,9 @@
    "f1": "Spielfenster – TikTok (hochkant)",
    "f1q": "Spielfenster – Twitch (quer)",
    "f2": "Fenster 2 – hochkant",
-   "f2q": "Fenster 2 – quer"
+   "f2q": "Fenster 2 – quer",
+   "f3": "Fenster 3 – hochkant",
+   "f3q": "Fenster 3 – quer"
   },
   "order": 1
  },
@@ -975,6 +977,376 @@
    "key": "bereich",
    "equals": [
     "bild"
+   ]
+  }
+ },
+ "f3Wann": {
+  "type": "dropdown",
+  "label": "Fenster zeigen",
+  "value": "aus",
+  "options": {
+   "aus": "aus",
+   "immer": "immer",
+   "party": "nur in Modus 1",
+   "zocken": "nur in Modus 2"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3"
+   ]
+  },
+  "order": 43.0
+ },
+ "f3X": {
+  "type": "slider",
+  "label": "Mitte waagrecht",
+  "value": 27,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3"
+   ]
+  },
+  "order": 44.0
+ },
+ "f3Y": {
+  "type": "slider",
+  "label": "Mitte senkrecht",
+  "value": 22,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3"
+   ]
+  },
+  "order": 45.0
+ },
+ "f3Breite": {
+  "type": "slider",
+  "label": "Breite",
+  "value": 42,
+  "options": {
+   "min": 5,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3"
+   ]
+  },
+  "order": 46.0
+ },
+ "f3Hoehe": {
+  "type": "slider",
+  "label": "Höhe",
+  "value": 22,
+  "options": {
+   "min": 5,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3"
+   ]
+  },
+  "order": 47.0
+ },
+ "f3Rund": {
+  "type": "slider",
+  "label": "Runde Ecken",
+  "value": 24,
+  "options": {
+   "min": 0,
+   "max": 200,
+   "step": 2,
+   "suffix": " px"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 48.0
+ },
+ "f3Rahmen": {
+  "type": "checkbox",
+  "label": "Leuchtrahmen",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 49.0
+ },
+ "f3Farbe1": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 1",
+  "value": "#00e5ff",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 50.0
+ },
+ "f3Farbe2": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 2",
+  "value": "#7c4dff",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 51.0
+ },
+ "f3Farbe3": {
+  "type": "colorpicker",
+  "label": "Rahmenfarbe 3",
+  "value": "#ff3d7f",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 52.0
+ },
+ "f3Schild": {
+  "type": "input",
+  "label": "Schild (leer = kein Schild)",
+  "value": "🖥️ LIVE VOM SCHREIBTISCH",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 53.0
+ },
+ "f3SchildPos": {
+  "type": "dropdown",
+  "label": "Schild-Position",
+  "value": "mitte",
+  "options": {
+   "links": "links",
+   "mitte": "Mitte",
+   "rechts": "rechts"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 53.1
+ },
+ "f3SchildX": {
+  "type": "slider",
+  "label": "Schild feiner verschieben (links − / rechts +)",
+  "value": 0,
+  "options": {
+   "min": -50,
+   "max": 50,
+   "step": 1,
+   "suffix": " %"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 53.2
+ },
+ "f3SchildY": {
+  "type": "slider",
+  "label": "Schild höher/tiefer (− = höher)",
+  "value": 0,
+  "options": {
+   "min": -30,
+   "max": 30,
+   "step": 1,
+   "suffix": " %"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3",
+    "f3q"
+   ]
+  },
+  "order": 53.3
+ },
+ "f3Format": {
+  "order": 46.5,
+  "type": "dropdown",
+  "label": "Format (fest = Höhe ergibt sich aus der Breite)",
+  "value": "frei",
+  "options": {
+   "frei": "frei (Höhe-Regler)",
+   "16:9": "16:9 (Spiel/Twitch)",
+   "4:3": "4:3",
+   "1:1": "1:1",
+   "9:16": "9:16 (hochkant)"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3"
+   ]
+  }
+ },
+ "f3QuerEigen": {
+  "type": "checkbox",
+  "label": "Eigene Lage & Größe fürs Querformat (aus = wie hochkant)",
+  "value": true,
+  "order": 54.0,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3q"
+   ]
+  }
+ },
+ "f3QWann": {
+  "type": "dropdown",
+  "label": "Fenster zeigen",
+  "value": "aus",
+  "options": {
+   "aus": "aus",
+   "immer": "immer",
+   "party": "nur in Modus 1",
+   "zocken": "nur in Modus 2"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3q"
+   ]
+  },
+  "order": 54.01
+ },
+ "f3QX": {
+  "type": "slider",
+  "label": "Mitte waagrecht",
+  "value": 74,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3q"
+   ]
+  },
+  "order": 54.02
+ },
+ "f3QY": {
+  "type": "slider",
+  "label": "Mitte senkrecht",
+  "value": 80,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3q"
+   ]
+  },
+  "order": 54.03
+ },
+ "f3QBreite": {
+  "type": "slider",
+  "label": "Breite",
+  "value": 22,
+  "options": {
+   "min": 5,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3q"
+   ]
+  },
+  "order": 54.04
+ },
+ "f3QHoehe": {
+  "type": "slider",
+  "label": "Höhe",
+  "value": 22,
+  "options": {
+   "min": 5,
+   "max": 100,
+   "step": 1,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3q"
+   ]
+  },
+  "order": 54.05
+ },
+ "f3QFormat": {
+  "order": 54.06,
+  "type": "dropdown",
+  "label": "Format",
+  "value": "frei",
+  "options": {
+   "frei": "frei (Höhe-Regler)",
+   "16:9": "16:9 (Spiel/Twitch)",
+   "4:3": "4:3",
+   "1:1": "1:1",
+   "9:16": "9:16 (hochkant)"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "f3q"
    ]
   }
  }

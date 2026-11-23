@@ -109,3 +109,5 @@
 - 23.11.2026: **Drucker-Kamera per Tablet zuschalten:** Knopf „📹 Drucker-Kamera ein/aus“ (id `fenster2` → Server `fenster` nr 2). Fensterknöpfe jetzt je Fenster: `saved.fenster {1,2}` = true/false/null
   (null = wie „Fenster zeigen“ im Studio; `fensterSichtbar(nr)` berechnet den aktuellen Stand fürs Umschalten), ersetzt `fensterAus`. Spielfenster-Zwang (1) gilt bis zum nächsten Moduswechsel,
   Drucker-Kamera (2) bleibt über Moduswechsel/Neuladen. iPad zeigt das echte Ergebnis („Drucker-Kamera an“) – `/api/aktion` liefert `label`, Shim-`callCommand` gibt die Antwort zurück. Geprüft (Headless).
+- 23.11.2026: **Fenster 3 „🖥️ LIVE VOM SCHREIBTISCH“** (Kopie der f2-Einstellungen als `f3*`/`f3Q*`, Reiter „Fenster 3 – hochkant/quer“, Rahmen türkis/lila; Standard hochkant links neben Fenster 2: X 27, Breite 42; quer X 74 rechts neben Fenster 2),
+  Tablet-Knopf „Schreibtisch-Kamera ein/aus“ (`fenster3`, `saved.fenster[3]`, bleibt über Moduswechsel). Schilder werden automatisch kleiner, wenn sie breiter als ihr Fenster sind, und bleiben im Bild. Geprüft (Headless, hoch + quer).

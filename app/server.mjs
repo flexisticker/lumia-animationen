@@ -271,8 +271,8 @@ function setMusik(m, quelle) {
   if (m.titel !== undefined && quelle) remember({ art: 'modus', quelle, text: 'Musik: ' + (saved.musik.titel === 'aus' ? 'aus' : (MUSIK.find(x => x.id === saved.musik.titel) || {}).name) });
 }
 // Fenster (1 = Spiel, 2 = Drucker-Kamera) per Knopf erzwingen: true/false, null = wie im Studio eingestellt („Fenster zeigen“)
-saved.fenster ||= { 1: saved.fensterAus ? false : null, 2: null }; delete saved.fensterAus;
-const fensterStand = () => ({ 1: saved.fenster[1] ?? null, 2: saved.fenster[2] ?? null });
+saved.fenster ||= { 1: saved.fensterAus ? false : null, 2: null }; delete saved.fensterAus; saved.fenster[3] ??= null;
+const fensterStand = () => ({ 1: saved.fenster[1] ?? null, 2: saved.fenster[2] ?? null, 3: saved.fenster[3] ?? null });
 function fensterSichtbar(nr) {
   if (saved.fenster[nr] === true || saved.fenster[nr] === false) return saved.fenster[nr];
   const w = settingsFor('hinten')['f' + nr + 'Wann'] || 'aus', sp = saved.spiele.find(x => x.id === saved.spiel);
@@ -484,12 +484,12 @@ const server = http.createServer(async (req, res) => {
       const raw = (await body(req, 4000)).toString();
       let a; try { a = JSON.parse(raw); } catch { return json(res, 400, { fehler: 'ungültig' }); }
       // Spielfenster ein-/ausblenden: Stand im Server, damit alle Quellen (hoch/quer) gleich sind – auch nach dem Neuladen
-      if (a.id === 'fenster2') { a.id = 'fenster'; a.nr = 2; }
+      if (a.id === 'fenster2' || a.id === 'fenster3') { a.nr = Number(a.id.slice(7)); a.id = 'fenster'; }
       if (a.id === 'fenster') {
-        const nr = a.nr == 2 ? 2 : 1;
+        const nr = [2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1;
         const an = a.an === undefined ? !fensterSichtbar(nr) : !!a.an;
         saved.fenster[nr] = an; a.nr = nr; a.an = an; saveSettings();
-        a.label = (nr === 2 ? 'Drucker-Kamera ' : 'Spielfenster ') + (an ? 'an' : 'aus');
+        a.label = ({ 1: 'Spielfenster ', 2: 'Drucker-Kamera ', 3: 'Schreibtisch-Kamera ' })[nr] + (an ? 'an' : 'aus');
       }
       broadcast('aktion', a, ['vorne', 'hinten']); remember({ art: 'aktion', quelle: 'knopf', text: a.label || a.id });
       return json(res, 200, { ok: true, label: a.label });

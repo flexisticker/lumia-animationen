@@ -30,7 +30,7 @@ function button(box, { id, label, ico }, extra = {}) {
 }
 
 const SCENES = [['szene:start', 'Startet gleich', '⏳'], ['szene:pause', 'Kurze Pause', '☕'], ['szene:gleich', 'Gleich weiter', '⏱️'],
-  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬'], ['fenster', 'Spielfenster ein/aus', '🪟'], ['fenster2', 'Drucker-Kamera ein/aus', '📹']];
+  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬'], ['fenster', 'Spielfenster ein/aus', '🪟'], ['fenster2', 'Drucker-Kamera ein/aus', '📹'], ['fenster3', 'Schreibtisch-Kamera ein/aus', '🖥️']];
 const sceneBox = document.getElementById('scenes');
 SCENES.forEach(([id, label, ico]) => {
   const b = button(sceneBox, { id, label, ico });

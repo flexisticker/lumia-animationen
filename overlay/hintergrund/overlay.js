@@ -62,7 +62,7 @@ function cover(v) {
 const ease = x => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
 // Fenster 1 und 2
-const WIN = [1, 2].map(n => {
+const WIN = [1, 2, 3].map(n => {
   // Querformat-Quelle (…-quer): eigene Lage/Größe/Format/Wann, wenn „eigene Lage“ an ist (Hochkant und Quer getrennt einstellbar)
   const QK = ['Wann', 'X', 'Y', 'Breite', 'Hoehe', 'Format'];
   const g = k => (QUER && D['f' + n + 'QuerEigen'] !== false && QK.includes(k) && D['f' + n + 'Q' + k] !== undefined && D['f' + n + 'Q' + k] !== '') ? D['f' + n + 'Q' + k] : D['f' + n + k];
@@ -73,7 +73,7 @@ const WIN = [1, 2].map(n => {
   tag.textContent = g('Schild') || '';
   return { n, g, frame, tag, t: 0 };
 });
-let curSpiel = null, zwang = { 1: null, 2: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
+let curSpiel = null, zwang = { 1: null, 2: null, 3: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
 function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
 function rect(w) {
   const W = cv.width * num(w.g('Breite'), 80) / 100;
@@ -107,9 +107,12 @@ function draw(now) {
     Object.assign(w.frame.style, { left: r.x - 6 + 'px', top: r.y - 6 + 'px', width: r.w + 'px', height: r.h + 'px' });
     w.frame.classList.toggle('show', shown && w.g('Rahmen') !== false);
     // Schild: links/Mitte/rechts am Fenster + Feinverschiebung (in % der Fensterbreite bzw. Bildhöhe)
+    // Schild nie breiter als das Fenster (sonst überlappen zwei Fenster nebeneinander) – Schrift passt sich an
+    w.tag.style.fontSize = ''; const natW = w.tag.offsetWidth || 0;
+    if (natW > r.w - 8 && natW > 0) w.tag.style.fontSize = (innerHeight * 0.026 * (r.w - 8) / natW).toFixed(1) + 'px';
     const pos = w.g('SchildPos') || 'mitte', tagW = w.tag.offsetWidth || 0;
     const bx = pos === 'links' ? r.x + tagW / 2 + 12 : pos === 'rechts' ? r.x + r.w - tagW / 2 - 12 : r.x + r.w / 2;
-    w.tag.style.left = (bx + r.w * num(w.g('SchildX'), 0) / 100) + 'px';
+    w.tag.style.left = Math.max(tagW / 2 + 4, Math.min(cv.width - tagW / 2 - 4, bx + r.w * num(w.g('SchildX'), 0) / 100)) + 'px';
     w.tag.style.top = Math.max(8, r.y - 50 + cv.height * num(w.g('SchildY'), 0) / 100) + 'px';
     w.tag.classList.toggle('show', shown && !!w.g('Schild'));
     if (shown && w.g('Schild') && !tagW) letzterStand = '';  // Schildbreite erst nach dem Einblenden bekannt
@@ -140,8 +143,8 @@ function setSpiel(sp) {
 if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));
-  if (c.startsWith('fenster:')) { try { zwang = { 1: null, 2: null, ...JSON.parse(c.slice(8)) }; } catch (e) {} letzterStand = ''; }
-  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'fenster') { zwang[a.nr == 2 ? 2 : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
+  if (c.startsWith('fenster:')) { try { zwang = { 1: null, 2: null, 3: null, ...JSON.parse(c.slice(8)) }; } catch (e) {} letzterStand = ''; }
+  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
   if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
   if (c.startsWith('musik:')) { try { setMusik(JSON.parse(c.slice(6))); } catch (e) {} }
 });
