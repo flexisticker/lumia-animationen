@@ -116,6 +116,42 @@
   },
   "order": 7
  },
+ "schildGroesse": {
+  "type": "slider",
+  "label": "Schilder über den Fenstern – Größe hochkant",
+  "value": 100,
+  "options": {
+   "min": 50,
+   "max": 200,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 7.1
+ },
+ "schildGroesseQuer": {
+  "type": "slider",
+  "label": "Schilder über den Fenstern – Größe quer",
+  "value": 100,
+  "options": {
+   "min": 50,
+   "max": 200,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 7.2
+ },
  "uebergangMs": {
   "type": "number",
   "label": "Dauer der Übergänge (ms)",

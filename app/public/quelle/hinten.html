@@ -167,6 +167,8 @@ const WIN = [1, 2, 3].map(n => {
   tag.textContent = g('Schild') || '';
   return { n, g, frame, tag, t: 0 };
 });
+// Schildgröße: hochkant kleiner (schmales Bild), einstellbar in Prozent je Format
+const SCHILD_PX = innerHeight * (QUER ? 0.026 : 0.017) * num(QUER ? D.schildGroesseQuer : D.schildGroesse, 100) / 100;
 let curSpiel = null, zwang = { 1: null, 2: null, 3: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
 function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
 function rect(w) {
@@ -202,12 +204,12 @@ function draw(now) {
     w.frame.classList.toggle('show', shown && w.g('Rahmen') !== false);
     // Schild: links/Mitte/rechts am Fenster + Feinverschiebung (in % der Fensterbreite bzw. Bildhöhe)
     // Schild nie breiter als das Fenster (sonst überlappen zwei Fenster nebeneinander) – Schrift passt sich an
-    w.tag.style.fontSize = ''; const natW = w.tag.offsetWidth || 0;
-    if (natW > r.w - 8 && natW > 0) w.tag.style.fontSize = (innerHeight * 0.026 * (r.w - 8) / natW).toFixed(1) + 'px';
+    w.tag.style.fontSize = SCHILD_PX + 'px'; const natW = w.tag.offsetWidth || 0;
+    if (natW > r.w - 8 && natW > 0) w.tag.style.fontSize = (SCHILD_PX * (r.w - 8) / natW).toFixed(1) + 'px';
     const pos = w.g('SchildPos') || 'mitte', tagW = w.tag.offsetWidth || 0;
     const bx = pos === 'links' ? r.x + tagW / 2 + 12 : pos === 'rechts' ? r.x + r.w - tagW / 2 - 12 : r.x + r.w / 2;
     w.tag.style.left = Math.max(tagW / 2 + 4, Math.min(cv.width - tagW / 2 - 4, bx + r.w * num(w.g('SchildX'), 0) / 100)) + 'px';
-    w.tag.style.top = Math.max(8, r.y - 50 + cv.height * num(w.g('SchildY'), 0) / 100) + 'px';
+    w.tag.style.top = Math.max(8, r.y - (w.tag.offsetHeight || 40) - 10 + cv.height * num(w.g('SchildY'), 0) / 100) + 'px';
     w.tag.classList.toggle('show', shown && !!w.g('Schild'));
     if (shown && w.g('Schild') && !tagW) letzterStand = '';  // Schildbreite erst nach dem Einblenden bekannt
   }
