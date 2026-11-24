@@ -143,3 +143,4 @@
   Schrift danach berechnet, `.mon-liste` mit max-height + weichem Ausblenden unten (mask). Geprüft (Headless, 8 Einträge).
 - 23.11.2026: **Spielfenster einschalten schaltet Drucker, Schreibtisch und Wand-Monitor aus** (`saved.fenster[2/3] = false`, `saved.monitor = false`), Server schickt SSE `fensterstand` (kompletter Stand) an hinten,
   Shim leitet als `fenster:` + `letzte {monitor}` weiter (Monitor-Liste bleibt dabei erhalten). Ausschalten des Spielfensters ändert die anderen nicht. Geprüft (Headless, auch nach Neuladen).
+- 24.11.2026: Funky Groove +2 Titel (`funk-2.mp3` Slap-Bass/Wah-Wah/Bläser 112 BPM, `funk-3.mp3` Disco-Funk/Clavinet 118 BPM; Stable Audio 2.5, ca. 0,40 $, gleiche Nachbearbeitung). Playlist jetzt 3 Titel.
