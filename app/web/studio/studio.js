@@ -193,13 +193,20 @@ function spielePage(m) {
   const folgen = h('input', { type: 'checkbox' }); folgen.checked = O.folgen !== false;
   const steuern = h('input', { type: 'checkbox' }); steuern.checked = O.steuern !== false;
   let sz = O.szeneZocken || '', sp = O.szeneParty || '';
+  const qu = { spiel: '', drucker: '', schreibtisch: '', monitor: '', ...(O.quellen || {}) };
+  const quelleSelect = k => { const sel = h('select', { onchange: e => { qu[k] = e.target.value; } }); sel.append(h('option', { value: '' }, '– nicht mitschalten –'));
+    for (const n of [...new Set([...(S.obsStatus.quellen || []), qu[k]].filter(Boolean))]) { const o = h('option', { value: n }, n); if (n === qu[k]) o.selected = true; sel.append(o); } return sel; };
   m.append(h('h2', {}, 'OBS-Verbindung'), h('div', { class: 'card' },
     field('Verbindung an', an), field('IP-Adresse des Stream-PCs', host), field('Port', port), field('Passwort', pw),
     field('Gaming-Szene (Modus 2)', sceneSelect(sz, v => (sz = v), '– keine –')),
     field('Normale Szene (Modus 1)', sceneSelect(sp, v => (sp = v), '– keine –')),
     field('OBS-Szene schaltet den Modus', folgen), field('Modus/Spiel schaltet die OBS-Szene', steuern),
+    h('h3', {}, 'OBS-Quellen mit den Fenstern ein-/ausschalten'),
+    field('Spielfenster → Quelle', quelleSelect('spiel')), field('Drucker-Kamera → Quelle', quelleSelect('drucker')),
+    field('Schreibtisch-Kamera → Quelle', quelleSelect('schreibtisch')), field('Drucker im Wand-Monitor → Quelle', quelleSelect('monitor')),
+    h('p', { class: 'hint' }, 'Ist das Fenster zu, wird die gewählte Quelle in OBS ausgeblendet (in allen Szenen, in denen sie vorkommt) – spart Rechenleistung, z. B. bei Kameras.'),
     h('div', { class: 'row', style: 'margin-top:12px' }, h('button', { class: 'b p', onclick: async () => {
-      await post('/api/obs', { host: host.value, port: port.value, an: an.checked, passwort: pw.value, szeneZocken: sz, szeneParty: sp, folgen: folgen.checked, steuern: steuern.checked });
+      await post('/api/obs', { host: host.value, port: port.value, an: an.checked, passwort: pw.value, szeneZocken: sz, szeneParty: sp, folgen: folgen.checked, steuern: steuern.checked, quellen: qu });
       pw.value = ''; setTimeout(reload, 1500); } }, 'Speichern & verbinden'), obsStatusPill(S.obsStatus)),
     S.obsStatus.fehler ? h('p', { class: 'hint' }, S.obsStatus.fehler) : null,
     h('p', { class: 'hint' }, 'In OBS: Werkzeuge → WebSocket-Server-Einstellungen → „WebSocket-Server aktivieren“, Port 4455, Passwort festlegen (dort auch „Verbindungsinfo anzeigen“). Die Szenen-Listen füllen sich nach dem Verbinden.')));

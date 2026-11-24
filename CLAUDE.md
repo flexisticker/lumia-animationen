@@ -144,3 +144,7 @@
 - 23.11.2026: **Spielfenster einschalten schaltet Drucker, Schreibtisch und Wand-Monitor aus** (`saved.fenster[2/3] = false`, `saved.monitor = false`), Server schickt SSE `fensterstand` (kompletter Stand) an hinten,
   Shim leitet als `fenster:` + `letzte {monitor}` weiter (Monitor-Liste bleibt dabei erhalten). Ausschalten des Spielfensters ändert die anderen nicht. Geprüft (Headless, auch nach Neuladen).
 - 24.11.2026: Funky Groove +2 Titel (`funk-2.mp3` Slap-Bass/Wah-Wah/Bläser 112 BPM, `funk-3.mp3` Disco-Funk/Clavinet 118 BPM; Stable Audio 2.5, ca. 0,40 $, gleiche Nachbearbeitung). Playlist jetzt 3 Titel.
+- 24.11.2026: **OBS-Quellen mit den Fenstern schalten:** `saved.obs.quellen {spiel, drucker, schreibtisch, monitor}` (Studio → Spiele & OBS, Auswahl aus `obs.quellen` = GetInputList, aktualisiert bei Input-Ereignissen).
+  `obsQuellenSync()` (aus `fensterMelden` und nach dem Verbinden): Soll-Zustand aus `fensterSicht()` (monitor = Drucker im Wand-Monitor sichtbar), gleiche Quelle für mehrere Fenster = an, wenn eines offen ist;
+  `GetSceneItemList` über alle Szenen → `SetSceneItemEnabled` je Vorkommen; nur bei Änderung (`quellenStand`), Fehler „in keiner Szene gefunden“ ins Protokoll. `obsRequest` liefert jetzt `data` (responseData).
+  Geprüft mit OBS-Nachbau (Quellen in 2 Szenen). Verschachtelte Gruppen/Szenen werden nicht durchsucht.

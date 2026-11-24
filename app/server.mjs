@@ -319,7 +319,30 @@ function fensterSichtbar(nr) {
 const monitorArt = () => (saved.monitor === true ? 'liste' : saved.monitor || '');
 const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || saved.modus === 'zocken');
 const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste', 'monitor-drucker': monitorArt() === 'drucker', monitorMoeglich: monitorMoeglich() });
-const fensterMelden = () => broadcast('fenster', fensterSicht(), ['aktion']);
+const fensterMelden = () => { broadcast('fenster', fensterSicht(), ['aktion']); obsQuellenSync(); };
+// OBS-Quellen zu den Fenstern mitschalten (in allen Szenen, in denen sie vorkommen). Eine Quelle für mehrere Fenster = sichtbar, wenn eines davon offen ist.
+let quellenStand = {}, quellenLaeuft = false, quellenNochmal = false;
+async function obsQuellenSync() {
+  const q = saved.obs.quellen || {};
+  if (!saved.obs.an || obs.status !== 'verbunden' || !Object.values(q).some(Boolean)) return;
+  if (quellenLaeuft) { quellenNochmal = true; return; }
+  quellenLaeuft = true;
+  try {
+    const sicht = fensterSicht(), soll = {};
+    const setz = (name, an) => { if (name) soll[name] = !!(soll[name] || an); };
+    setz(q.spiel, sicht[1]); setz(q.drucker, sicht[2]); setz(q.schreibtisch, sicht[3]); setz(q.monitor, sicht['monitor-drucker'] && sicht.monitorMoeglich);
+    for (const [name, an] of Object.entries(soll)) {
+      if (quellenStand[name] === an) continue;
+      let gefunden = 0;
+      for (const sceneName of obs.szenen) {
+        const r = await obsRequest('GetSceneItemList', { sceneName }); if (!r.ok) continue;
+        for (const it of r.data.sceneItems || []) if (it.sourceName === name) { gefunden++; await obsRequest('SetSceneItemEnabled', { sceneName, sceneItemId: it.sceneItemId, sceneItemEnabled: an }); }
+      }
+      if (!gefunden) remember({ art: 'fehler', quelle: 'obs', text: 'OBS-Quelle „' + name + '“ in keiner Szene gefunden' });
+      quellenStand[name] = an;
+    }
+  } finally { quellenLaeuft = false; if (quellenNochmal) { quellenNochmal = false; obsQuellenSync(); } }
+}
 function setModus(modus, spielId, quelle, fromObs) {
   const m = modus === 'zocken' ? 'zocken' : 'party';
   const changed = m !== saved.modus || (spielId !== undefined && spielId !== saved.spiel);
@@ -365,7 +388,7 @@ function setModus(modus, spielId, quelle, fromObs) {
 }
 
 // OBS (obs-websocket v5, in OBS ab Version 28 eingebaut: Werkzeuge → WebSocket-Server-Einstellungen)
-const obs = { status: 'aus', fehler: '', szenen: [], aktuell: '' };
+const obs = { status: 'aus', fehler: '', szenen: [], aktuell: '', quellen: [] };
 let ows = null, oretry = null, lastSetScene = '', lastSetAt = 0, reqId = 0;
 const obsStatus = () => broadcast('obs', obs, ['studio']);
 function obsSend(op, d) { if (ows && ows.readyState === 1) ows.send(JSON.stringify({ op, d })); }
@@ -377,7 +400,7 @@ function obsRequest(requestType, requestData) {
   obsSend(6, { requestType, requestId, requestData });
   return new Promise(res => {
     const t = setTimeout(() => { obsWartet.delete(requestId); res({ ok: false, fehler: 'OBS antwortet nicht' }); }, 2000);
-    obsWartet.set(requestId, st => { clearTimeout(t); obsWartet.delete(requestId); res(st && st.result ? { ok: true } : { ok: false, fehler: 'OBS: ' + ((st && st.comment) || 'Code ' + (st && st.code)) }); });
+    obsWartet.set(requestId, d => { const st = d && d.requestStatus; clearTimeout(t); obsWartet.delete(requestId); res(st && st.result ? { ok: true, data: d.responseData || {} } : { ok: false, fehler: 'OBS: ' + ((st && st.comment) || 'Code ' + (st && st.code)) }); });
   });
 }
 // Szenen automatisch zuordnen, wenn im Studio keine gewählt ist (nach Namen)
@@ -416,12 +439,16 @@ function obsConnect() {
     } else if (msg.op === 2) { // Identified
       Object.assign(obs, { status: 'verbunden', fehler: '' }); obsStatus();
       obsSend(6, { requestType: 'GetSceneList', requestId: 'szenen' });
+      // Quellen-Liste fürs Studio + Fenster-Quellen einmal angleichen
+      setTimeout(async () => { const r = await obsRequest('GetInputList', {}); if (r.ok) { obs.quellen = (r.data.inputs || []).map(x => x.inputName).sort(); obsStatus(); } quellenStand = {}; obsQuellenSync(); }, 500);
     } else if (msg.op === 5 && msg.d && msg.d.eventType === 'CurrentProgramSceneChanged') {
       obsScene(msg.d.eventData.sceneName);
+    } else if (msg.op === 5 && msg.d && /^Input(Created|Removed|NameChanged)$/.test(msg.d.eventType)) {
+      obsRequest('GetInputList', {}).then(r => { if (r.ok) { obs.quellen = (r.data.inputs || []).map(x => x.inputName).sort(); obsStatus(); } });
     } else if (msg.op === 5 && msg.d && /^Scene(Created|Removed|NameChanged)$/.test(msg.d.eventType)) {
       obsSend(6, { requestType: 'GetSceneList', requestId: 'szenen' });
     } else if (msg.op === 7 && msg.d && obsWartet.has(msg.d.requestId)) {
-      obsWartet.get(msg.d.requestId)(msg.d.requestStatus);
+      obsWartet.get(msg.d.requestId)(msg.d);
     } else if (msg.op === 7 && msg.d && msg.d.requestId === 'szenen' && msg.d.responseData) {
       obs.szenen = (msg.d.responseData.scenes || []).map(x => x.sceneName).reverse();
       obs.aktuell = msg.d.responseData.currentProgramSceneName || obs.aktuell; obsStatus();
@@ -569,7 +596,9 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/obs' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       saved.obs = { host: String(b.host || '').trim().slice(0, 100), port: Number(b.port) || 4455, an: !!b.an,
-        szeneZocken: String(b.szeneZocken || ''), szeneParty: String(b.szeneParty || ''), folgen: b.folgen !== false, steuern: b.steuern !== false };
+        szeneZocken: String(b.szeneZocken || ''), szeneParty: String(b.szeneParty || ''), folgen: b.folgen !== false, steuern: b.steuern !== false,
+        quellen: Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || {})[k] || '').slice(0, 200)])) };
+      quellenStand = {};
       if (typeof b.passwort === 'string' && b.passwort) { secret.obsPasswort = b.passwort; writeJson(SECRET_FILE, secret); }
       if (b.passwortLoeschen) { delete secret.obsPasswort; writeJson(SECRET_FILE, secret); }
       saveSettings(); obsConnect(); return json(res, 200, { ok: true });
