@@ -148,3 +148,7 @@
   `obsQuellenSync()` (aus `fensterMelden` und nach dem Verbinden): Soll-Zustand aus `fensterSicht()` (monitor = Drucker im Wand-Monitor sichtbar), gleiche Quelle für mehrere Fenster = an, wenn eines offen ist;
   `GetSceneItemList` über alle Szenen → `SetSceneItemEnabled` je Vorkommen; nur bei Änderung (`quellenStand`), Fehler „in keiner Szene gefunden“ ins Protokoll. `obsRequest` liefert jetzt `data` (responseData).
   Geprüft mit OBS-Nachbau (Quellen in 2 Szenen). Verschachtelte Gruppen/Szenen werden nicht durchsucht.
+- 24.11.2026: **12 neue Geschenk-Animationen** (hoch + quer, je MP4 + Alpha-WebM, ca. 4,60 $): Daumen hoch, Lebkuchenherz, Herz, Eiswaffel, Freundschaftskette, Kappe, Hut & Schnurrbart, Schwan,
+  Papierkranich, Ich liebe dich, Mikrofon, Zug (`animationen.json`, Gruppe geschenk, `match` mit englischen + deutschen Namen). Prompt-Vorlage wie bisher („Full-frame celebration effect … PURE BLACK …“, Quer-Zusatz
+  „in a wide 16:9 landscape composition“). **minimax/h3-max verlangt jetzt `prompt_expansion_mode`** (genutzt: `balanced`). Kappe zeigt ein „NY“-Baseball-Logo (Modell hielt sich nicht an „no logos“) – ggf. neu erzeugen.
+  Geprüft (Headless): Thumbs Up/Lebkuchenherz/Train/Ice Cream Cone spielen die eigene WebM in hoch und quer.

@@ -152,6 +152,154 @@
    "bild": "an epic cosmic explosion: planets align, a supernova blasts rainbow light across the frame, a golden crown and shooting stars, ultimate grand finale"
   },
   {
+   "id": "daumenhoch",
+   "gruppe": "geschenk",
+   "label": "Daumen hoch",
+   "match": [
+    "Thumbs Up",
+    "Daumen hoch",
+    "Like"
+   ],
+   "key": "black",
+   "bild": "a giant glossy golden 3D thumbs-up hand pops into the center with a bounce and a shockwave ring, then dozens of small colorful thumbs-up icons and stars burst outwards"
+  },
+  {
+   "id": "lebkuchenherz",
+   "gruppe": "geschenk",
+   "label": "Lebkuchenherz",
+   "match": [
+    "Gingerbread Heart",
+    "Lebkuchenherz",
+    "Gingerbread",
+    "Lebkuchen"
+   ],
+   "key": "black",
+   "bild": "a big shiny gingerbread heart with white icing swirls and colorful sugar decorations swings in like on a ribbon, glows warmly, then bursts into cinnamon sparkles, small cookie hearts and golden fairground lights"
+  },
+  {
+   "id": "herz",
+   "gruppe": "geschenk",
+   "label": "Herz",
+   "match": [
+    "Heart",
+    "Herz"
+   ],
+   "key": "black",
+   "bild": "a single glowing red heart beats twice in the center with pulsing light waves, then splits into a fountain of smaller red and pink hearts that rise and pop into sparkles"
+  },
+  {
+   "id": "eiswaffel",
+   "gruppe": "geschenk",
+   "label": "Eiswaffel",
+   "match": [
+    "Ice Cream Cone",
+    "Ice Cream",
+    "Eiswaffel",
+    "Eistüte",
+    "Eis"
+   ],
+   "key": "black",
+   "bild": "a cute ice cream cone with three colorful scoops (strawberry, mint, vanilla) and rainbow sprinkles drops in, wobbles happily, then sprinkles and tiny ice cream scoops shower across the frame"
+  },
+  {
+   "id": "freundschaftskette",
+   "gruppe": "geschenk",
+   "label": "Freundschaftskette",
+   "match": [
+    "Friendship Necklace",
+    "Freundschaftskette",
+    "Freundschaftsband"
+   ],
+   "key": "black",
+   "bild": "two halves of a shiny golden heart pendant on delicate chains float in from both sides, click together in the center with a bright flash, then golden sparkles and small friendship hearts spiral outwards"
+  },
+  {
+   "id": "kappe",
+   "gruppe": "geschenk",
+   "label": "Kappe",
+   "match": [
+    "Cap",
+    "Kappe",
+    "Basecap"
+   ],
+   "key": "black",
+   "bild": "a cool colorful baseball cap spins into the center, flips with style and lands, then neon graffiti spray splashes, stars and confetti burst around it"
+  },
+  {
+   "id": "hut",
+   "gruppe": "geschenk",
+   "label": "Hut & Schnurrbart",
+   "match": [
+    "Hat and Mustache",
+    "Hut und Schnurrbart",
+    "Hut & Schnurrbart",
+    "Hat & Mustache"
+   ],
+   "key": "black",
+   "bild": "a classy black top hat and a curly gentleman mustache bounce in together, the hat tips politely and a monocle sparkles, then golden confetti and tiny bow ties burst out"
+  },
+  {
+   "id": "schwan",
+   "gruppe": "geschenk",
+   "label": "Schwan",
+   "match": [
+    "Swan",
+    "Schwan"
+   ],
+   "key": "black",
+   "bild": "an elegant glowing white swan made of light glides in, spreads its wings wide with a shimmer, then white and pink feathers, pearls and sparkles drift beautifully across the frame"
+  },
+  {
+   "id": "kranich",
+   "gruppe": "geschenk",
+   "label": "Papierkranich",
+   "match": [
+    "Paper Crane",
+    "Papierkranich",
+    "Kranich"
+   ],
+   "key": "black",
+   "bild": "a colorful origami paper crane folds itself out of a glowing sheet of paper, flaps its wings and flies a loop, leaving a trail of many small paper cranes and light petals"
+  },
+  {
+   "id": "liebdich",
+   "gruppe": "geschenk",
+   "label": "Ich liebe dich",
+   "match": [
+    "Love you",
+    "I love you",
+    "Ich liebe dich",
+    "Hab dich lieb",
+    "Love You"
+   ],
+   "key": "black",
+   "bild": "glowing pink neon heart shapes and floating lipstick kisses swirl together, form one big radiant heart in the center, which bursts into a cloud of tiny hearts and rose sparkles"
+  },
+  {
+   "id": "mikrofon",
+   "gruppe": "geschenk",
+   "label": "Mikrofon",
+   "match": [
+    "Mic",
+    "Microphone",
+    "Mikrofon",
+    "Mikro"
+   ],
+   "key": "black",
+   "bild": "a shiny golden stage microphone rises into a spotlight, sound waves ripple out as rainbow equalizer bars, then golden music notes and confetti explode across the frame"
+  },
+  {
+   "id": "zug",
+   "gruppe": "geschenk",
+   "label": "Zug",
+   "match": [
+    "Train",
+    "Zug"
+   ],
+   "key": "black",
+   "bild": "a colorful cartoon steam train with glowing windows rushes in, puffs big clouds of sparkly rainbow steam, whistles and races across the frame, wagons full of gifts and confetti"
+  },
+  {
    "id": "stufe-klein",
    "gruppe": "stufe",
    "ab": 1,
