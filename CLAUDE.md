@@ -141,3 +141,5 @@
   Stille weg, loudnorm I −16, Ein-/Ausblenden, MP3 160k. Talk-Runde nutzt jetzt `lofi` (Vorgabe + Umstellung gespeicherter „chill“). Prompts: Lo-fi/Chillhop, Rhodes, Jazz-Gitarre, Vinyl, Loft/Coffee-Shop, ohne Gesang, 70–85 BPM.
 - 23.11.2026: Wand-Monitor: unterer Teil bleibt frei (dort sitzt Michael davor, Schrift schien durch): `monFrei` (hoch, Standard 30 %) / `monQFrei` (quer 15 %), Liste nur im oberen Bereich,
   Schrift danach berechnet, `.mon-liste` mit max-height + weichem Ausblenden unten (mask). Geprüft (Headless, 8 Einträge).
+- 23.11.2026: **Spielfenster einschalten schaltet Drucker, Schreibtisch und Wand-Monitor aus** (`saved.fenster[2/3] = false`, `saved.monitor = false`), Server schickt SSE `fensterstand` (kompletter Stand) an hinten,
+  Shim leitet als `fenster:` + `letzte {monitor}` weiter (Monitor-Liste bleibt dabei erhalten). Ausschalten des Spielfensters ändert die anderen nicht. Geprüft (Headless, auch nach Neuladen).

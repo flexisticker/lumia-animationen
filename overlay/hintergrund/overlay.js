@@ -104,7 +104,7 @@ function monZeichnen() {
   monGesehen = new Set(monDaten.map(e => e.id)); // beim ersten Zeichnen nichts animieren, danach nur neue Einträge
 }
 monZeichnen();
-if (window.Overlay) Overlay.on('letzte', d => { if (d.monitor !== undefined) monitorAn = d.monitor === true ? 'liste' : d.monitor || false; const neu = (d.liste || []).map(e => e.id).join() !== monDaten.map(e => e.id).join(); monDaten = d.liste || []; if (neu) monZeichnen(); letzterStand = ''; });
+if (window.Overlay) Overlay.on('letzte', d => { if (d.monitor !== undefined) monitorAn = d.monitor === true ? 'liste' : d.monitor || false; if (d.liste) { const neu = d.liste.map(e => e.id).join() !== monDaten.map(e => e.id).join(); monDaten = d.liste; if (neu) monZeichnen(); } letzterStand = ''; });
 let curSpiel = null, zwang = { 1: null, 2: null, 3: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
 function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
 function rect(w) {

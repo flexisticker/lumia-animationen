@@ -124,6 +124,7 @@ header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-t
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
       es.addEventListener('letzte', e => emit('letzte', { liste: JSON.parse(e.data) }));
+      es.addEventListener('fensterstand', e => { const d = JSON.parse(e.data); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); emit('letzte', { monitor: d.monitor }); });
       es.addEventListener('fenster', e => { window.MM_FENSTER = JSON.parse(e.data); emit('fenster', window.MM_FENSTER); });
       es.addEventListener('alert', e => emit('alert', JSON.parse(e.data)));
       es.addEventListener('aktion', e => emit('overlaycontent', { content: JSON.stringify(JSON.parse(e.data)) }));

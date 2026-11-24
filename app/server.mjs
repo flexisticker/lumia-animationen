@@ -534,7 +534,10 @@ const server = http.createServer(async (req, res) => {
       if (a.id === 'fenster') {
         const nr = [2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1;
         const an = a.an === undefined ? !fensterSichtbar(nr) : !!a.an;
-        saved.fenster[nr] = an; a.nr = nr; a.an = an; saveSettings(); fensterMelden();
+        saved.fenster[nr] = an; a.nr = nr; a.an = an;
+        // Spielfenster an → Kameras und Wand-Monitor aus (alle Quellen bekommen den kompletten Stand)
+        if (nr === 1 && an) { saved.fenster[2] = false; saved.fenster[3] = false; saved.monitor = false; broadcast('fensterstand', { fenster: fensterStand(), monitor: '' }, ['hinten']); }
+        saveSettings(); fensterMelden();
         a.label = ({ 1: 'Spielfenster ', 2: 'Drucker-Kamera ', 3: 'Schreibtisch-Kamera ' })[nr] + (an ? 'an' : 'aus');
       }
       broadcast('aktion', a, ['vorne', 'hinten']); remember({ art: 'aktion', quelle: 'knopf', text: a.label || a.id });
