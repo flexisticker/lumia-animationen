@@ -60,6 +60,17 @@ details.spiel summary .hint{margin:0;font-size:13px}details.spiel[open] summary{
 #toast.show{opacity:1;transform:translate(-50%,0)}#toast.warn{background:#7a5a12}
 a{color:#c7b4ff}
 @media(max-width:860px){.qzeile{grid-template-columns:1fr}}
+.gliste{display:flex;flex-direction:column;gap:8px}
+.gzeile{display:grid;grid-template-columns:auto 1fr minmax(260px,340px);gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.gzeile.stufe,.gzeile.keine{border-color:#7a6a2f}.gzeile.eigen,.gzeile.passend{border-color:#2f7a52}
+.gvor{width:54px;height:96px;object-fit:cover;border-radius:8px;background:#000;cursor:pointer}.gvor.quer{width:128px;height:72px}.gvor.leer{display:grid;place-items:center;color:var(--muted)}
+.gname{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:16px}.gname img{width:28px;height:28px;object-fit:contain}.muenzen{color:var(--c3);font-weight:600}
+.ginfo .hint{margin:4px 0 0}.gzeile.stufe .ginfo .hint,.gzeile.keine .ginfo .hint{color:var(--c3)}
+.gaktion .f{grid-template-columns:90px 1fr;padding:0 0 6px;border:0}
+.vorspiel{position:fixed;inset:0;background:rgba(0,0,0,.8);display:grid;place-items:center;z-index:60}
+.vs-inhalt{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px;max-height:94vh}
+.vs-inhalt .row{justify-content:space-between}.vs-inhalt video{height:min(78vh,720px);aspect-ratio:9/16;background:#000;border-radius:10px}.vs-inhalt.quer video{height:auto;width:min(86vw,960px);aspect-ratio:16/9}
+@media(max-width:860px){.gzeile{grid-template-columns:auto 1fr}.gaktion{grid-column:1/-1}}
 .warnbox{border:2px solid #ff5a5a;background:#3a1020}.warnbox b{color:#ff8a8a;font-size:18px}
 </style></head><body>
 <div class="app"><aside><div class="brand"><img src="/icon.png" alt=""><b>Live-Studio</b></div><nav id="nav"></nav></aside>

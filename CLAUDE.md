@@ -170,3 +170,8 @@
 - 25.11.2026: **10 weitere Geschenk-Animationen** (hoch + quer, MP4 + Alpha-WebM, ca. 3,80 $): Feuerwerk (Fireworks), Wal (Whale diving), Motorrad, Privatjet, Sportwagen (ohne Marken-Emblem),
   Einhorn (Unicorn Fantasy), Interstellar, Rosa Nebel (Rosa Nebula), Falke (Falcon), Weltraum-Shuttle (TikTok Shuttle, auch „Rocket“). Gleiche Prompt-Vorlage und Kodierung wie 24.11.,
   `farben.json` neu erzeugt (72 Animationen). Geprüft (Headless): alle 10 Geschenknamen spielen die eigene WebM in hoch und quer.
+- 25.11.2026: **Studio-Seite „Geschenke“** (`geschenke`, Menü Live): alle Münz-Geschenke nach Münzen sortiert mit der Animation, die wirklich läuft (gleiche Regel wie `giftAnim` im Overlay:
+  `eigeneZuordnung` › passende Geschenk-Animation (wenn an) › Stufe nach Münzen). Gelb = nur Stufe. Je Zeile Vorschau mit Ton (Fenster, hoch/quer), „Im Stream testen“ (`/api/test`),
+  Animation zuweisen (schreibt Zeile `name = id` in vorne `eigeneZuordnung`, automatisch = Zeile weg). Startliste `GESCHENK_KATALOG` im Server (43 Geschenke, Münzwerte ungefähr),
+  dazu lernt der Server jedes echte Geschenk (`saved.geschenke[name] {name, muenzen, anzahl, zuletzt, bild}`, nicht aus Tests, max. 500, SSE `geschenke`), Bild-Link nur falls Lumia einen
+  https-Link schickt (Feldname unbekannt: giftPictureUrl/giftPicture/giftImage/giftIcon/image). `GET /api/geschenke`, `POST /api/geschenke/vergessen`.

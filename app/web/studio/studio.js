@@ -12,7 +12,7 @@ async function load() {
   LIST = SCHEMA.liste; document.title = S.kanal + ' Studio'; $('.brand b').textContent = 'Live-Studio'; renderNav(); render();
 }
 const NAV = [
-  ['Live', [['start', '🏠', 'Übersicht'], ['test', '🧪', 'Testen'], ['galerie', '🎬', 'Animationen ansehen']]],
+  ['Live', [['start', '🏠', 'Übersicht'], ['geschenke', '🎁', 'Geschenke'], ['test', '🧪', 'Testen'], ['galerie', '🎬', 'Animationen ansehen']]],
   ['Aussehen', [['vorne', '✨', 'Animationen & Einblendungen'], ['hinten', '🖼️', 'Hintergrund & Kameras'], ['spiele', '🎮', 'Spiele'], ['aktion', '📱', 'Tablet-Steuerung']]],
   ['Verbindungen', [['lumia', '🔌', 'Lumia'], ['obs', '🎥', 'OBS & Fenster-Quellen'], ['licht', '💡', 'Licht (Hue)'], ['sprache', '🗣️', 'Sprachausgabe'], ['quellen', '🔗', 'Browserquellen für OBS']]],
 ];
@@ -56,7 +56,7 @@ function render() {
     h('p', {}, 'Der Container hat keinen Daten-Ordner. Bei jedem Update gehen alle Einstellungen verloren. In Unraid beim Container auf „Edit“ → „Add another Path, Port, Variable…“ → Config Type „Path“, Container Path ', h('code', {}, '/data'), ', Host Path ', h('code', {}, '/mnt/user/appdata/live-studio'), ' → Speichern. Danach einmal alles einstellen – ab dann bleibt es erhalten.')));
   ({ start, lumia: lumiaPage, vorne: () => settingsPage('vorne', 'Animationen & Einblendungen', 'Alles, was vor dir im Bild erscheint.'),
     galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik, drei Fenster (Spiel, Drucker-Kamera, Schreibtisch) und der Wand-Monitor, durch die man die OBS-Quelle darunter sieht.'),
-    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, obs: obsPage, licht: lichtPage, sprache: sprachePage }[page.id] || start)(m);
+    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, obs: obsPage, licht: lichtPage, geschenke: geschenkePage, sprache: sprachePage }[page.id] || start)(m);
 }
 // ---------- Übersicht ----------
 function start(m) {
@@ -352,6 +352,71 @@ function lichtPage(m) {
     h('p', { class: 'hint' }, 'Spielt nur das Licht ab – im Stream passiert nichts.')),
     h('div', { class: 'row' }, h('button', { class: 'b', onclick: async () => { if (confirm('Bridge entkoppeln? Danach musst du neu koppeln.')) { await speichern({ entkoppeln: true }, 'Bridge entkoppelt'); render(); } } }, 'Bridge entkoppeln')));
 }
+// ---------- Geschenke: welches Münz-Geschenk zeigt welche Animation? ----------
+let GESCHENKE = null, gFilter = 'alle', gSuche = '', gQuer = false;
+const gNorm = x => String(x || '').toLowerCase().replace(/\s+/g, ' ').trim();
+function zuordnungen() { const m = new Map(); for (const l of gNorm(S.vorne.eigeneZuordnung).split('\n')) { const [g, id] = l.split('=').map(x => x && x.trim()); if (g && id) m.set(g, id); } return m; }
+// gleiche Regeln wie die vordere Quelle (overlay giftAnim): eigene Zuordnung › passende Animation › Stufe nach Münzen
+function geschenkAnim(g) {
+  const n = gNorm(g.name), eigen = zuordnungen().get(n), byId = id => LIST.find(a => a.id === id);
+  if (eigen && byId(eigen)) return { a: byId(eigen), art: 'eigen' };
+  const direkt = LIST.find(a => a.gruppe === 'geschenk' && (a.match || []).some(x => gNorm(x) === n));
+  if (direkt && S.vorne['an_' + direkt.id] !== false) return { a: direkt, art: 'passend' };
+  const stufen = LIST.filter(a => a.gruppe === 'stufe').map(a => ({ a, ab: Number(S.vorne['ab_' + a.id] ?? a.ab) || 0 })).sort((x, y) => y.ab - x.ab);
+  const t = stufen.find(t => (g.muenzen || 1) >= t.ab);
+  return t ? { a: t.a, art: 'stufe', aus: direkt && S.vorne['an_' + direkt.id] === false } : { a: null, art: 'keine' };
+}
+function animSrc(a) { if (!a) return ''; return (gQuer && (S.vorne['vq_' + a.id] || (!S.vorne['v_' + a.id] && a.quer && S.vorne.medienAdresse + a.quer))) || S.vorne['v_' + a.id] || S.vorne.medienAdresse + a.datei; }
+function vorspielen(a, titel) {
+  const zu = () => box.remove();
+  const v = h('video', { src: animSrc(a), autoplay: '', controls: '', playsinline: '' });
+  const box = h('div', { class: 'vorspiel', onclick: e => { if (e.target === box) zu(); } }, h('div', { class: 'vs-inhalt' + (gQuer ? ' quer' : '') }, h('div', { class: 'row' }, h('b', {}, titel), h('button', { class: 'b', onclick: zu }, '✕ Schließen')), v));
+  document.body.append(box); v.play().catch(() => {});
+}
+async function geschenkePage(m) {
+  m.append(h('h1', {}, 'Geschenke'), h('p', { class: 'hint' }, 'Alle Münz-Geschenke, sortiert nach Münzen: welche Animation läuft, wenn jemand es schickt. Gelb = noch keine eigene Animation, es läuft eine Stufe. Geschenke, die im Live ankommen, kommen automatisch dazu. Münzwerte der Startliste sind ungefähr.'));
+  if (!GESCHENKE) { m.append(h('p', { class: 'hint' }, 'lädt …')); GESCHENKE = (await fetch('/api/geschenke').then(r => r.json())).geschenke; if (page.id === 'geschenke') render(); return; }
+  const liste = GESCHENKE.map(g => ({ ...g, z: geschenkAnim(g) }));
+  const n = { alle: liste.length, stufe: liste.filter(g => g.z.art === 'stufe' || g.z.art === 'keine').length, live: liste.filter(g => g.gesehen).length };
+  const such = h('input', { type: 'text', placeholder: 'Geschenk suchen …', value: gSuche, oninput: e => { gSuche = e.target.value; zeichne(); } });
+  m.append(h('div', { class: 'card' }, h('div', { class: 'row' },
+    h('div', { class: 'tabs', style: 'margin:0' }, ...[['alle', 'Alle'], ['stufe', 'Ohne eigene Animation'], ['live', 'Im Live gesehen']].map(([k, l]) => h('button', { class: gFilter === k ? 'on' : '', onclick: () => { gFilter = k; render(); } }, l + ' (' + n[k] + ')'))),
+    h('div', { class: 'tabs', style: 'margin:0' }, h('button', { class: gQuer ? '' : 'on', onclick: () => { gQuer = false; render(); } }, 'Vorschau hochkant'), h('button', { class: gQuer ? 'on' : '', onclick: () => { gQuer = true; render(); } }, 'quer'))),
+    h('div', { style: 'margin-top:10px' }, such)));
+  const box = h('div', { class: 'gliste' }); m.append(box);
+  const optionen = () => { const grp = { geschenk: 'Geschenk-Animationen', stufe: 'Stufen', knopf: 'Aktionsknöpfe', ereignis: 'Ereignisse' };
+    return [h('option', { value: '' }, 'automatisch'), ...Object.entries(grp).map(([g, l]) => h('optgroup', { label: l }, ...LIST.filter(a => a.gruppe === g).map(a => h('option', { value: a.id }, a.label || a.id))))]; };
+  const zuweisen = (g, id) => {
+    const zeilen = String(S.vorne.eigeneZuordnung || '').split('\n').filter(l => l.trim() && gNorm(l.split('=')[0]) !== gNorm(g.name));
+    if (id) zeilen.push(gNorm(g.name) + ' = ' + id);
+    queueSave('vorne', 'eigeneZuordnung', zeilen.join('\n')); zeichne();
+  };
+  function zeichne() {
+    box.innerHTML = '';
+    let l = GESCHENKE.map(g => ({ ...g, z: geschenkAnim(g) }));
+    if (gFilter === 'stufe') l = l.filter(g => g.z.art === 'stufe' || g.z.art === 'keine'); else if (gFilter === 'live') l = l.filter(g => g.gesehen).sort((a, b) => (b.anzahl || 0) - (a.anzahl || 0));
+    if (gSuche.trim()) { const q = gNorm(gSuche); l = l.filter(g => gNorm(g.name).includes(q) || gNorm(g.z.a && (g.z.a.label || g.z.a.id)).includes(q)); }
+    if (!l.length) box.append(h('p', { class: 'hint' }, 'Nichts gefunden.'));
+    for (const g of l) {
+      const { a, art } = g.z, eigen = zuordnungen().get(gNorm(g.name));
+      const sel = h('select', { onchange: e => zuweisen(g, e.target.value) }, ...optionen()); sel.value = eigen && LIST.some(x => x.id === eigen) ? eigen : '';
+      box.append(h('div', { class: 'gzeile ' + art },
+        a ? h('video', { class: 'gvor' + (gQuer ? ' quer' : ''), src: vorschau(animSrc(a)), muted: '', preload: 'metadata', title: 'Abspielen mit Ton', onclick: () => vorspielen(a, g.name + ' → ' + (a.label || a.id)) }) : h('div', { class: 'gvor leer' }, '–'),
+        h('div', { class: 'ginfo' },
+          h('div', { class: 'gname' }, g.bild ? h('img', { src: g.bild, alt: '', referrerpolicy: 'no-referrer' }) : null, h('b', {}, g.name),
+            h('span', { class: 'muenzen' }, '🪙 ' + (g.muenzen ? g.muenzen.toLocaleString('de-DE') : '?')),
+            g.gesehen ? h('span', { class: 'pill ok' }, (g.anzahl || 0) + '× im Live') : null),
+          h('div', { class: 'hint' }, art === 'eigen' ? '✔ Eigene Zuordnung: ' + (a.label || a.id) : art === 'passend' ? '✔ Eigene Animation: ' + (a.label || a.id)
+            : art === 'stufe' ? '⚠ Keine eigene Animation – es läuft „' + (a.label || a.id) + '“' + (g.z.aus ? ' (eigene Animation ist ausgeschaltet)' : '') : '⚠ Wird nicht gezeigt (unter der Mindest-Münzzahl)')),
+        h('div', { class: 'gaktion' }, field('Animation', sel),
+          h('div', { class: 'row' }, a ? h('button', { class: 'b', onclick: () => vorspielen(a, g.name + ' → ' + (a.label || a.id)) }, '▶ Ansehen') : null,
+            h('button', { class: 'b', onclick: async () => { await post('/api/test', { alert: 'tiktok-gift', extraSettings: { username: 'Test', giftName: g.name, coins: g.muenzen || 1, giftAmount: 1, avatar: '/icon.png' } }); toast('„' + g.name + '“ läuft im Stream'); } }, 'Im Stream testen'),
+            g.gesehen && !g.katalog ? h('button', { class: 'b', title: 'Aus der Liste entfernen', onclick: async () => { if (!confirm('„' + g.name + '“ aus der Liste entfernen?')) return; GESCHENKE = (await (await post('/api/geschenke/vergessen', { name: g.name })).json()).geschenke; zeichne(); } }, '🗑') : null))));
+    }
+  }
+  zeichne();
+  m.append(h('p', { class: 'hint' }, 'Hinweis: Schickt jemand mehrere Geschenke auf einmal, entscheidet bei den Stufen die Summe der Münzen. Eigene Zuordnungen stehen auch unter „Animationen & Einblendungen → Allgemein“.'));
+}
 // ---------- Galerie ----------
 let galQuer = false;
 function galerie(m) {
@@ -418,6 +483,7 @@ es.addEventListener('quellen', e => { if (!S) return; S.quellenListe = JSON.pars
 es.addEventListener('obs', e => { if (!S) return; S.obsStatus = JSON.parse(e.data); renderNav(); if (['obs', 'start'].includes(page.id) && !document.activeElement.matches('input,select')) render(); });
 es.addEventListener('fenster', e => { if (!S) return; S.fensterSicht = JSON.parse(e.data); if (page.id === 'start' || page.id === 'obs') { if (!document.activeElement.matches('input,select,textarea')) render(); } });
 es.addEventListener('hue', e => { if (!S) return; S.hue = JSON.parse(e.data); renderNav(); if (page.id === 'start' || (page.id === 'licht' && !document.activeElement.matches('input,select'))) render(); });
+es.addEventListener('geschenke', e => { if (!S) return; GESCHENKE = JSON.parse(e.data); if (page.id === 'geschenke' && !document.activeElement.matches('input,select')) render(); });
 es.addEventListener('profil', async () => { if (!S) return; await reload(); renderNav(); });
 es.addEventListener('modus', e => { if (!S) return; S.modus = JSON.parse(e.data).modus; if (page.id === 'start') render(); });
 load();

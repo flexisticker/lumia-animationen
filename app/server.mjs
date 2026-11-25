@@ -245,11 +245,39 @@ function monitorEintrag(a, source) {
   saved.letzte = letzte; saveSettings();
   broadcast('letzte', letzte, ['hinten']);
 }
+// ---------- TikTok-Geschenke: Übersicht im Studio ----------
+// Startliste bekannter Münz-Geschenke (Münzwerte ungefähr – TikTok ändert sie ab und zu). Was im Live wirklich ankommt, wird zusätzlich gemerkt.
+const GESCHENK_KATALOG = [['Rose', 1], ['TikTok', 1], ['GG', 1], ['Ice Cream Cone', 1], ['Heart Me', 1], ['Thumbs Up', 1], ['Finger Heart', 5], ['Panda', 5],
+  ['Friendship Necklace', 10], ['Heart', 10], ['Rosa', 10], ['Perfume', 20], ['Love Bang', 25], ['Doughnut', 30], ['Love you', 49], ['Cap', 99], ['Paper Crane', 99],
+  ['Hat and Mustache', 99], ['Mic', 99], ['Gingerbread Heart', 99], ['Hand Hearts', 100], ['Confetti', 100], ['Sunglasses', 199], ['Corgi', 299], ['Coral', 499],
+  ['Money Gun', 500], ['Baby Chicks', 500], ['Swan', 699], ['Train', 899], ['Galaxy', 1000], ['Fireworks', 1088], ['Gift Box', 1999], ['Whale diving', 2150],
+  ['Motorcycle', 2988], ['Private Jet', 4888], ['Unicorn Fantasy', 5000], ['Sports Car', 7000], ['Interstellar', 10000], ['Falcon', 10999], ['Rosa Nebula', 15000],
+  ['TikTok Shuttle', 20000], ['Lion', 29999], ['Universe', 34999]];
+saved.geschenke ||= {};
+const geschenkKey = n => String(n || '').toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 60);
+function geschenkGesehen(a, source) {
+  if (a.alert !== 'tiktok-gift' || source === 'test') return;
+  const s = a.extraSettings || {}, k = geschenkKey(s.giftName); if (!k) return;
+  const g = saved.geschenke[k] ||= { name: String(s.giftName).slice(0, 60), anzahl: 0 };
+  const m = Number(s.coins) || Number(s.value) || 0; if (m > 0) g.muenzen = m;
+  const bild = [s.giftPictureUrl, s.giftPicture, s.giftImage, s.giftIcon, s.image].find(x => typeof x === 'string' && /^https:\/\//.test(x));
+  if (bild) g.bild = bild.slice(0, 500);
+  g.anzahl++; g.zuletzt = Date.now();
+  const keys = Object.keys(saved.geschenke); if (keys.length > 500) { keys.sort((x, y) => (saved.geschenke[x].zuletzt || 0) - (saved.geschenke[y].zuletzt || 0)); delete saved.geschenke[keys[0]]; }
+  saveSettings(); broadcast('geschenke', geschenkListe(), ['studio']);
+}
+function geschenkListe() {
+  const m = new Map(GESCHENK_KATALOG.map(([name, muenzen]) => [geschenkKey(name), { name, muenzen, katalog: true, anzahl: 0 }]));
+  for (const [k, g] of Object.entries(saved.geschenke)) m.set(k, { ...(m.get(k) || {}), ...g, muenzen: g.muenzen || (m.get(k) || {}).muenzen || 0, gesehen: true });
+  return [...m.values()].sort((a, b) => (a.muenzen || 0) - (b.muenzen || 0) || a.name.localeCompare(b.name));
+}
+
 function fireAlert(alert, source) {
   if (!alert || typeof alert.alert !== 'string') return;
   broadcast('alert', alert, ['vorne']);
   monitorEintrag(alert, source);
   forwardStreamPrint(alert, source);
+  geschenkGesehen(alert, source);
   if (alert.alert === 'tiktok-like') hueLike();
   const s = alert.extraSettings || {};
   remember({ art: 'alert', quelle: source, alert: alert.alert, text: [s.username, s.giftName, s.giftAmount && '× ' + s.giftAmount, s.amount && !s.giftName ? s.amount : ''].filter(Boolean).join(' ') });
@@ -708,6 +736,8 @@ const server = http.createServer(async (req, res) => {
       saveSettings(); obsConnect(); return json(res, 200, { ok: true });
     }
     // ---------- Hue ----------
+    if (p === '/api/geschenke' && req.method === 'GET') return json(res, 200, { geschenke: geschenkListe() });
+    if (p === '/api/geschenke/vergessen' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); delete saved.geschenke[geschenkKey(b.name)]; saveSettings(); return json(res, 200, { geschenke: geschenkListe() }); }
     if (p === '/api/hue/anim' && req.method === 'POST') { const b = JSON.parse((await body(req, 2000)).toString() || '{}'); if (typeof b.id === 'string') hueAnimation(b.id.slice(0, 60)); return json(res, 200, { ok: true }); }
     if (p === '/api/hue/suchen' && req.method === 'GET') {
       try { const r = await fetch('https://discovery.meethue.com/', { signal: AbortSignal.timeout(6000) }); const d = await r.json();
