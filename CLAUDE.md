@@ -152,3 +152,8 @@
   Papierkranich, Ich liebe dich, Mikrofon, Zug (`animationen.json`, Gruppe geschenk, `match` mit englischen + deutschen Namen). Prompt-Vorlage wie bisher („Full-frame celebration effect … PURE BLACK …“, Quer-Zusatz
   „in a wide 16:9 landscape composition“). **minimax/h3-max verlangt jetzt `prompt_expansion_mode`** (genutzt: `balanced`). Kappe zeigt ein „NY“-Baseball-Logo (Modell hielt sich nicht an „no logos“) – ggf. neu erzeugen.
   Geprüft (Headless): Thumbs Up/Lebkuchenherz/Train/Ice Cream Cone spielen die eigene WebM in hoch und quer.
+- 25.11.2026: **StreamModus für den Windows-Stream-PC** (`windows/StreamModus/`, fertiges `windows/StreamModus.zip`): `Stream-Start.bat`/`Stream-Stop.bat` (Desktop) + Ordner `StreamModus` (PowerShell 5.1, UTF-8 mit BOM, CRLF).
+  Start (normaler Benutzer): Google Drive/OneDrive (`/shutdown`)/Nextcloud (`--quit`) beenden, Pfade in `%LOCALAPPDATA%\StreamModus\zustand.json` merken; `System-Anpassung.ps1 -Modus Start` per UAC (merkt Stand in
+  `C:\ProgramData\StreamModus\system.json`: Dienste wuauserv/UsoSvc/BITS/DoSvc deaktivieren+stoppen, Store AutoDownload=2, NetworkThrottlingIndex=ffffffff, SystemResponsiveness=10, QoS DSCP 46 für obs64.exe, Energieplan Höchstleistung);
+  dann Discord → OBS (Arbeitsordner!) → Lumia → TikTok LIVE Studio → Streamer.bot (Pfade aus `Einstellungen.ps1` oder Startmenü-Verknüpfung, Streamer.bot ggf. Pfad eintragen); Fenster wartet, bis OBS zu ist → Stop.
+  Stop: Programme schließen, System wiederherstellen (ohne Stand: Windows-Standardwerte), Clouds neu starten; `stop.lock` verhindert doppeltes Aufräumen. **Nicht getestet** (kein Windows/PowerShell in der Sandbox, pwsh-Download nicht erlaubt).

@@ -1,0 +1,35 @@
+﻿StreamModus – Start/Stop für den Stream-PC
+==========================================
+
+EINRICHTEN (einmalig)
+1. ZIP-Datei: Rechtsklick → Eigenschaften → unten „Zulassen“ anhaken → OK
+   (sonst warnt Windows bei jedem Start).
+2. ZIP öffnen und die drei Teile auf den Desktop ziehen:
+   Stream-Start.bat, Stream-Stop.bat und den Ordner StreamModus.
+   Wichtig: der Ordner StreamModus muss neben den beiden .bat-Dateien liegen.
+3. Falls Streamer.bot nicht gefunden wird: StreamModus\Einstellungen.ps1 mit dem
+   Editor öffnen und bei Streamer.bot den Pfad zur Streamer.bot.exe eintragen,
+   z. B.  Pfad = 'C:\Streamer.bot\Streamer.bot.exe'
+   Dort kannst du auch Reihenfolge, Wartezeiten und weitere Programme ändern.
+
+STREAM STARTEN – Doppelklick auf Stream-Start.bat
+ - Google Drive, OneDrive und Nextcloud werden beendet (keine Uploads/Downloads).
+ - Windows-Abfrage „Änderungen zulassen?“ mit JA bestätigen. Dann werden:
+   Windows Update, Hintergrund-Übertragung und Übermittlungsoptimierung (Uploads
+   von Updates an andere PCs) angehalten, Store-Updates pausiert, Netzwerk-
+   Drosselung aus, OBS-Daten im Netzwerk bevorzugt, Energieplan Höchstleistung.
+ - Dann starten nacheinander: Discord, OBS, Lumia Stream, TikTok LIVE Studio,
+   Streamer.bot.
+ - Ein kleines Fenster „StreamModus“ bleibt minimiert in der Taskleiste – offen lassen.
+
+STREAM BEENDEN
+ - Einfach OBS schließen. Nach ein paar Sekunden schließt StreamModus die anderen
+   Programme, fragt noch einmal nach Administratorrechten (JA) und stellt alles
+   wieder her: Updates, Netzwerk, Energieplan, und startet die Clouds neu.
+ - Oder von Hand: Doppelklick auf Stream-Stop.bat (schließt auch OBS).
+ - Nach einem Absturz/Neustart einfach Stream-Stop.bat ausführen – dann wird
+   alles auf den normalen Stand gesetzt.
+
+PROTOKOLL bei Problemen
+ - %LOCALAPPDATA%\StreamModus\protokoll.txt
+ - C:\ProgramData\StreamModus\system-protokoll.txt
