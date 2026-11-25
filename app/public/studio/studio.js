@@ -11,17 +11,40 @@ async function load() {
   [S, SCHEMA] = await Promise.all([fetch('/api/settings', { cache: 'no-store' }).then(r => r.json()), fetch('/schema/schema.json').then(r => r.json())]);
   LIST = SCHEMA.liste; document.title = S.kanal + ' Studio'; $('.brand b').textContent = 'Live-Studio'; renderNav(); render();
 }
-const PAGES = [
-  ['start', 'Übersicht'], ['lumia', 'Lumia-Verbindung'], ['sprache', 'Sprachausgabe'], ['vorne', 'Animationen & Einblendungen'], ['galerie', 'Animationen ansehen'],
-  ['hinten', 'Hintergrund & Kameras'], ['spiele', 'Spiele & OBS'], ['aktion', 'Tablet-Steuerung'], ['test', 'Testen'], ['quellen', 'Browserquellen für OBS'],
+const NAV = [
+  ['Live', [['start', '🏠', 'Übersicht'], ['test', '🧪', 'Testen'], ['galerie', '🎬', 'Animationen ansehen']]],
+  ['Aussehen', [['vorne', '✨', 'Animationen & Einblendungen'], ['hinten', '🖼️', 'Hintergrund & Kameras'], ['spiele', '🎮', 'Spiele'], ['aktion', '📱', 'Tablet-Steuerung']]],
+  ['Verbindungen', [['lumia', '🔌', 'Lumia'], ['obs', '🎥', 'OBS & Fenster-Quellen'], ['licht', '💡', 'Licht (Hue)'], ['sprache', '🗣️', 'Sprachausgabe'], ['quellen', '🔗', 'Browserquellen für OBS']]],
 ];
+// Ampel je Verbindung (für Menü und Übersicht): ok | warn | err | aus
+function ampel(id) {
+  if (!S) return 'aus';
+  const q = S.quellenListe || [];
+  const m = { verbunden: 'ok', verbinde: 'warn', getrennt: 'err', fehler: 'err' };
+  if (id === 'lumia') return S.lumia.an ? m[S.status.status] || 'warn' : 'aus';
+  if (id === 'obs') return S.obs.an ? m[(S.obsStatus || {}).status] || 'warn' : 'aus';
+  if (id === 'licht') return S.hue && S.hue.an && S.hue.gekoppelt ? (S.hue.status === 'fehler' ? 'err' : S.hue.lampen.length ? 'ok' : 'warn') : 'aus';
+  if (id === 'sprache') return S.tts && S.tts.schluessel ? (S.tts.stimme ? 'ok' : 'warn') : 'aus';
+  if (id === 'quellen') return q.some(x => x.rolle === 'vorne') && q.some(x => x.rolle === 'hinten') ? 'ok' : q.length ? 'warn' : 'err';
+  return '';
+}
+function go(id) { page.id = id; location.hash = id; renderNav(); render(); scrollTo(0, 0); }
+function toast(text, art) {
+  let t = $('#toast'); if (!t) { t = h('div', { id: 'toast' }); document.body.append(t); }
+  t.textContent = text; t.className = 'show ' + (art || ''); clearTimeout(t.tm); t.tm = setTimeout(() => (t.className = ''), 2200);
+}
+const vorschau = src => src ? src + (src.includes('#') ? '' : '#t=1.2') : src;   // Vorschaubild aus der Mitte statt schwarzem ersten Bild
 function renderNav() {
   const nav = $('#nav'); nav.innerHTML = '';
   nav.append(h('a', { class: 'steuer', href: '/aktion' }, '🎛️ Steuerung öffnen'));
   const sel = h('select', { class: 'kanal', onchange: async e => { await post('/api/profil', { profil: e.target.value }); await reload(); renderNav(); } });
   for (const p of S.profile || []) { const o = h('option', { value: p.id }, 'Kanal: ' + p.name); if (p.id === S.profil) o.selected = true; sel.append(o); }
   nav.append(h('div', { class: 'kanalbox' }, sel, h('small', {}, 'Alle Einstellungen gelten für den gewählten Kanal. Umschalten wechselt auch die Browserquellen.')));
-  for (const [id, label] of PAGES) nav.append(h('button', { class: page.id === id ? 'on' : '', onclick: () => { page.id = id; location.hash = id; renderNav(); render(); } }, label));
+  for (const [gruppe, eintraege] of NAV) {
+    nav.append(h('div', { class: 'gruppe' }, gruppe));
+    for (const [id, ico, label] of eintraege) { const a = ampel(id);
+      nav.append(h('button', { class: page.id === id ? 'on' : '', onclick: () => go(id) }, h('span', { class: 'ico' }, ico), h('span', { class: 'txt' }, label), a ? h('i', { class: 'dot ' + a, title: { ok: 'verbunden', warn: 'unvollständig', err: 'Problem', aus: 'aus' }[a] }) : null)); }
+  }
 }
 function status(st) {
   const map = { verbunden: ['ok', 'verbunden'], verbinde: ['warn', 'verbinde …'], getrennt: ['err', 'getrennt'], fehler: ['err', 'Fehler'], aus: ['', 'aus'] };
@@ -32,22 +55,36 @@ function render() {
   if (S.datenDauerhaft === false) m.append(h('div', { class: 'card warnbox' }, h('b', {}, '⚠ Einstellungen werden nicht dauerhaft gespeichert!'),
     h('p', {}, 'Der Container hat keinen Daten-Ordner. Bei jedem Update gehen alle Einstellungen verloren. In Unraid beim Container auf „Edit“ → „Add another Path, Port, Variable…“ → Config Type „Path“, Container Path ', h('code', {}, '/data'), ', Host Path ', h('code', {}, '/mnt/user/appdata/live-studio'), ' → Speichern. Danach einmal alles einstellen – ab dann bleibt es erhalten.')));
   ({ start, lumia: lumiaPage, vorne: () => settingsPage('vorne', 'Animationen & Einblendungen', 'Alles, was vor dir im Bild erscheint.'),
-    galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik und bis zu zwei Fenster (z. B. Spiel und Drucker-Kamera), durch die man die OBS-Quelle darunter sieht.'),
-    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, sprache: sprachePage }[page.id] || start)(m);
+    galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik, drei Fenster (Spiel, Drucker-Kamera, Schreibtisch) und der Wand-Monitor, durch die man die OBS-Quelle darunter sieht.'),
+    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, obs: obsPage, licht: lichtPage, sprache: sprachePage }[page.id] || start)(m);
 }
 // ---------- Übersicht ----------
 function start(m) {
-  m.append(h('h1', {}, 'Übersicht'), h('p', { class: 'hint' }, 'Hier siehst du, ob alles verbunden ist, und schaltest den Modus um.'));
-  const q = S.quellen || {};
-  m.append(h('div', { class: 'card' }, h('div', { class: 'row' }, status(S.status),
-    h('span', { class: 'pill ' + (q.vorne ? 'ok' : 'warn') }, 'Quelle vorne: ' + (q.vorne || 0)),
-    h('span', { class: 'pill ' + (q.hinten ? 'ok' : 'warn') }, 'Quelle hinten: ' + (q.hinten || 0)),
-    h('span', { class: 'pill' }, 'Tablet: ' + (q.aktion || 0))),
-    S.status.fehler ? h('p', { class: 'hint' }, S.status.fehler) : null));
+  m.append(h('h1', {}, 'Übersicht'), h('p', { class: 'hint' }, 'Alles auf einen Blick: Was ist verbunden, was ist gerade zu sehen? Rot oder gelb = dort fehlt noch etwas – einfach auf „Einrichten“ tippen.'));
+  const q = S.quellenListe || [], zahl = (r, f) => q.filter(x => x.rolle === r && (!f || x.format === f)).length;
+  const kachel = (id, ico, titel, text) => { const a = ampel(id);
+    return h('div', { class: 'kachel ' + a }, h('div', { class: 'k-kopf' }, h('span', { class: 'ico' }, ico), h('b', {}, titel), h('i', { class: 'dot ' + a })),
+      h('div', { class: 'k-text' }, text), h('button', { class: 'b' + (a === 'ok' ? '' : ' p'), onclick: () => go(id) }, a === 'ok' ? 'Öffnen' : 'Einrichten →')); };
+  const L = S.status, O = S.obsStatus || {}, H = S.hue || {};
+  m.append(h('div', { class: 'kacheln' },
+    kachel('lumia', '🔌', 'Lumia (Alerts)', !S.lumia.an ? 'Aus – ohne Lumia kommen keine TikTok-/Twitch-Ereignisse an.' : L.status === 'verbunden' ? 'Verbunden · ' + (L.ereignisse || 0) + ' Ereignisse seit dem Start' : (L.fehler || 'Nicht verbunden')),
+    kachel('obs', '🎥', 'OBS', !S.obs.an ? 'Aus – Szenenwechsel und Quellen schalten gehen nur mit OBS-Kopplung.' : O.status === 'verbunden' ? 'Verbunden · Szene „' + (O.aktuell || '?') + '“' : (O.fehler || 'Nicht verbunden')),
+    kachel('licht', '💡', 'Licht (Hue)', !H.gekoppelt ? 'Noch nicht gekoppelt.' : !H.an ? 'Gekoppelt, aber aus.' : H.status === 'fehler' ? H.fehler : (H.lampen || []).length + ' Lampe(n) · ' + (H.live ? 'folgt dem Stream' : 'pausiert')),
+    kachel('sprache', '🗣️', 'Sprachausgabe', !(S.tts && S.tts.schluessel) ? 'Kein ElevenLabs-Schlüssel – Danke-Stimme ist aus.' : S.tts.stimme ? 'Stimme: ' + (S.tts.stimmeName || S.tts.stimme) : 'Schlüssel da, aber keine Stimme gewählt.'),
+    kachel('quellen', '🔗', 'Browserquellen', 'Vorne: ' + zahl('vorne', 'hoch') + ' hoch / ' + zahl('vorne', 'quer') + ' quer · Hinten: ' + zahl('hinten', 'hoch') + ' hoch / ' + zahl('hinten', 'quer') + ' quer · Tablet: ' + zahl('aktion'))));
   m.append(h('h2', {}, 'Modus'), h('div', { class: 'row' },
-    ...[['party', '🎉 ' + (S.aktion.modus1Name || 'Party')], ['zocken', (S.aktion.modus2Ico || '🎮') + ' ' + (S.aktion.modus2Name || 'Zockmodus')]].map(([v, l]) => h('button', { class: 'b' + (S.modus === v ? ' p' : ''), onclick: async () => { await post('/api/modus', { modus: v }); S.modus = v; render(); } }, l))));
-  m.append(h('h2', {}, 'Ansagen'), h('div', { class: 'row' }, ...[['szene:start', 'Startet gleich'], ['szene:pause', 'Pause'], ['szene:gleich', 'Gleich weiter'], ['szene:weiter', "Weiter geht's"], ['szene:ende', 'Ende'], ['szene:aus', 'Ansage weg'], ['likes', 'Like-Fontäne']]
-    .map(([id, l]) => h('button', { class: 'b', onclick: () => post('/api/aktion', { id, label: l }) }, l))));
+    ...[['party', '🎉 ' + (S.aktion.modus1Name || 'Party')], ['zocken', (S.aktion.modus2Ico || '🎮') + ' ' + (S.aktion.modus2Name || 'Zockmodus')]].map(([v, l]) => h('button', { class: 'b gross' + (S.modus === v ? ' p' : ''), onclick: async () => {
+      const r = await post('/api/modus', { modus: v }); const d = await r.json().catch(() => ({})); S.modus = v; render(); if (d.obs) toast(String(d.obs).startsWith('OK:') ? 'OBS-Szene: ' + d.obs.slice(3) : d.obs, String(d.obs).startsWith('OK:') ? '' : 'warn'); } }, l))));
+  // Fenster & Kameras wie am Tablet
+  const F = S.fensterSicht || {};
+  const fk = [['fenster', 1, '🪟 Spielfenster'], ['fenster2', 2, '🖨️ Drucker'], ['fenster3', 3, '🖥️ Schreibtisch']];
+  if (F.monitorMoeglich) fk.push(['monitor', 'monitor', '📺 Monitor: Unterstützer'], ['monitor-drucker', 'monitor-drucker', '📺 Monitor: Drucker']);
+  if (F.lichtMoeglich) fk.push(['licht', 'licht', '💡 Licht folgt dem Stream']);
+  m.append(h('h2', {}, 'Kameras & Fenster'), h('div', { class: 'row' }, ...fk.map(([id, k, l]) => h('button', { class: 'b schalter' + (F[k] ? ' an' : ''), onclick: async () => {
+    const r = await post('/api/aktion', { id, label: l }); const d = await r.json().catch(() => ({})); if (d.label) toast(d.label); } }, l, h('small', {}, F[k] ? 'an' : 'aus')))),
+    h('p', { class: 'hint' }, 'Welche OBS-Quelle zu welchem Fenster mitgeschaltet wird, stellst du unter ', h('a', { href: '#obs', onclick: e => { e.preventDefault(); go('obs'); } }, 'OBS & Fenster-Quellen'), ' ein.'));
+  m.append(h('h2', {}, 'Ansagen'), h('div', { class: 'row' }, ...[['szene:start', '⏳ Startet gleich'], ['szene:pause', '☕ Pause'], ['szene:gleich', '⏱️ Gleich weiter'], ['szene:weiter', "🚀 Weiter geht's"], ['szene:brb', '🚶 BRB'], ['szene:technik', '🛠️ Technik'], ['szene:ende', '👋 Ende'], ['szene:aus', '✖️ Ansage weg'], ['likes', '💗 Like-Fontäne']]
+    .map(([id, l]) => h('button', { class: 'b', onclick: () => { post('/api/aktion', { id, label: l }); toast(l); } }, l))));
   m.append(h('h2', {}, 'Letzte Ereignisse'), h('div', { class: 'card log', id: 'log' }, ...(S.log || []).map(logLine)));
 }
 const logLine = e => h('div', {}, new Date(e.at).toLocaleTimeString('de-DE') + ' · ' + ({ alert: '🎁', aktion: '👆', modus: '🎮', fehler: '⚠️' }[e.art] || '') + ' ' + (e.alert || '') + ' ' + (e.text || '') + (e.quelle ? ' (' + e.quelle + ')' : ''));
@@ -109,7 +146,7 @@ function field(label, input, extra) { return h('div', { class: 'f' }, h('label',
 let pending = {}, timer = null;
 function queueSave(bereich, key, value) {
   (pending[bereich] ||= {})[key] = value; S[bereich][key] = value; $('#save').classList.add('show');
-  clearTimeout(timer); timer = setTimeout(async () => { const p = pending; pending = {}; await post('/api/settings', p); $('#save').classList.remove('show'); }, 600);
+  clearTimeout(timer); timer = setTimeout(async () => { const p = pending; pending = {}; const r = await post('/api/settings', p); $('#save').classList.remove('show'); toast(r.ok ? '✓ Gespeichert' : 'Speichern fehlgeschlagen', r.ok ? '' : 'warn'); }, 600);
 }
 function control(bereich, key, f) {
   const v = S[bereich][key];
@@ -130,7 +167,7 @@ function mediaControl(bereich, key, f, v) {
   const isVideo = f.type === 'videoupload';
   const fallback = bereich !== 'vorne' ? '' : key.startsWith('vq_') ? S.vorne.medienAdresse + key.slice(3) + '-quer.mp4' : key.startsWith('v_') ? S.vorne.medienAdresse + key.slice(2) + '.mp4' : '';
   const src = v || fallback;
-  const prev = isVideo && src ? h('video', { src, muted: '', preload: 'metadata', onclick: e => { e.target.muted = !e.target.muted; e.target.currentTime = 0; e.target.play(); } }) : null;
+  const prev = isVideo && src ? h('video', { src: vorschau(src), muted: '', preload: 'metadata', onclick: e => { e.target.muted = !e.target.muted; e.target.currentTime = 0; e.target.play(); } }) : null;
   const file = h('input', { type: 'file', accept: f.accept || (isVideo ? 'video/*' : 'audio/*'), style: 'display:none' });
   const info = h('code', {}, v ? v : (fallback ? 'Standard: ' + fallback : 'keine Datei'));
   file.onchange = async () => { const fl = file.files[0]; if (!fl) return; info.textContent = 'lädt hoch …';
@@ -168,6 +205,11 @@ function settingsPage(bereich, title, hint) {
       h('p', {}, 'Änderungen in diesem Reiter siehst du nur in einer Quelle mit der Adresse ', h('code', {}, location.origin + '/quelle/hinten-' + (quer ? 'quer' : 'hoch')), '. ',
         andere ? 'Deine verbundene Quelle ist ' + (quer ? 'hochkant' : 'quer') + ' – stell im Reiter „' + (quer ? t.slice(0, 2) === 'f1' ? 'Spielfenster – TikTok (hochkant)' : 'Fenster 2 – hochkant' : t === 'f1' ? 'Spielfenster – Twitch (quer)' : 'Fenster 2 – quer') + '“ ein oder ändere in OBS die Adresse der Quelle.' : 'Gerade ist gar keine Hintergrund-Quelle verbunden (OBS offen?).')));
   }
+  if (bereich === 'hinten' && /^f[123]q?$/.test(page.tab[bereich] || '')) {
+    const k = { 1: 'spiel', 2: 'drucker', 3: 'schreibtisch' }[page.tab[bereich][1]], q = (S.obs.quellen || {})[k];
+    m.append(h('div', { class: 'card info' }, '🎥 OBS-Quelle zu diesem Fenster: ', q ? h('b', {}, q) : h('i', {}, 'keine – Fenster blendet nur den Hintergrund aus'), ' ',
+      h('button', { class: 'b', onclick: () => go('obs') }, q ? 'ändern' : 'Quelle zuordnen →')));
+  }
   const card = h('div', { class: 'card' }); for (const [k, f] of fields) card.append(field(f.label, control(bereich, k, f)));
   m.append(card, h('div', { class: 'row' }, h('button', { class: 'b', onclick: async () => { if (confirm('Alle Einstellungen dieses Bereichs auf Standard zurücksetzen?')) { await post('/api/settings', { reset: bereich }); await reload(); } } }, 'Alles auf Standard')));
 }
@@ -183,9 +225,9 @@ function sceneSelect(value, onchange, leer) {
   for (const n of list) { const o = h('option', { value: n }, n); if (n === value) o.selected = true; sel.append(o); }
   return sel;
 }
-function spielePage(m) {
+function obsPage(m) {
   const O = { ...S.obs };
-  m.append(h('h1', {}, 'Spiele & OBS'), h('p', { class: 'hint' }, 'OBS-Szene wechseln = Modus wechselt automatisch. Spiel am Tablet wählen = OBS springt in die Gaming-Szene und der passende Hintergrund läuft.'));
+  m.append(h('h1', {}, 'OBS & Fenster-Quellen'), h('p', { class: 'hint' }, 'OBS-Szene wechseln = Modus wechselt automatisch. Modus/Spiel am Tablet = OBS springt in die passende Szene. Und: Fenster auf/zu = die zugehörige OBS-Quelle wird mit ein-/ausgeschaltet.'));
   const host = h('input', { type: 'text', value: O.host || '', placeholder: 'IP des Stream-PCs, z. B. 192.168.175.20' });
   const port = h('input', { type: 'number', value: O.port || 4455 });
   const pw = h('input', { type: 'password', placeholder: O.passwort ? '•••••••• (gespeichert – nur zum Ändern ausfüllen)' : 'Passwort aus OBS' });
@@ -193,28 +235,40 @@ function spielePage(m) {
   const folgen = h('input', { type: 'checkbox' }); folgen.checked = O.folgen !== false;
   const steuern = h('input', { type: 'checkbox' }); steuern.checked = O.steuern !== false;
   let sz = O.szeneZocken || '', sp = O.szeneParty || '';
+  const verbunden = (S.obsStatus || {}).status === 'verbunden';
+  // 1. Fenster ↔ Quellen (zuerst, weil man das am häufigsten sucht) – speichert sofort
   const qu = { spiel: '', drucker: '', schreibtisch: '', monitor: '', ...(O.quellen || {}) };
-  const quelleSelect = k => { const sel = h('select', { onchange: e => { qu[k] = e.target.value; } }); sel.append(h('option', { value: '' }, '– nicht mitschalten –'));
-    for (const n of [...new Set([...(S.obsStatus.quellen || []), qu[k]].filter(Boolean))]) { const o = h('option', { value: n }, n); if (n === qu[k]) o.selected = true; sel.append(o); } return sel; };
-  m.append(h('h2', {}, 'OBS-Verbindung'), h('div', { class: 'card' },
+  const F = S.fensterSicht || {};
+  const dl = h('datalist', { id: 'obs-quellen' }, ...(S.obsStatus.quellen || []).map(n => h('option', { value: n })));
+  const zeile = (k, ico, name, sicht) => {
+    const i = h('input', { type: 'text', list: 'obs-quellen', value: qu[k], placeholder: verbunden ? 'Quelle wählen oder Namen tippen …' : 'Namen der OBS-Quelle genau wie in OBS tippen' });
+    const ok = h('span', { class: 'hint' }, '');
+    i.onchange = async () => { qu[k] = i.value.trim(); const r = await post('/api/obs/quellen', { quellen: { [k]: qu[k] } }); if (r.ok) { S.obs.quellen = (await r.json()).quellen; toast(qu[k] ? '„' + qu[k] + '“ schaltet jetzt mit ' + name : name + ': keine OBS-Quelle mehr'); } };
+    const unbekannt = qu[k] && verbunden && (S.obsStatus.quellen || []).length && !(S.obsStatus.quellen || []).includes(qu[k]);
+    return h('div', { class: 'qzeile' }, h('div', { class: 'qname' }, h('span', { class: 'ico' }, ico), h('b', {}, name), h('span', { class: 'pill ' + (sicht ? 'ok' : '') }, sicht ? 'gerade zu' + ' sehen' : 'zu')),
+      h('div', {}, i, unbekannt ? h('div', { class: 'hint warntext' }, '⚠ In OBS gibt es keine Quelle mit diesem Namen') : ok));
+  };
+  m.append(h('h2', {}, 'Welche OBS-Quelle gehört zu welchem Fenster?'), h('div', { class: 'card' }, dl,
+    h('p', { class: 'hint' }, 'Ist ein Fenster zu, wird die eingetragene Quelle in OBS ausgeblendet (in allen Szenen, in denen sie vorkommt) – und beim Öffnen wieder eingeblendet. Spart Rechenleistung, z. B. bei Kameras. Leer lassen = nicht mitschalten. Wird sofort gespeichert.'),
+    zeile('spiel', '🪟', 'Spielfenster', F[1]), zeile('drucker', '🖨️', 'Drucker-Kamera', F[2]), zeile('schreibtisch', '🖥️', 'Schreibtisch-Kamera', F[3]), zeile('monitor', '📺', 'Drucker im Wand-Monitor', F['monitor-drucker']),
+    !verbunden ? h('p', { class: 'hint warntext' }, 'OBS ist gerade nicht verbunden – deshalb gibt es keine Auswahlliste. Du kannst die Namen trotzdem eintippen, geschaltet wird sobald OBS verbunden ist.') : null));
+  m.append(h('h2', {}, 'Verbindung & Szenen'), h('div', { class: 'card' },
     field('Verbindung an', an), field('IP-Adresse des Stream-PCs', host), field('Port', port), field('Passwort', pw),
-    field('Gaming-Szene (Modus 2)', sceneSelect(sz, v => (sz = v), '– keine –')),
-    field('Normale Szene (Modus 1)', sceneSelect(sp, v => (sp = v), '– keine –')),
+    field('Szene für ' + (S.aktion.modus2Name || 'Zockmodus'), sceneSelect(sz, v => (sz = v), '– automatisch (Name enthält „Gaming“, „Zock“ …) –')),
+    field('Szene für ' + (S.aktion.modus1Name || 'Party'), sceneSelect(sp, v => (sp = v), '– automatisch (Name enthält „Party“, „Chat“ …) –')),
     field('OBS-Szene schaltet den Modus', folgen), field('Modus/Spiel schaltet die OBS-Szene', steuern),
-    h('h3', {}, 'OBS-Quellen mit den Fenstern ein-/ausschalten'),
-    field('Spielfenster → Quelle', quelleSelect('spiel')), field('Drucker-Kamera → Quelle', quelleSelect('drucker')),
-    field('Schreibtisch-Kamera → Quelle', quelleSelect('schreibtisch')), field('Drucker im Wand-Monitor → Quelle', quelleSelect('monitor')),
-    h('p', { class: 'hint' }, 'Ist das Fenster zu, wird die gewählte Quelle in OBS ausgeblendet (in allen Szenen, in denen sie vorkommt) – spart Rechenleistung, z. B. bei Kameras.'),
     h('div', { class: 'row', style: 'margin-top:12px' }, h('button', { class: 'b p', onclick: async () => {
       await post('/api/obs', { host: host.value, port: port.value, an: an.checked, passwort: pw.value, szeneZocken: sz, szeneParty: sp, folgen: folgen.checked, steuern: steuern.checked, quellen: qu });
-      pw.value = ''; setTimeout(reload, 1500); } }, 'Speichern & verbinden'), obsStatusPill(S.obsStatus)),
-    S.obsStatus.fehler ? h('p', { class: 'hint' }, S.obsStatus.fehler) : null,
-    h('p', { class: 'hint' }, 'In OBS: Werkzeuge → WebSocket-Server-Einstellungen → „WebSocket-Server aktivieren“, Port 4455, Passwort festlegen (dort auch „Verbindungsinfo anzeigen“). Die Szenen-Listen füllen sich nach dem Verbinden.')));
+      pw.value = ''; toast('Gespeichert – verbinde mit OBS …'); setTimeout(reload, 1500); } }, 'Speichern & verbinden'), obsStatusPill(S.obsStatus)),
+    S.obsStatus.fehler ? h('p', { class: 'hint warntext' }, S.obsStatus.fehler) : null,
+    h('p', { class: 'hint' }, 'In OBS: Werkzeuge → WebSocket-Server-Einstellungen → „WebSocket-Server aktivieren“, Port 4455, Passwort festlegen (dort auch „Verbindungsinfo anzeigen“). Die Szenen-Listen füllen sich nach dem Verbinden. Eigene Szene je Spiel stellst du unter „Spiele“ ein.')));
+}
+function spielePage(m) {
+  m.append(h('h1', {}, 'Spiele'), h('p', { class: 'hint' }, 'Je Spiel ein eigener Hintergrund (Schleife) für Hoch- und Querformat, eigene Musik und auf Wunsch eine eigene OBS-Szene. Tippe ein Spiel an, um es zu bearbeiten.'));
   // Spiele
   const list = S.spiele.map(x => ({ ...x }));
-  const save = async () => { const r = await post('/api/spiele', { spiele: list }); const d = await r.json(); if (d.spiele) S.spiele = d.spiele; };
-  m.append(h('h2', {}, 'Spiele'), h('p', { class: 'hint' }, 'Je Spiel ein eigener Hintergrund (Schleife) für Hoch- und Querformat. Ohne eigenes Video läuft der Zockmodus-Hintergrund. Eigene OBS-Szene je Spiel ist optional.'));
-  const box = h('div', {}); m.append(box);
+  const save = async () => { const r = await post('/api/spiele', { spiele: list }); const d = await r.json(); if (d.spiele) S.spiele = d.spiele; toast(r.ok ? '✓ Gespeichert' : 'Fehler beim Speichern', r.ok ? '' : 'warn'); };
+  const box = h('div', {}); m.append(box); let offen = -1;
   const draw = () => {
     box.innerHTML = '';
     list.forEach((g, i) => {
@@ -225,10 +279,12 @@ function spielePage(m) {
         file.onchange = async () => { const fl = file.files[0]; if (!fl) return; await save(); info.textContent = 'lädt hoch …';
           const r = await post(`/api/upload-spiel/${S.spiele[i].id}/${key}?name=${encodeURIComponent(fl.name)}`, fl, true);
           if (r.ok) { g[key] = (await r.json()).adresse; info.textContent = g[key]; } else info.textContent = 'Fehler'; };
-        return h('div', { class: 'media' }, g[key] ? h('video', { src: g[key], muted: '', preload: 'metadata' }) : null, info, h('button', { class: 'b', onclick: () => file.click() }, 'Video …'), file,
+        return h('div', { class: 'media' }, g[key] ? h('video', { src: vorschau(g[key]), muted: '', preload: 'metadata' }) : null, info, h('button', { class: 'b', onclick: () => file.click() }, 'Video …'), file,
           g[key] ? h('button', { class: 'b', onclick: async () => { g[key] = ''; await save(); draw(); } }, 'Standard') : null);
       };
-      box.append(h('div', { class: 'card' },
+      const auf = h('details', { class: 'card spiel', ...(offen === i ? { open: '' } : {}) },
+        h('summary', {}, h('b', {}, g.name || 'Ohne Namen'), h('span', { class: 'hint' }, [g.video ? '🖼️ eigener Hintergrund' : '', g.musik ? '🎵 ' + ((S.musik.liste.find(x => x.id === g.musik) || {}).name || g.musik) : '', g.szene ? '🎥 ' + g.szene : '', g.ohneFenster ? 'ohne Spielfenster' : ''].filter(Boolean).join(' · ')),
+          S.modus === 'zocken' && S.spiel === S.spiele[i].id ? h('span', { class: 'pill ok' }, 'läuft gerade') : null),
         field('Spiel', name), field('Hintergrund hochkant (TikTok)', vid('video')), field('Hintergrund quer (Twitch)', vid('videoQuer')),
         field('Eigene OBS-Szene (optional)', sceneSelect(g.szene, async v => { g.szene = v; await save(); }, '– Gaming-Szene –')),
         field('Start-Ansage für dieses Spiel (optional, Titel | Unterzeile)', h('input', { type: 'text', value: g.start || '', placeholder: 'z. B. Raid-Abend in Azeroth! | Gleich geht\'s los', onchange: async e => { g.start = e.target.value; await save(); } })),
@@ -237,11 +293,64 @@ function spielePage(m) {
         field('Musik beim Zocken', h('select', { onchange: async e => { g.musik = e.target.value; await save(); } },
           h('option', { value: '' }, '– Musik nicht wechseln –'), ...(S.musik ? S.musik.liste : []).map(x => h('option', { value: x.id, ...(g.musik === x.id ? { selected: '' } : {}) }, x.name)))),
         h('div', { class: 'row' }, h('button', { class: 'b p', onclick: async () => { await save(); await post('/api/modus', { modus: 'zocken', spiel: S.spiele[i].id }); } }, '🎮 Jetzt zocken'),
-          h('button', { class: 'b', onclick: async () => { if (confirm('„' + g.name + '“ entfernen?')) { list.splice(i, 1); await save(); draw(); } } }, 'Entfernen'))));
+          h('button', { class: 'b', onclick: async () => { if (confirm('„' + g.name + '“ entfernen?')) { list.splice(i, 1); await save(); draw(); } } }, 'Entfernen')));
+      auf.ontoggle = () => { if (auf.open) offen = i; };
+      box.append(auf);
     });
-    box.append(h('button', { class: 'b', onclick: async () => { list.push({ name: 'Neues Spiel', video: '', videoQuer: '', szene: '', musik: '' }); await save(); list.splice(0, list.length, ...S.spiele.map(x => ({ ...x }))); draw(); } }, '+ Spiel hinzufügen'));
+    box.append(h('button', { class: 'b', onclick: async () => { list.push({ name: 'Neues Spiel', video: '', videoQuer: '', szene: '', musik: '' }); await save(); list.splice(0, list.length, ...S.spiele.map(x => ({ ...x }))); offen = list.length - 1; draw(); } }, '+ Spiel hinzufügen'));
   };
   draw();
+}
+// ---------- Licht (Philips Hue) ----------
+function lichtPage(m) {
+  const H = S.hue || { lampen: [], lampenListe: [] };
+  m.append(h('h1', {}, 'Licht (Philips Hue)'), h('p', { class: 'hint' }, 'Deine Hue-Lampen leuchten in den Farben der laufenden Animation (Rose = rot, Löwe = gold, Galaxie = violett …), kurz pink bei Likes, gedimmt bei BRB/Pause. Sonst Grundlicht je Modus. Läuft direkt über die Bridge im Heimnetz – nichts über die Cloud. Lumia darf trotzdem weiter auf die Bridge zugreifen; stell dort aber keine eigenen Licht-Alerts für dieselben Lampen ein, sonst kämpfen beide.'));
+  const fehler = h('p', { class: 'hint warntext' }, H.fehler || '');
+  if (!H.gekoppelt) {
+    const ip = h('input', { type: 'text', value: H.ip || '', placeholder: 'z. B. 192.168.1.50' });
+    const gefunden = h('div', { class: 'row' });
+    m.append(h('div', { class: 'card' }, h('b', {}, 'Bridge koppeln (einmalig)'),
+      h('ol', {}, h('li', {}, 'Bridge suchen lassen oder die IP-Adresse eintragen (Hue-App → Einstellungen → Bridges → ⓘ).'),
+        h('li', {}, 'Den runden Knopf oben auf der Hue Bridge drücken.'), h('li', {}, 'Innerhalb von 30 Sekunden hier auf „Koppeln“ tippen.')),
+      h('div', { class: 'row' }, h('button', { class: 'b', onclick: async () => { gefunden.textContent = 'suche …';
+        const d = await fetch('/api/hue/suchen').then(r => r.json()); gefunden.innerHTML = '';
+        if (!d.bridges.length) gefunden.append(h('span', { class: 'hint' }, d.fehler || 'Keine Bridge gefunden – IP bitte von Hand eintragen.'));
+        d.bridges.forEach(b => gefunden.append(h('button', { class: 'b', onclick: () => { ip.value = b.ip; } }, 'Bridge ' + b.ip))); } }, '🔍 Bridge suchen'), gefunden),
+      field('IP-Adresse der Bridge', ip),
+      h('div', { class: 'row' }, h('button', { class: 'b p', onclick: async () => {
+        const r = await post('/api/hue/koppeln', { ip: ip.value.trim() }); const d = await r.json();
+        if (!r.ok) { fehler.textContent = d.fehler; toast('Koppeln hat nicht geklappt', 'warn'); return; }
+        S.hue = d.hue; toast('✓ Bridge gekoppelt'); render(); } }, '🔗 Koppeln')), fehler));
+    return;
+  }
+  const speichern = async (daten, text) => { const r = await post('/api/hue', daten); const d = await r.json(); if (d.hue) S.hue = d.hue; toast(r.ok ? text || '✓ Gespeichert' : (d.fehler || 'Fehler'), r.ok ? '' : 'warn'); renderNav(); };
+  const schalter = (key, label, hinweis) => { const i = h('input', { type: 'checkbox' }); i.checked = H[key] !== false; i.onchange = () => speichern({ [key]: i.checked }); return field(label, i, hinweis ? h('span', { class: 'hint' }, ' ' + hinweis) : null); };
+  const regler = (key, label, min, max, einheit, fmt = x => x + einheit) => { const i = h('input', { type: 'range', min, max, value: H[key] }); const v = h('span', { class: 'val' }, fmt(H[key]));
+    let t; i.oninput = () => { v.textContent = fmt(i.value); clearTimeout(t); t = setTimeout(() => speichern({ [key]: Number(i.value) }), 300); }; return field(label, h('span', {}, i, v)); };
+  m.append(h('div', { class: 'card' }, h('div', { class: 'row' }, h('span', { class: 'pill ' + (H.status === 'verbunden' ? 'ok' : H.status === 'fehler' ? 'err' : '') }, 'Bridge ' + H.ip + ': ' + ({ verbunden: 'verbunden', fehler: 'Fehler', aus: 'bereit' }[H.status] || H.status))), fehler,
+    schalter('an', 'Licht-Steuerung an', '(aus = Lampen bekommen ihren vorherigen Zustand zurück)'),
+    schalter('live', 'Licht folgt dem Stream', '(auch am Tablet als Kachel „Licht“ schaltbar)')));
+  const lampen = h('div', {});
+  const zeichneLampen = () => { lampen.innerHTML = '';
+    if (!(H.lampenListe || []).length) lampen.append(h('p', { class: 'hint' }, 'Keine Lampen geladen.'));
+    for (const l of H.lampenListe || []) { const i = h('input', { type: 'checkbox' }); i.checked = H.lampen.includes(l.id); if (!l.farbig) i.disabled = true;
+      i.onchange = () => { const neu = i.checked ? [...new Set([...H.lampen, l.id])] : H.lampen.filter(x => x !== l.id); H.lampen = neu; speichern({ lampen: neu }, i.checked ? '„' + l.name + '“ macht mit' : '„' + l.name + '“ macht nicht mehr mit'); };
+      lampen.append(h('label', { class: 'lampe' + (l.farbig ? '' : ' grau') }, i, ' 💡 ', h('b', {}, l.name), l.farbig ? '' : h('span', { class: 'hint' }, ' (kann keine Farben)'))); } };
+  zeichneLampen();
+  m.append(h('h2', {}, 'Welche Lampen?'), h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Hake die Spots an, die dich anleuchten. Bei mehreren Lampen bekommen sie abwechselnd die beiden Hauptfarben der Animation.'), lampen,
+    h('button', { class: 'b', onclick: async () => { const d = await fetch('/api/hue/lampen').then(r => r.json()); S.hue = d.hue; render(); toast('Lampenliste neu geladen'); } }, '↻ Lampen neu laden')));
+  const G = H.grundAktiv || {};
+  const farbe = m2 => { const i = h('input', { type: 'color', value: G[m2] || '#ffffff' }); i.onchange = () => speichern({ grund: { [m2]: i.value } }, 'Grundlicht gespeichert'); return i; };
+  m.append(h('h2', {}, 'Wann leuchtet was?'), h('div', { class: 'card' },
+    field('Grundlicht ' + (S.aktion.modus1Name || 'Party') + ' (Kanal ' + S.kanal + ')', farbe('party')),
+    field('Grundlicht ' + (S.aktion.modus2Name || 'Zockmodus') + ' (Kanal ' + S.kanal + ')', farbe('zocken')),
+    schalter('alerts', 'Farben passend zu den Animationen'), schalter('likes', 'Kurzes Pink bei Likes', '(höchstens alle 3 s)'), schalter('szenen', 'Ansagen', '(BRB/Pause gedimmt, Technik rot, Start/Ende hell)'),
+    regler('helligkeit', 'Helligkeit', 5, 100, ' %'), regler('uebergang', 'Weicher Übergang zum Grundlicht', 0, 30, '', x => (x / 10).toLocaleString('de-DE') + ' s')));
+  m.append(h('h2', {}, 'Ausprobieren'), h('div', { class: 'card' }, h('div', { class: 'row' },
+    ...[['rose', '🌹 Rose'], ['loewe', '🦁 Löwe'], ['galaxie', '🌌 Galaxie'], ['tw-raid', '⚔️ Raid']].map(([id, l]) => h('button', { class: 'b', onclick: async () => { const r = await post('/api/hue/test', { anim: id }); if (!r.ok) toast((await r.json()).fehler, 'warn'); } }, l)),
+    h('button', { class: 'b', onclick: () => post('/api/hue/test', { farbe: '#00ff66' }) }, '🟢 Testfarbe')),
+    h('p', { class: 'hint' }, 'Spielt nur das Licht ab – im Stream passiert nichts.')),
+    h('div', { class: 'row' }, h('button', { class: 'b', onclick: async () => { if (confirm('Bridge entkoppeln? Danach musst du neu koppeln.')) { await speichern({ entkoppeln: true }, 'Bridge entkoppelt'); render(); } } }, 'Bridge entkoppeln')));
 }
 // ---------- Galerie ----------
 let galQuer = false;
@@ -253,7 +362,7 @@ function galerie(m) {
     const items = LIST.filter(a => a.gruppe === g); if (!items.length) continue;
     m.append(h('h2', {}, name), h('div', { class: 'anims' }, ...items.map(a => {
       const src = (galQuer && (S.vorne['vq_' + a.id] || (!S.vorne['v_' + a.id] && a.quer && S.vorne.medienAdresse + a.quer))) || S.vorne['v_' + a.id] || S.vorne.medienAdresse + a.datei;
-      return h('div', { class: 'anim' }, h('video', { src, preload: 'metadata', muted: '', onclick: e => { e.target.muted = false; e.target.currentTime = 0; e.target.play(); } }),
+      return h('div', { class: 'anim' }, h('video', { src: vorschau(src), preload: 'metadata', muted: '', onclick: e => { e.target.muted = false; e.target.currentTime = 0; e.target.play(); } }),
         h('div', { class: 'm' }, h('b', {}, a.label + (S.vorne['an_' + a.id] === false ? ' (aus)' : '')), h('button', { class: 'b', onclick: () => post('/api/aktion', { id: a.id, label: a.label, name: 'Test' }) }, 'Im Stream zeigen')));
     })));
   }
@@ -302,11 +411,13 @@ async function reload() { S = await fetch('/api/settings', { cache: 'no-store' }
 // Live: Status und Ereignisse
 const es = new EventSource('/api/events?rolle=studio');
 es.addEventListener('hallo', e => { const d = JSON.parse(e.data); if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) location.reload(); window.MM_STAND = d.stand; } });
-es.addEventListener('lumia', e => { if (!S) return; S.status = JSON.parse(e.data); if (['start', 'lumia'].includes(page.id)) render(); });
+es.addEventListener('lumia', e => { if (!S) return; S.status = JSON.parse(e.data); renderNav(); if (['start', 'lumia'].includes(page.id)) render(); });
 es.addEventListener('log', e => { if (!S) return; const l = JSON.parse(e.data); S.log = [l, ...(S.log || [])].slice(0, 50); const box = $('#log'); if (box) box.prepend(logLine(l)); });
 es.addEventListener('quellen', e => { if (!S) return; S.quellenListe = JSON.parse(e.data);
   if ((page.id === 'hinten' || page.id === 'vorne') && !document.activeElement.matches('input,select,textarea')) { const y = scrollY; render(); scrollTo(0, y); } });
-es.addEventListener('obs', e => { if (!S) return; S.obsStatus = JSON.parse(e.data); if (page.id === 'spiele' && !document.activeElement.matches('input,select')) render(); });
+es.addEventListener('obs', e => { if (!S) return; S.obsStatus = JSON.parse(e.data); renderNav(); if (['obs', 'start'].includes(page.id) && !document.activeElement.matches('input,select')) render(); });
+es.addEventListener('fenster', e => { if (!S) return; S.fensterSicht = JSON.parse(e.data); if (page.id === 'start' || page.id === 'obs') { if (!document.activeElement.matches('input,select,textarea')) render(); } });
+es.addEventListener('hue', e => { if (!S) return; S.hue = JSON.parse(e.data); renderNav(); if (page.id === 'start' || (page.id === 'licht' && !document.activeElement.matches('input,select'))) render(); });
 es.addEventListener('profil', async () => { if (!S) return; await reload(); renderNav(); });
 es.addEventListener('modus', e => { if (!S) return; S.modus = JSON.parse(e.data).modus; if (page.id === 'start') render(); });
 load();

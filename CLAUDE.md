@@ -157,3 +157,13 @@
   `C:\ProgramData\StreamModus\system.json`: Dienste wuauserv/UsoSvc/BITS/DoSvc deaktivieren+stoppen, Store AutoDownload=2, NetworkThrottlingIndex=ffffffff, SystemResponsiveness=10, QoS DSCP 46 für obs64.exe, Energieplan Höchstleistung);
   dann Discord → OBS (Arbeitsordner!) → Lumia → TikTok LIVE Studio → Streamer.bot (Pfade aus `Einstellungen.ps1` oder Startmenü-Verknüpfung, Streamer.bot ggf. Pfad eintragen); Fenster wartet, bis OBS zu ist → Stop.
   Stop: Programme schließen, System wiederherstellen (ohne Stand: Windows-Standardwerte), Clouds neu starten; `stop.lock` verhindert doppeltes Aufräumen. **Nicht getestet** (kein Windows/PowerShell in der Sandbox, pwsh-Download nicht erlaubt).
+- 25.11.2026: **Philips Hue** (lokale Bridge, API v1, kein Cloud-Weg): `saved.hue {an, live, ip, lampen[], helligkeit, uebergang, alerts, likes, szenen, grund[kanal][modus], vorher}`, Bridge-Benutzer nur in `geheim.json` (`hueUser`).
+  Koppeln `/api/hue/suchen` (discovery.meethue.com) + `/api/hue/koppeln` (Knopf auf der Bridge), `/api/hue/lampen`, `/api/hue` (speichern), `/api/hue/test`. Farbverlauf je Animation aus
+  `medien/animationen/farben.json` (erzeugt mit `werkzeuge/farben.py`: je 0,5 s zwei Hauptfarben; bei neuen Animationen neu laufen lassen). Vordere Quelle meldet den Start `POST /api/hue/anim {id}`
+  (hoch + quer → 2 s entprellt), Server spielt den Verlauf ab (hex → CIE xy, je Lampe nur neuester Wunsch, ~110 ms Abstand), danach Grundlicht je Kanal/Modus. Likes = kurzes Pink (max. alle 3 s),
+  Ansagen: BRB/Pause/Gleich gedimmt, Technik rot, Start/Ende hell. Ausschalten (Studio oder Tablet-Kachel „Licht (Hue)“ = `/api/aktion {id:'licht'}`, `saved.hue.live`) setzt den gemerkten Lampenzustand zurück.
+  Getestet nur mit Bridge-Nachbau (Scratchpad `huemock.mjs`). Lumia darf parallel auf die Bridge – dort keine eigenen Licht-Alerts für dieselben Lampen.
+- 25.11.2026: **Studio bedienbarer:** Menü gruppiert (Live / Aussehen / Verbindungen) mit Symbolen und Ampel-Punkten, Übersicht mit Status-Kacheln (Lumia, OBS, Licht, Sprache, Browserquellen + „Einrichten →“),
+  Fenster/Kameras/Licht-Schalter wie am Tablet, Toast „✓ Gespeichert“ bei jeder Änderung, Video-Vorschauen ab 1,2 s (nicht mehr schwarz). „Spiele & OBS“ getrennt: neue Seite **„OBS & Fenster-Quellen“**
+  (`obs`) mit Tabelle Fenster → OBS-Quelle zuerst (Freitext + Auswahlliste, speichert sofort über `/api/obs/quellen` ohne Neuverbinden, Warnung bei unbekanntem Namen), Spiele als aufklappbare Karten.
+  Fenster-Reiter unter „Hintergrund & Kameras“ zeigen die zugeordnete OBS-Quelle mit Link. Studio bekommt SSE `fenster` und `hue`.

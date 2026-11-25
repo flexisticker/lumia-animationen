@@ -250,6 +250,7 @@ function fireAlert(alert, source) {
   broadcast('alert', alert, ['vorne']);
   monitorEintrag(alert, source);
   forwardStreamPrint(alert, source);
+  if (alert.alert === 'tiktok-like') hueLike();
   const s = alert.extraSettings || {};
   remember({ art: 'alert', quelle: source, alert: alert.alert, text: [s.username, s.giftName, s.giftAmount && '× ' + s.giftAmount, s.amount && !s.giftName ? s.amount : ''].filter(Boolean).join(' ') });
 }
@@ -318,8 +319,8 @@ function fensterSichtbar(nr) {
 // Wand-Monitor nur sinnvoll, wenn kein Spielfenster offen ist und (je nach Einstellung) im Zockmodus → nur dann Kachel am iPad zeigen
 const monitorArt = () => (saved.monitor === true ? 'liste' : saved.monitor || '');
 const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || saved.modus === 'zocken');
-const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste', 'monitor-drucker': monitorArt() === 'drucker', monitorMoeglich: monitorMoeglich() });
-const fensterMelden = () => { broadcast('fenster', fensterSicht(), ['aktion']); obsQuellenSync(); };
+const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste', 'monitor-drucker': monitorArt() === 'drucker', monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length) });
+const fensterMelden = () => { broadcast('fenster', fensterSicht(), ['aktion', 'studio']); obsQuellenSync(); };
 // OBS-Quellen zu den Fenstern mitschalten (in allen Szenen, in denen sie vorkommen). Eine Quelle für mehrere Fenster = sichtbar, wenn eines davon offen ist.
 let quellenStand = {}, quellenLaeuft = false, quellenNochmal = false;
 async function obsQuellenSync() {
@@ -355,6 +356,7 @@ function setModus(modus, spielId, quelle, fromObs) {
     const sp = saved.spiele.find(x => x.id === saved.spiel);
     if (m === 'zocken' && sp && sp.musik && sp.musik !== saved.musik.titel && saved.musik.titel !== 'aus') setMusik({ titel: sp.musik, vonSpiel: true });
     else if (m === 'party' && saved.musik.vonSpiel) setMusik({ titel: 'standard' });
+    hueRuhe(10);
     remember({ art: 'modus', quelle, text: saved.modus + (saved.modus === 'zocken' && spielInfo() ? ' · ' + spielInfo().name : '') });
   }
   // Rückmeldung für die Steuerung: was ist mit OBS passiert?
@@ -461,6 +463,96 @@ function obsConnect() {
   };
 }
 
+// ---------- Philips Hue (lokale Bridge, API v1, nichts über die Cloud) ----------
+// Licht passend zur laufenden Animation (Farbverlauf aus medien/animationen/farben.json), Grundlicht je Kanal/Modus,
+// kurze Pulse bei Likes, gedimmt bei BRB/Pause. Vorheriger Lampenzustand wird gemerkt und beim Ausschalten zurückgesetzt.
+saved.hue ||= { an: false, live: true, ip: '', lampen: [], helligkeit: 100, uebergang: 4, alerts: true, likes: true, szenen: true, grund: {} };
+const HUE_GRUND = { michamodus: { party: '#ff3d7f', zocken: '#6a4bff' }, '3dbymicha': { party: '#ffe6c4', zocken: '#00c2ff' } };
+const hue = { status: 'aus', fehler: '', lampen: [], vorher: null };
+let HUE_FARBEN = {}; try { HUE_FARBEN = JSON.parse(fs.readFileSync(path.join(MEDIA, 'animationen', 'farben.json'), 'utf8')); } catch {}
+const hueUrl = p => `http://${saved.hue.ip}/api/${secret.hueUser}${p}`;
+const hueBereit = () => !!(saved.hue.an && saved.hue.live && saved.hue.ip && secret.hueUser && saved.hue.lampen.length);
+const hueStatus = () => { broadcast('hue', hueInfo(), ['studio']); broadcast('fenster', fensterSicht(), ['aktion', 'studio']); };
+const hueInfo = () => { const { vorher, ...h } = saved.hue; return { ...h, gekoppelt: !!secret.hueUser, status: hue.status, fehler: hue.fehler, lampenListe: hue.lampen.map(({ zustand, ...l }) => l), grundAktiv: { party: (saved.hue.grund[saved.profil] || {}).party || (HUE_GRUND[saved.profil] || HUE_GRUND.michamodus).party, zocken: (saved.hue.grund[saved.profil] || {}).zocken || (HUE_GRUND[saved.profil] || HUE_GRUND.michamodus).zocken } }; };
+const hueOeffentlich = hueInfo;
+function hexXy(hex) {
+  const n = parseInt(String(hex).replace('#', ''), 16) || 0;
+  const g = c => (c > 0.04045 ? ((c + 0.055) / 1.055) ** 2.4 : c / 12.92);
+  const r = g(((n >> 16) & 255) / 255), gr = g(((n >> 8) & 255) / 255), b = g((n & 255) / 255);
+  const X = r * 0.664511 + gr * 0.154324 + b * 0.162028, Y = r * 0.283881 + gr * 0.668433 + b * 0.047685, Z = r * 0.000088 + gr * 0.07231 + b * 0.986039;
+  const s = X + Y + Z || 1; return [+(X / s).toFixed(4), +(Y / s).toFixed(4)];
+}
+// Senden mit Bremse (Bridge verträgt ~10 Befehle/s): je Lampe gilt nur der neueste Wunsch
+const hueSoll = new Map(); let hueLaeuft = false;
+function hueSetze(id, st) { hueSoll.set(id, { ...(hueSoll.get(id) || {}), ...st }); if (!hueLaeuft) hueSende(); }
+async function hueSende() {
+  hueLaeuft = true;
+  while (hueSoll.size) {
+    const [id, st] = hueSoll.entries().next().value; hueSoll.delete(id);
+    try { const r = await fetch(hueUrl(`/lights/${id}/state`), { method: 'PUT', body: JSON.stringify(st), signal: AbortSignal.timeout(2500) }); await r.text();
+      if (hue.status !== 'verbunden') { hue.status = 'verbunden'; hue.fehler = ''; hueStatus(); } }
+    catch { if (hue.status !== 'fehler') { hue.status = 'fehler'; hue.fehler = 'Hue Bridge nicht erreichbar (' + saved.hue.ip + ')'; hueStatus(); } }
+    await new Promise(r => setTimeout(r, 110));
+  }
+  hueLaeuft = false;
+}
+const hueBri = (f = 1) => Math.max(1, Math.min(254, Math.round(254 * (Number(saved.hue.helligkeit) || 100) / 100 * f)));
+function hueFarben(farben, { tt = saved.hue.uebergang, f = 1 } = {}) {
+  if (!hueBereit() || !farben || !farben.length) return;
+  saved.hue.lampen.forEach((id, i) => hueSetze(id, { on: true, bri: hueBri(f), xy: hexXy(farben[i % farben.length]), transitiontime: Math.max(0, Math.round(tt)) }));
+}
+const hueGrundFarbe = () => (saved.hue.grund[saved.profil] || {})[saved.modus] || (HUE_GRUND[saved.profil] || HUE_GRUND.michamodus)[saved.modus];
+let hueSzene = null, hueAnimBis = 0, hueAnimTimer = null, hueLetzteAnim = { id: '', at: 0 }, hueLetzterLike = 0;
+function hueRuhe(tt = 10) {   // Grundzustand (oder Ansage) wiederherstellen
+  if (!hueBereit()) return;
+  if (hueSzene === 'dimm') return hueFarben([hueGrundFarbe()], { tt, f: 0.25 });
+  if (hueSzene === 'technik') return hueFarben(['#ff2a1a'], { tt, f: 0.5 });
+  if (hueSzene === 'hell') return hueFarben(['#ffe6c4'], { tt });
+  hueFarben([hueGrundFarbe()], { tt });
+}
+function hueAnimation(id) {
+  if (!hueBereit() || saved.hue.alerts === false) return;
+  const jetzt = Date.now(); if (hueLetzteAnim.id === id && jetzt - hueLetzteAnim.at < 2000) return;   // hoch + quer melden dieselbe Animation
+  hueLetzteAnim = { id, at: jetzt }; clearInterval(hueAnimTimer);
+  const spur = (HUE_FARBEN[id] || []).filter(Boolean); if (!spur.length) return;
+  let i = 0; hueAnimBis = jetzt + spur.length * 500 + 300;
+  hueFarben(spur[0], { tt: 2 });
+  hueAnimTimer = setInterval(() => { i++; if (i >= spur.length) { clearInterval(hueAnimTimer); hueAnimBis = 0; return hueRuhe(8); } hueFarben(spur[i], { tt: 4 }); }, 500);
+}
+function hueLike() {
+  if (!hueBereit() || saved.hue.likes === false || Date.now() < hueAnimBis || Date.now() - hueLetzterLike < 3000) return;
+  hueLetzterLike = Date.now(); hueFarben(['#ff4f9a'], { tt: 1 }); setTimeout(() => { if (Date.now() >= hueAnimBis) hueRuhe(6); }, 700);
+}
+function hueAnsage(id) {
+  if (saved.hue.szenen === false) return;
+  hueSzene = ['brb', 'pause', 'gleich'].includes(id) ? 'dimm' : id === 'technik' ? 'technik' : ['start', 'ende'].includes(id) ? 'hell' : null;
+  if (Date.now() >= hueAnimBis) hueRuhe(8);
+}
+async function hueLampenLaden() {
+  if (!saved.hue.ip || !secret.hueUser) return [];
+  try {
+    const d = await (await fetch(hueUrl('/lights'), { signal: AbortSignal.timeout(3000) })).json();
+    if (Array.isArray(d) && d[0] && d[0].error) throw new Error(d[0].error.description);
+    hue.lampen = Object.entries(d).map(([id, l]) => ({ id, name: l.name, farbig: !!(l.state && l.state.xy), an: !!(l.state && l.state.on), zustand: l.state }));
+    hue.status = 'verbunden'; hue.fehler = '';
+  } catch (e) { hue.status = 'fehler'; hue.fehler = 'Bridge antwortet nicht: ' + (e.message || e); }
+  hueStatus(); return hue.lampen;
+}
+async function hueUmschalten(vorherAn) {   // nach Ein-/Ausschalten: Zustand merken bzw. zurücksetzen
+  const jetztAn = hueBereit();
+  if (jetztAn && !vorherAn) {
+    await hueLampenLaden();
+    saved.hue.vorher = Object.fromEntries(hue.lampen.filter(l => saved.hue.lampen.includes(l.id)).map(l => [l.id, l.zustand]));
+    saveSettings(); hueRuhe(10);
+  } else if (!jetztAn && vorherAn && saved.hue.vorher && saved.hue.ip && secret.hueUser) {
+    for (const [id, z] of Object.entries(saved.hue.vorher)) {
+      const st = { on: !!z.on, bri: z.bri, transitiontime: 10 }; if (z.colormode === 'ct' && z.ct) st.ct = z.ct; else if (z.xy) st.xy = z.xy;
+      hueSoll.set(id, st);
+    }
+    saved.hue.vorher = null; saveSettings(); if (!hueLaeuft) hueSende();
+  }
+}
+
 // ---------- HTTP ----------
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
   '.mp4': 'video/mp4', '.webm': 'video/webm', '.mp3': 'audio/mpeg', '.ogg': 'audio/ogg', '.wav': 'audio/wav', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' };
@@ -513,7 +605,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
       kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, musik: musikInfo(), fensterSicht: fensterSicht(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
-      lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, tts: { ...saved.tts, schluessel: !!secret.elevenlabsKey }, status: lumia, log,
+      lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, tts: { ...saved.tts, schluessel: !!secret.elevenlabsKey }, hue: hueOeffentlich(), status: lumia, log,
       datenDauerhaft,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}),
       quellenListe: quellenListe() });
@@ -557,6 +649,12 @@ const server = http.createServer(async (req, res) => {
         saved.monitor = monitorArt() === ziel ? false : ziel; a.id = 'monitor'; a.art = saved.monitor || ''; a.an = !!saved.monitor; saveSettings();
         a.label = 'Wand-Monitor ' + (saved.monitor === 'drucker' ? 'zeigt die Drucker-Kamera' : saved.monitor ? 'zeigt die Unterstützer' : 'aus'); fensterMelden();
       }
+      if (typeof a.id === 'string' && a.id.startsWith('szene:')) hueAnsage(a.id.slice(6));
+      if (a.id === 'licht') {
+        const vorher = hueBereit(); saved.hue.live = a.an === undefined ? !saved.hue.live : !!a.an; saveSettings(); await hueUmschalten(vorher); hueStatus();
+        a.label = 'Licht ' + (saved.hue.live ? 'folgt dem Stream' : 'normal (Hue wie vorher)');
+        remember({ art: 'aktion', quelle: 'knopf', text: a.label }); return json(res, 200, { ok: true, label: a.label, an: saved.hue.live });
+      }
       if (a.id === 'fenster2' || a.id === 'fenster3') { a.nr = Number(a.id.slice(7)); a.id = 'fenster'; }
       if (a.id === 'fenster') {
         const nr = [2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1;
@@ -583,7 +681,7 @@ const server = http.createServer(async (req, res) => {
         saved.spiel = saved.spiele.some(x => x.id === z.spiel) ? z.spiel : '';
         saved.musik = { ...saved.musik, ...(z.musik || {}) };
         saveSettings(); broadcastAll(); broadcast('profil', { profil: saved.profil, name: PRESETS[saved.profil].name });
-        broadcast('modus', { modus: saved.modus, spiel: spielInfo() }); broadcast('musik', musikInfo());
+        broadcast('modus', { modus: saved.modus, spiel: spielInfo() }); broadcast('musik', musikInfo()); hueRuhe(10);
         remember({ art: 'modus', quelle: 'knopf', text: 'Kanal: ' + PRESETS[saved.profil].name });
       }
       return json(res, 200, { ok: true });
@@ -593,15 +691,61 @@ const server = http.createServer(async (req, res) => {
       const obsInfo = await setModus(b.modus, typeof b.spiel === 'string' ? b.spiel : undefined, 'knopf', false);
       return json(res, 200, { ok: true, obs: obsInfo });
     }
+    // Nur die OBS-Quellen zu den Fenstern ändern (ohne neu zu verbinden) – das Studio speichert das sofort beim Auswählen
+    if (p === '/api/obs/quellen' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      saved.obs.quellen = Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || {})[k] ?? (saved.obs.quellen || {})[k] ?? '').trim().slice(0, 200)]));
+      quellenStand = {}; saveSettings(); obsQuellenSync(); return json(res, 200, { ok: true, quellen: saved.obs.quellen });
+    }
     if (p === '/api/obs' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       saved.obs = { host: String(b.host || '').trim().slice(0, 100), port: Number(b.port) || 4455, an: !!b.an,
         szeneZocken: String(b.szeneZocken || ''), szeneParty: String(b.szeneParty || ''), folgen: b.folgen !== false, steuern: b.steuern !== false,
-        quellen: Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || {})[k] || '').slice(0, 200)])) };
+        quellen: Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || saved.obs.quellen || {})[k] || '').slice(0, 200)])) };
       quellenStand = {};
       if (typeof b.passwort === 'string' && b.passwort) { secret.obsPasswort = b.passwort; writeJson(SECRET_FILE, secret); }
       if (b.passwortLoeschen) { delete secret.obsPasswort; writeJson(SECRET_FILE, secret); }
       saveSettings(); obsConnect(); return json(res, 200, { ok: true });
+    }
+    // ---------- Hue ----------
+    if (p === '/api/hue/anim' && req.method === 'POST') { const b = JSON.parse((await body(req, 2000)).toString() || '{}'); if (typeof b.id === 'string') hueAnimation(b.id.slice(0, 60)); return json(res, 200, { ok: true }); }
+    if (p === '/api/hue/suchen' && req.method === 'GET') {
+      try { const r = await fetch('https://discovery.meethue.com/', { signal: AbortSignal.timeout(6000) }); const d = await r.json();
+        return json(res, 200, { bridges: (Array.isArray(d) ? d : []).map(x => ({ id: x.id, ip: x.internalipaddress })).filter(x => x.ip) }); }
+      catch { return json(res, 200, { bridges: [], fehler: 'Automatische Suche ging nicht – IP-Adresse der Bridge bitte von Hand eintragen (steht in der Hue-App unter Einstellungen → Bridges → i).' }); }
+    }
+    if (p === '/api/hue/koppeln' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      const ip = String(b.ip || '').trim();
+      if (!/^[0-9a-zA-Z.:\-\[\]]{3,60}$/.test(ip)) return json(res, 400, { fehler: 'Ungültige Adresse' });
+      try {
+        const r = await fetch(`http://${ip}/api`, { method: 'POST', body: JSON.stringify({ devicetype: 'live-studio#unraid' }), signal: AbortSignal.timeout(5000) });
+        const d = await r.json(); const e = Array.isArray(d) && d[0];
+        if (e && e.success && e.success.username) { secret.hueUser = e.success.username; writeJson(SECRET_FILE, secret); saved.hue.ip = ip; saveSettings(); await hueLampenLaden(); return json(res, 200, { ok: true, hue: hueOeffentlich() }); }
+        if (e && e.error && e.error.type === 101) return json(res, 409, { fehler: 'Bitte zuerst den runden Knopf oben auf der Hue Bridge drücken und dann innerhalb von 30 Sekunden auf „Koppeln“.' });
+        return json(res, 502, { fehler: 'Bridge meldet: ' + ((e && e.error && e.error.description) || 'unbekannte Antwort') });
+      } catch { return json(res, 502, { fehler: 'Keine Hue Bridge unter ' + ip + ' erreichbar (gleiches Netz? richtige IP?)' }); }
+    }
+    if (p === '/api/hue/lampen' && req.method === 'GET') { await hueLampenLaden(); return json(res, 200, { hue: hueOeffentlich() }); }
+    if (p === '/api/hue' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      const vorher = hueBereit(), h = saved.hue;
+      if (typeof b.an === 'boolean') h.an = b.an;
+      if (typeof b.live === 'boolean') h.live = b.live;
+      if (Array.isArray(b.lampen)) h.lampen = b.lampen.map(String).filter(x => /^\w{1,40}$/.test(x)).slice(0, 20);
+      for (const k of ['helligkeit', 'uebergang']) if (b[k] !== undefined) h[k] = Math.max(k === 'helligkeit' ? 5 : 0, Math.min(k === 'helligkeit' ? 100 : 30, Number(b[k]) || 0));
+      for (const k of ['alerts', 'likes', 'szenen']) if (typeof b[k] === 'boolean') h[k] = b[k];
+      if (b.grund && typeof b.grund === 'object') for (const m of ['party', 'zocken']) { const v = b.grund[m]; if (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v)) ((h.grund[saved.profil] ||= {})[m] = v); }
+      if (b.entkoppeln) { await hueUmschalten(vorher); delete secret.hueUser; writeJson(SECRET_FILE, secret); h.an = false; h.lampen = []; hue.lampen = []; hue.status = 'aus'; }
+      saveSettings();
+      if (!b.entkoppeln) { if (vorher !== hueBereit()) await hueUmschalten(vorher); else if (hueBereit() && Date.now() >= hueAnimBis) hueRuhe(4); }
+      hueStatus(); return json(res, 200, { ok: true, hue: hueOeffentlich() });
+    }
+    if (p === '/api/hue/test' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}');
+      if (!hueBereit()) return json(res, 409, { fehler: 'Hue ist aus oder keine Lampe gewählt' });
+      if (b.anim) hueAnimation(String(b.anim)); else if (b.farbe && /^#[0-9a-f]{6}$/i.test(b.farbe)) { hueFarben([b.farbe], { tt: 3 }); setTimeout(() => hueRuhe(10), 2500); }
+      return json(res, 200, { ok: true });
     }
     if (p === '/api/tts' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
@@ -687,4 +831,4 @@ const server = http.createServer(async (req, res) => {
     json(res, 404, {});
   } catch (e) { json(res, 500, { fehler: 'Interner Fehler' }); console.error(e); }
 });
-server.listen(PORT, () => { console.log(`Live-Studio läuft auf Port ${PORT}`); lumiaConnect(); obsConnect(); });
+server.listen(PORT, () => { console.log(`Live-Studio läuft auf Port ${PORT}`); lumiaConnect(); obsConnect(); if (saved.hue.ip && secret.hueUser) hueLampenLaden().then(() => { if (hueBereit()) hueRuhe(10); }); });
