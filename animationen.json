@@ -300,6 +300,130 @@
    "bild": "a colorful cartoon steam train with glowing windows rushes in, puffs big clouds of sparkly rainbow steam, whistles and races across the frame, wagons full of gifts and confetti"
   },
   {
+   "id": "feuerwerk",
+   "gruppe": "geschenk",
+   "label": "Feuerwerk",
+   "match": [
+    "Fireworks",
+    "Feuerwerk",
+    "Firework"
+   ],
+   "key": "black",
+   "bild": "Several colorful fireworks rockets shoot up from the bottom with glowing trails and explode into huge gold, pink, blue and green firework bursts and glittering willow sparks"
+  },
+  {
+   "id": "wal",
+   "gruppe": "geschenk",
+   "label": "Wal",
+   "match": [
+    "Whale diving",
+    "Whale Diving",
+    "Whale",
+    "Wal",
+    "Walsprung"
+   ],
+   "key": "black",
+   "bild": "A majestic glowing blue whale made of light swims up from below, leaps through sparkling water splashes and shimmering bubbles, then dives back down leaving a burst of luminous droplets and tiny glowing fish"
+  },
+  {
+   "id": "motorrad",
+   "gruppe": "geschenk",
+   "label": "Motorrad",
+   "match": [
+    "Motorcycle",
+    "Motorrad"
+   ],
+   "key": "black",
+   "bild": "A shiny chrome and neon-red sport motorcycle roars in with glowing headlights, does a wheelie with a trail of fire and sparks, then races through a burst of neon light streaks and smoke"
+  },
+  {
+   "id": "privatjet",
+   "gruppe": "geschenk",
+   "label": "Privatjet",
+   "match": [
+    "Private Jet",
+    "Privatjet",
+    "Jet"
+   ],
+   "key": "black",
+   "bild": "A sleek white and gold private jet flies in through golden clouds, banks elegantly with glowing contrails, then showers golden coins, champagne bubbles and sparkles across the frame"
+  },
+  {
+   "id": "sportwagen",
+   "gruppe": "geschenk",
+   "label": "Sportwagen",
+   "match": [
+    "Sports Car",
+    "Sportwagen",
+    "Sports car",
+    "Auto"
+   ],
+   "key": "black",
+   "bild": "A glossy red generic supercar without any badges drifts into the center with glowing tail lights, tire smoke and sparks, revs, then speeds off leaving neon light trails and confetti"
+  },
+  {
+   "id": "einhorn",
+   "gruppe": "geschenk",
+   "label": "Einhorn",
+   "match": [
+    "Unicorn Fantasy",
+    "Einhorn-Fantasie",
+    "Unicorn",
+    "Einhorn"
+   ],
+   "key": "black",
+   "bild": "A magical white unicorn with a glowing golden horn and flowing rainbow mane gallops in on a rainbow, rears up, then rainbow stars, glitter and pastel clouds swirl across the frame"
+  },
+  {
+   "id": "interstellar",
+   "gruppe": "geschenk",
+   "label": "Interstellar",
+   "match": [
+    "Interstellar"
+   ],
+   "key": "black",
+   "bild": "A futuristic glowing spaceship flies out of a swirling cosmic wormhole, passes colorful planets and asteroids, then a supernova of purple, blue and gold light explodes across the frame"
+  },
+  {
+   "id": "rosanebel",
+   "gruppe": "geschenk",
+   "label": "Rosa Nebel",
+   "match": [
+    "Rosa Nebula",
+    "Rosa Nebel",
+    "Rose Nebula",
+    "Nebula"
+   ],
+   "key": "black",
+   "bild": "A giant glowing rose made of pink cosmic nebula clouds and stars blooms in space, petals unfold slowly with sparkling stardust, then rose petals and stars drift across the frame"
+  },
+  {
+   "id": "falke",
+   "gruppe": "geschenk",
+   "label": "Falke",
+   "match": [
+    "Falcon",
+    "Falke"
+   ],
+   "key": "black",
+   "bild": "A majestic golden falcon with glowing wings swoops down from above, spreads its huge wings wide with a flash of light, then golden feathers and sparks swirl across the frame"
+  },
+  {
+   "id": "shuttle",
+   "gruppe": "geschenk",
+   "label": "Weltraum-Shuttle",
+   "match": [
+    "TikTok Shuttle",
+    "Shuttle",
+    "Space Shuttle",
+    "Weltraum-Shuttle",
+    "Rakete",
+    "Rocket"
+   ],
+   "key": "black",
+   "bild": "A glowing white space shuttle without any logos launches from the bottom with a huge bright exhaust flame and smoke clouds, rockets upward through stars and colorful light rings, then explodes into a galaxy of confetti and stars"
+  },
+  {
    "id": "stufe-klein",
    "gruppe": "stufe",
    "ab": 1,

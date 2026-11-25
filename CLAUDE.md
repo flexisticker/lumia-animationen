@@ -167,3 +167,6 @@
   Fenster/Kameras/Licht-Schalter wie am Tablet, Toast „✓ Gespeichert“ bei jeder Änderung, Video-Vorschauen ab 1,2 s (nicht mehr schwarz). „Spiele & OBS“ getrennt: neue Seite **„OBS & Fenster-Quellen“**
   (`obs`) mit Tabelle Fenster → OBS-Quelle zuerst (Freitext + Auswahlliste, speichert sofort über `/api/obs/quellen` ohne Neuverbinden, Warnung bei unbekanntem Namen), Spiele als aufklappbare Karten.
   Fenster-Reiter unter „Hintergrund & Kameras“ zeigen die zugeordnete OBS-Quelle mit Link. Studio bekommt SSE `fenster` und `hue`.
+- 25.11.2026: **10 weitere Geschenk-Animationen** (hoch + quer, MP4 + Alpha-WebM, ca. 3,80 $): Feuerwerk (Fireworks), Wal (Whale diving), Motorrad, Privatjet, Sportwagen (ohne Marken-Emblem),
+  Einhorn (Unicorn Fantasy), Interstellar, Rosa Nebel (Rosa Nebula), Falke (Falcon), Weltraum-Shuttle (TikTok Shuttle, auch „Rocket“). Gleiche Prompt-Vorlage und Kodierung wie 24.11.,
+  `farben.json` neu erzeugt (72 Animationen). Geprüft (Headless): alle 10 Geschenknamen spielen die eigene WebM in hoch und quer.
