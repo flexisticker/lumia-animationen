@@ -175,3 +175,10 @@
   Animation zuweisen (schreibt Zeile `name = id` in vorne `eigeneZuordnung`, automatisch = Zeile weg). Startliste `GESCHENK_KATALOG` im Server (43 Geschenke, Münzwerte ungefähr),
   dazu lernt der Server jedes echte Geschenk (`saved.geschenke[name] {name, muenzen, anzahl, zuletzt, bild}`, nicht aus Tests, max. 500, SSE `geschenke`), Bild-Link nur falls Lumia einen
   https-Link schickt (Feldname unbekannt: giftPictureUrl/giftPicture/giftImage/giftIcon/image). `GET /api/geschenke`, `POST /api/geschenke/vergessen`.
+- 25.11.2026: **Hue-Effekte je Spot und Ereignis** (Michael hat Hue eingerichtet, 2 Spots): `farben.json` jetzt je 0,5 s `[links, rechts, Hauptfarbe, Zweitfarbe]` (linke/rechte Bildhälfte, `farben.py`).
+  Spots `saved.hue.spots[id] {seite links|rechts|mitte, hell}` (Standard 1. links, 2. rechts). Effekte `HUE_EFFEKTE`: ambilight (Bildhälfte je Spot), ambibunt, farbe, zweifarbig (links Farbe 1, rechts Farbe 2),
+  atmen (gegenläufig), pulsieren, wechsel (links↔rechts 0,5 s), regenbogen (180° versetzt), feuer, funkeln, kurz, nichts. Kategorien `HUE_KAT` (Geschenk klein/mittel/groß/episch nach Münzen 100/1000/10000,
+  Follow, Teilen, Superfan, Schatzkiste, Like-Ziel, Battle, Likes, Twitch Sub/Bits/Hype/Raid, Knöpfe, Ansagen a-start/a-pause/a-brb/a-technik/a-ende) je {effekt, farbe1, farbe2, dauer (0 = Animationslänge), hell, blitz}
+  in `saved.hue.effekte`, Grundlicht je Kanal/Modus als Effekt in `saved.hue.grund[kanal][modus]` (alte Einzelfarben werden umgestellt). Motor: Takt 250 ms (`hueTick`), Schicht Alert › Ansage › Grundlicht,
+  sendet nur Änderungen. Overlay meldet bei `/api/hue/anim` zusätzlich alert/gruppe/muenzen → `hueKat`. Test `/api/hue/test {kat}`. Studio-Seite Licht: 1. Spots, 2. Grundlicht, 3. Effekte je Ereignis (▶ je Zeile).
+  Geprüft mit Bridge-Nachbau (atmen gegenläufig, Einhorn links blau/rechts gold, Raid wechselt). Mit echten Lampen ungeprüft.

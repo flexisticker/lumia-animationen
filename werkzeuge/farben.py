@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Farbverlauf je Animation für das Hue-Licht: alle 0,5 s die zwei Hauptfarben (Spot 1 / Spot 2).
+"""Farbverlauf je Animation für das Hue-Licht (Ambilight): alle 0,5 s [linke Bildhälfte, rechte Bildhälfte, Hauptfarbe, Zweitfarbe].
 Aufruf: python3 werkzeuge/farben.py  → medien/animationen/farben.json"""
 import json, subprocess, colorsys, os, glob
 D = os.path.join(os.path.dirname(__file__), '..', 'medien', 'animationen')
@@ -11,10 +11,11 @@ def frames(f):
 def hexf(r, g, b):
     m = max(r, g, b) or 1
     return '#%02x%02x%02x' % tuple(int(255 * c / m) for c in (r, g, b))
-def hauptfarben(fr):
+def hauptfarben(fr, x0=0, x1=W):
     bins = [[0, 0, 0, 0] for _ in range(24)]  # gewicht, r, g, b
     hell = 0
     for i in range(0, len(fr), 3):
+        if not (x0 <= (i // 3) % W < x1): continue
         r, g, b = fr[i], fr[i + 1], fr[i + 2]
         h, s, v = colorsys.rgb_to_hsv(r / 255, g / 255, b / 255)
         if v < 0.25: continue
@@ -34,6 +35,12 @@ aus = {}
 for f in sorted(glob.glob(os.path.join(D, '*.mp4'))):
     n = os.path.basename(f)[:-4]
     if n.endswith('-quer'): continue
-    aus[n] = [hauptfarben(fr) for fr in frames(f)]
+    spur = []
+    for fr in frames(f):
+        ganz = hauptfarben(fr)
+        if not ganz: spur.append(None); continue
+        l, r = hauptfarben(fr, 0, W // 2), hauptfarben(fr, W // 2, W)
+        spur.append([(l or ganz)[0], (r or ganz)[0], ganz[0], ganz[1]])   # [links, rechts, Hauptfarbe, Zweitfarbe]
+    aus[n] = spur
 json.dump(aus, open(os.path.join(D, 'farben.json'), 'w'), separators=(',', ':'))
 print(len(aus), 'Animationen')

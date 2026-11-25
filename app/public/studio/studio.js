@@ -323,33 +323,68 @@ function lichtPage(m) {
         S.hue = d.hue; toast('✓ Bridge gekoppelt'); render(); } }, '🔗 Koppeln')), fehler));
     return;
   }
-  const speichern = async (daten, text) => { const r = await post('/api/hue', daten); const d = await r.json(); if (d.hue) S.hue = d.hue; toast(r.ok ? text || '✓ Gespeichert' : (d.fehler || 'Fehler'), r.ok ? '' : 'warn'); renderNav(); };
+  const speichern = async (daten, text) => { const r = await post('/api/hue', daten); const d = await r.json(); if (d.hue) S.hue = d.hue; toast(r.ok ? text || '✓ Gespeichert' : (d.fehler || 'Fehler'), r.ok ? '' : 'warn'); renderNav(); return d; };
   const schalter = (key, label, hinweis) => { const i = h('input', { type: 'checkbox' }); i.checked = H[key] !== false; i.onchange = () => speichern({ [key]: i.checked }); return field(label, i, hinweis ? h('span', { class: 'hint' }, ' ' + hinweis) : null); };
   const regler = (key, label, min, max, einheit, fmt = x => x + einheit) => { const i = h('input', { type: 'range', min, max, value: H[key] }); const v = h('span', { class: 'val' }, fmt(H[key]));
     let t; i.oninput = () => { v.textContent = fmt(i.value); clearTimeout(t); t = setTimeout(() => speichern({ [key]: Number(i.value) }), 300); }; return field(label, h('span', {}, i, v)); };
   m.append(h('div', { class: 'card' }, h('div', { class: 'row' }, h('span', { class: 'pill ' + (H.status === 'verbunden' ? 'ok' : H.status === 'fehler' ? 'err' : '') }, 'Bridge ' + H.ip + ': ' + ({ verbunden: 'verbunden', fehler: 'Fehler', aus: 'bereit' }[H.status] || H.status))), fehler,
     schalter('an', 'Licht-Steuerung an', '(aus = Lampen bekommen ihren vorherigen Zustand zurück)'),
     schalter('live', 'Licht folgt dem Stream', '(auch am Tablet als Kachel „Licht“ schaltbar)')));
-  const lampen = h('div', {});
-  const zeichneLampen = () => { lampen.innerHTML = '';
-    if (!(H.lampenListe || []).length) lampen.append(h('p', { class: 'hint' }, 'Keine Lampen geladen.'));
-    for (const l of H.lampenListe || []) { const i = h('input', { type: 'checkbox' }); i.checked = H.lampen.includes(l.id); if (!l.farbig) i.disabled = true;
-      i.onchange = () => { const neu = i.checked ? [...new Set([...H.lampen, l.id])] : H.lampen.filter(x => x !== l.id); H.lampen = neu; speichern({ lampen: neu }, i.checked ? '„' + l.name + '“ macht mit' : '„' + l.name + '“ macht nicht mehr mit'); };
-      lampen.append(h('label', { class: 'lampe' + (l.farbig ? '' : ' grau') }, i, ' 💡 ', h('b', {}, l.name), l.farbig ? '' : h('span', { class: 'hint' }, ' (kann keine Farben)'))); } };
-  zeichneLampen();
-  m.append(h('h2', {}, 'Welche Lampen?'), h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Hake die Spots an, die dich anleuchten. Bei mehreren Lampen bekommen sie abwechselnd die beiden Hauptfarben der Animation.'), lampen,
+  const E = H.effektListe || [], ohneFarbe = ['ambilight', 'ambibunt', 'regenbogen', 'feuer', 'nichts'];
+  // Effekt-Zeile: Auswahl + Farben + Dauer/Helligkeit/Blitz (sofort gespeichert)
+  const effektZeile = (wert, speichern, opt = {}) => {
+    const v = { ...wert };
+    const sel = h('select', {}, ...E.map(([id, l]) => h('option', { value: id }, l))); sel.value = v.effekt;
+    const f1 = h('input', { type: 'color', value: v.farbe1 || '#ffffff', title: 'Farbe 1 (linker Spot)' }), f2 = h('input', { type: 'color', value: v.farbe2 || v.farbe1 || '#ffffff', title: 'Farbe 2 (rechter Spot)' });
+    const farben = h('span', { class: 'farben' }, f1, f2);
+    const hell = h('input', { type: 'range', min: 5, max: 100, value: v.hell ?? 100, title: 'Helligkeit' }), hellW = h('span', { class: 'val' }, (v.hell ?? 100) + ' %');
+    const dauer = opt.dauer ? h('input', { type: 'number', min: 0, max: 60, value: v.dauer || 0, title: '0 = so lange wie die Animation', class: 'dauer' }) : null;
+    const blitz = opt.blitz ? h('label', { class: 'mini' }, h('input', { type: 'checkbox', ...(v.blitz ? { checked: '' } : {}) }), ' Blitz') : null;
+    const zeigen = () => { farben.style.visibility = ohneFarbe.includes(sel.value) ? 'hidden' : ''; };
+    let t; const neu = () => ({ effekt: sel.value, farbe1: f1.value, farbe2: f2.value, hell: Number(hell.value), ...(dauer ? { dauer: Number(dauer.value) || 0 } : {}), ...(blitz ? { blitz: blitz.querySelector('input').checked } : {}) });
+    const los = () => { zeigen(); clearTimeout(t); t = setTimeout(() => speichern(neu()), 350); };
+    sel.onchange = los; f1.oninput = los; f2.oninput = los; hell.oninput = () => { hellW.textContent = hell.value + ' %'; los(); }; if (dauer) dauer.oninput = los; if (blitz) blitz.onchange = los;
+    zeigen();
+    return h('div', { class: 'efzeile' }, sel, farben, h('span', { class: 'efhell' }, '☀', hell, hellW), dauer ? h('span', { class: 'mini' }, dauer, ' s') : null, blitz, opt.test || null);
+  };
+  // Spots: welche Lampen, welche Seite, eigene Helligkeit
+  const spots = h('div', {});
+  for (const l of H.lampenListe || []) {
+    const an = H.lampen.includes(l.id), sp = (H.spotsAktiv || []).find(x => x.id === l.id) || { seite: 'links', hell: 100 };
+    const i = h('input', { type: 'checkbox', ...(an ? { checked: '' } : {}), ...(l.farbig ? {} : { disabled: '' }) });
+    i.onchange = () => { const neu = i.checked ? [...new Set([...H.lampen, l.id])] : H.lampen.filter(x => x !== l.id); H.lampen = neu; speichern({ lampen: neu }, i.checked ? '„' + l.name + '“ macht mit' : '„' + l.name + '“ macht nicht mehr mit').then(render); };
+    const seite = h('select', { onchange: e => speichern({ spots: { [l.id]: { seite: e.target.value } } }, '„' + l.name + '“: ' + e.target.selectedOptions[0].textContent) },
+      ...[['links', 'steht links (linke Bildhälfte)'], ['rechts', 'steht rechts (rechte Bildhälfte)'], ['mitte', 'Mitte (Hauptfarbe)']].map(([v, t]) => h('option', { value: v, ...(sp.seite === v ? { selected: '' } : {}) }, t)));
+    const hl = h('input', { type: 'range', min: 5, max: 100, value: sp.hell ?? 100 }), hw = h('span', { class: 'val' }, (sp.hell ?? 100) + ' %'); let tm;
+    hl.oninput = () => { hw.textContent = hl.value + ' %'; clearTimeout(tm); tm = setTimeout(() => speichern({ spots: { [l.id]: { hell: Number(hl.value) } } }, 'Helligkeit „' + l.name + '“'), 350); };
+    spots.append(h('div', { class: 'spot' + (l.farbig ? '' : ' grau') }, h('label', { class: 'lampe' }, i, ' 💡 ', h('b', {}, l.name), l.farbig ? '' : h('span', { class: 'hint' }, ' (kann keine Farben)')),
+      an ? h('div', { class: 'row' }, seite, h('span', { class: 'efhell' }, '☀', hl, hw)) : null));
+  }
+  m.append(h('h2', {}, '1. Spots'), h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Haken = macht mit. Die Seite bestimmt beim Ambilight, welche Bildhälfte der Spot nachleuchtet, und bei zweifarbigen Effekten, welche Farbe er bekommt (links = Farbe 1, rechts = Farbe 2).'),
+    spots.childNodes.length ? spots : h('p', { class: 'hint' }, 'Keine Lampen geladen.'),
     h('button', { class: 'b', onclick: async () => { const d = await fetch('/api/hue/lampen').then(r => r.json()); S.hue = d.hue; render(); toast('Lampenliste neu geladen'); } }, '↻ Lampen neu laden')));
+  // Grundlicht je Modus
   const G = H.grundAktiv || {};
-  const farbe = m2 => { const i = h('input', { type: 'color', value: G[m2] || '#ffffff' }); i.onchange = () => speichern({ grund: { [m2]: i.value } }, 'Grundlicht gespeichert'); return i; };
-  m.append(h('h2', {}, 'Wann leuchtet was?'), h('div', { class: 'card' },
-    field('Grundlicht ' + (S.aktion.modus1Name || 'Party') + ' (Kanal ' + S.kanal + ')', farbe('party')),
-    field('Grundlicht ' + (S.aktion.modus2Name || 'Zockmodus') + ' (Kanal ' + S.kanal + ')', farbe('zocken')),
-    schalter('alerts', 'Farben passend zu den Animationen'), schalter('likes', 'Kurzes Pink bei Likes', '(höchstens alle 3 s)'), schalter('szenen', 'Ansagen', '(BRB/Pause gedimmt, Technik rot, Start/Ende hell)'),
-    regler('helligkeit', 'Helligkeit', 5, 100, ' %'), regler('uebergang', 'Weicher Übergang zum Grundlicht', 0, 30, '', x => (x / 10).toLocaleString('de-DE') + ' s')));
-  m.append(h('h2', {}, 'Ausprobieren'), h('div', { class: 'card' }, h('div', { class: 'row' },
-    ...[['rose', '🌹 Rose'], ['loewe', '🦁 Löwe'], ['galaxie', '🌌 Galaxie'], ['tw-raid', '⚔️ Raid']].map(([id, l]) => h('button', { class: 'b', onclick: async () => { const r = await post('/api/hue/test', { anim: id }); if (!r.ok) toast((await r.json()).fehler, 'warn'); } }, l)),
-    h('button', { class: 'b', onclick: () => post('/api/hue/test', { farbe: '#00ff66' }) }, '🟢 Testfarbe')),
-    h('p', { class: 'hint' }, 'Spielt nur das Licht ab – im Stream passiert nichts.')),
+  m.append(h('h2', {}, '2. Grundlicht (Kanal ' + S.kanal + ')'), h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Leuchtet, solange gerade kein Alert läuft. Je Kanal und Modus eigen.'),
+    field(S.aktion.modus1Name || 'Party', effektZeile(G.party || {}, v => speichern({ grund: { party: v } }, 'Grundlicht gespeichert'))),
+    field(S.aktion.modus2Name || 'Zockmodus', effektZeile(G.zocken || {}, v => speichern({ grund: { zocken: v } }, 'Grundlicht gespeichert')))));
+  // Effekte je Ereignis
+  const gruppen = {};
+  for (const k of H.kategorien || []) (gruppen[k.gruppe] ||= []).push(k);
+  const ef = h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Je Ereignis ein eigener Licht-Effekt. „Dauer 0“ = so lange wie die Animation. „Blitz“ = kurzer weißer Blitz zum Start. Ambilight folgt den Farben der laufenden Animation – linker Spot linke Bildhälfte, rechter Spot rechte. ▶ spielt nur das Licht vor.'));
+  for (const [gr, liste] of Object.entries(gruppen)) {
+    ef.append(h('h3', {}, gr));
+    for (const k of liste) ef.append(field(k.label, effektZeile(k, v => speichern({ effekte: { [k.id]: v } }, k.label + ': gespeichert'),
+      { dauer: !k.id.startsWith('a-'), blitz: !k.id.startsWith('a-') && k.id !== 'likes', test: h('button', { class: 'b', title: 'Licht vorführen', onclick: async () => { const r = await post('/api/hue/test', { kat: k.id }); if (!r.ok) toast((await r.json()).fehler, 'warn'); } }, '▶') })));
+  }
+  m.append(h('h2', {}, '3. Effekte je Ereignis'), ef);
+  m.append(h('h2', {}, 'Allgemein'), h('div', { class: 'card' },
+    schalter('alerts', 'Licht bei Alerts und Aktionsknöpfen'), schalter('likes', 'Licht bei Likes', '(höchstens alle 3 s)'), schalter('szenen', 'Licht bei Ansagen'),
+    regler('helligkeit', 'Gesamt-Helligkeit', 5, 100, ' %'),
+    h('div', { class: 'row', style: 'margin-top:10px' }, h('button', { class: 'b', onclick: async () => { if (confirm('Alle Licht-Effekte und das Grundlicht dieses Kanals auf die Vorschläge zurücksetzen?')) { await speichern({ effekteZurueck: true }, 'Vorschläge wiederhergestellt'); render(); } } }, 'Effekte auf Vorschläge zurücksetzen'))));
+  m.append(h('h2', {}, 'Ausprobieren mit Animation'), h('div', { class: 'card' }, h('div', { class: 'row' },
+    ...[['rose', '🌹 Rose'], ['einhorn', '🦄 Einhorn'], ['feuerwerk', '🎆 Feuerwerk'], ['galaxie', '🌌 Galaxie'], ['wal', '🐋 Wal']].map(([id, l]) => h('button', { class: 'b', onclick: async () => { const r = await post('/api/hue/test', { anim: id }); if (!r.ok) toast((await r.json()).fehler, 'warn'); } }, l))),
+    h('p', { class: 'hint' }, 'Spielt nur das Licht ab (wie ein Geschenk mit 1.000 Münzen) – im Stream passiert nichts. Zum Testen mit Bild: Seite „Geschenke“ → „Im Stream testen“.')),
     h('div', { class: 'row' }, h('button', { class: 'b', onclick: async () => { if (confirm('Bridge entkoppeln? Danach musst du neu koppeln.')) { await speichern({ entkoppeln: true }, 'Bridge entkoppelt'); render(); } } }, 'Bridge entkoppeln')));
 }
 // ---------- Geschenke: welches Münz-Geschenk zeigt welche Animation? ----------

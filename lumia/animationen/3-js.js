@@ -179,7 +179,7 @@ function next() {
   if (item.user && on('nameAn')) showCard(item);
   if (item.alert) setTimeout(() => sayThanks(item), num(D.ttsVerzoegerung, 1500));
   // Licht (Hue): Server färbt die Lampen passend zur Animation (nur im Live-Studio, in Lumia läuft die Anfrage ins Leere)
-  if (src && window.MM_START && item.anim.id) try { fetch('/api/hue/anim', { method: 'POST', headers: { 'content-type': 'application/json', 'x-mm': '1' }, body: JSON.stringify({ id: item.anim.id }) }).catch(() => {}); } catch (e) {}
+  if (src && window.MM_START && item.anim.id) try { fetch('/api/hue/anim', { method: 'POST', headers: { 'content-type': 'application/json', 'x-mm': '1' }, body: JSON.stringify({ id: item.anim.id, gruppe: item.anim.gruppe, alert: item.alert || '', muenzen: (item.roh && item.roh.muenzen) || 0 }) }).catch(() => {}); } catch (e) {}
   if (src) {
     // WebM mit Alphakanal: Video direkt zeigen; sonst (eigene MP4) Schwarz per WebGL herausrechnen
     item.direkt = /\.webm$/i.test(videoUrl(item.anim));
