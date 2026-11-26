@@ -194,3 +194,8 @@
   Einstellungen hinten Bereich Bild: `atmoAn`, `atmoLautstaerke` (30), `atmoParty`, `atmoZocken`; je Spiel Upload „Geräusche (Atmo)“ (`/api/upload-spiel/<id>/atmo`, mp3/ogg/wav, `spiel.atmo`).
   Prompts für 13 Hintergründe in `werkzeuge/atmo-prompts.json` (ElevenLabs SFX v3, 30 s, loop). **Noch nicht erzeugt:** fal-Guthaben leer (balance_exhausted) – nach Aufladen + Freigabe erzeugen
   und nach `medien/atmo/` legen. Geprüft (Headless) mit Ersatz-Dateien: Wechsel Party → WoW → Star Citizen (fehlt → still) → Party.
+- 26.11.2026: **Atmo-Dateien erzeugt** (Freigabe Michael, fal aufgeladen): 13 Hintergründe + Weihnachten als `medien/atmo/<name>.mp3` (ElevenLabs SFX v3, 30 s loop, auf ca. −28 dB mittlere Lautstärke angeglichen, alimiter).
+  **Weihnachts-Stream** (Spiel-Vorgabe `weihnachten`, ohne Spielfenster): Hintergrund `medien/hintergrund/spiele/weihnachten(-quer).mp4` (nano-banana-2 Weihnachtsstube mit Baum/Kamin/Schneefenster → LTX 2.5 Pro 10 s Schleife,
+  crf 22), Musik-Genre `weihnachten` (3 Titel Stable Audio 2.5: Lo-Fi-Glöckchen, festlich-orchestral, Jazz am Kamin; loudnorm −16, Fades), Atmo Kaminfeuer + Wind + ferne Schlittenglöckchen,
+  eigene Start/Ende-Texte, **Jingle** beim Wechsel aufs Thema (`spiel.jingle` = /sounds/weihnachten.mp3, vordere Quelle spielt ihn bei Spielwechsel, nicht beim Laden). Neuer reiner Sound-Knopf
+  `sound:<name>` (vorne spielt /sounds/<name>.mp3), am Tablet „🎅 Ho ho ho!“ (/sounds/hohoho.mp3). Kosten zusammen ca. 3 $. Geprüft (Headless): Hintergrund, Musik, Atmo, Jingle, Ho-ho-ho.

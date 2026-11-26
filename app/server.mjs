@@ -79,7 +79,7 @@ const MUSIK = [
   { id: 'standard', name: 'Party (Standard)', datei: '' }, { id: 'hype', name: 'EDM Hype', datei: '/musik/hype.mp3' }, { id: 'funk', name: 'Funky Groove', datei: '/musik/funk.mp3' },
   { id: 'chill', name: 'Lo-Fi Chill', datei: '/musik/chill.mp3' }, { id: 'lofi', name: 'Lo-Fi Talk (Loft)', datei: '/musik/lofi.mp3' }, { id: 'fantasy', name: 'Fantasy-Abenteuer', datei: '/musik/fantasy.mp3' }, { id: 'space', name: 'Weltraum', datei: '/musik/space.mp3' },
   { id: 'synthwave', name: 'Synthwave Retro', datei: '/musik/synthwave.mp3' }, { id: 'chiptune', name: '8-Bit Jump & Run', datei: '/musik/chiptune.mp3' },
-  { id: 'mittelalter', name: 'Mittelalter-Dorf', datei: '/musik/mittelalter.mp3' }, { id: 'mystisch', name: 'Mystisch', datei: '/musik/mystisch.mp3' },
+  { id: 'mittelalter', name: 'Mittelalter-Dorf', datei: '/musik/mittelalter.mp3' }, { id: 'mystisch', name: 'Mystisch', datei: '/musik/mystisch.mp3' }, { id: 'weihnachten', name: '🎄 Weihnachten', datei: '/musik/weihnachten.mp3' },
 ].filter(x => !x.datei || fs.existsSync(path.join(MEDIA, x.datei)));
 // Playlist je Genre: <genre>.mp3 + <genre>-2.mp3, -3.mp3 … (alles, was im Medienordner liegt)
 for (const x of MUSIK) {
@@ -94,7 +94,7 @@ const SPIEL_VORGABEN = [
   ['wow-forever', 'WoW Forever', 'wow-forever', 'fantasy'], ['star-citizen', 'Star Citizen', 'star-citizen', 'space'], ['skerrion', 'Skerrion', 'skerrion', 'mystisch'],
   ['retro', 'Retro-Games', 'retro', 'synthwave'], ['rpg', 'RPG (allgemein)', 'rpg', 'fantasy'], ['scifi', 'Sci-Fi (allgemein)', 'scifi', 'space'],
   ['jumprun', 'Jump & Run', 'jumprun', 'chiptune'], ['pagonia', 'Pioneers of Pagonia', 'aufbau', 'mittelalter'], ['siedler4', 'Die Siedler 4', 'aufbau', 'mittelalter'],
-  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'], ['talk', 'Talk-Runde', 'talk', 'lofi', true],
+  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'], ['talk', 'Talk-Runde', 'talk', 'lofi', true], ['weihnachten', '🎄 Weihnachts-Stream', 'weihnachten', 'weihnachten', true],
 ];
 saved.spieleVorgaben ||= [];
 for (const [id, name, bild, musik, ohneFenster] of SPIEL_VORGABEN) {
@@ -103,7 +103,8 @@ for (const [id, name, bild, musik, ohneFenster] of SPIEL_VORGABEN) {
   if (saved.spiele.some(x => x.id === id)) continue;
   const v = `/hintergrund/spiele/${bild}.mp4`, q = `/hintergrund/spiele/${bild}-quer.mp4`;
   saved.spiele.push({ id, name, video: fs.existsSync(path.join(MEDIA, v)) ? v : '', videoQuer: fs.existsSync(path.join(MEDIA, q)) ? q : '', szene: '', musik, ohneFenster: !!ohneFenster,
-    ...(id === 'talk' ? { start: 'Talk-Runde startet gleich! | Hol dir einen Kaffee und quatsch mit', ende: 'Danke für die Talk-Runde! | Bis zum nächsten Mal' } : {}) });
+    ...(id === 'talk' ? { start: 'Talk-Runde startet gleich! | Hol dir einen Kaffee und quatsch mit', ende: 'Danke für die Talk-Runde! | Bis zum nächsten Mal' } : {}),
+    ...(id === 'weihnachten' ? { start: 'Weihnachts-Stream startet gleich! | Kakao holen & reinkuscheln 🎄', ende: 'Frohe Weihnachten! | Danke, dass ihr da wart ❤️', jingle: '/sounds/weihnachten.mp3' } : {}) });
 }
 // Vorgabe-Videos, die erst später ins Image kamen (z. B. Talk-Runde), nachtragen, solange das Spiel noch keins hat
 for (const [id, , bild] of SPIEL_VORGABEN) {
@@ -320,7 +321,7 @@ function lumiaConnect() {
 }
 
 // ---------- Modus, Spiel, OBS ----------
-const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, atmo: sp.atmo || '', start: sp.start || '', ende: sp.ende || '' } : null; };
+const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, atmo: sp.atmo || '', jingle: sp.jingle || '', start: sp.start || '', ende: sp.ende || '' } : null; };
 // Musik: Titel + Lautstärke für alle hinteren Quellen (Lautstärke null = Wert aus den Hintergrund-Einstellungen)
 const musikInfo = () => {
   const t = saved.musik.titel, x = MUSIK.find(m => m.id === t);
@@ -904,7 +905,7 @@ const server = http.createServer(async (req, res) => {
       if (!Array.isArray(b.spiele)) return json(res, 400, { fehler: 'ungültig' });
       saved.spiele = b.spiele.slice(0, 50).map(x => ({ id: String(x.id || crypto.randomBytes(4).toString('hex')).replace(/[^a-z0-9-]/gi, '').slice(0, 40) || crypto.randomBytes(4).toString('hex'),
         name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200), musik: MUSIK.some(m => m.id === x.musik) ? x.musik : '',
-        ohneFenster: !!x.ohneFenster, atmo: String(x.atmo || '').slice(0, 300), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
+        ohneFenster: !!x.ohneFenster, atmo: String(x.atmo || '').slice(0, 300), jingle: String(x.jingle || '').slice(0, 300), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
       if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = '';
       saveSettings(); broadcast('spiele', { spiele: saved.spiele });
       if (saved.modus === 'zocken') broadcast('modus', { modus: saved.modus, spiel: spielInfo() });

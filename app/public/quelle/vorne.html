@@ -600,7 +600,10 @@ function handleAlert(data) {
 function handleContent(raw) {
   let c = raw; try { c = JSON.parse(raw); } catch (e) { c = { id: String(raw).trim() }; }
   if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); chatUpdate(); return; }
-  if (String(raw).startsWith('spiel:')) { try { curSpiel = JSON.parse(String(raw).slice(6)); } catch (e) {} return; }
+  if (String(raw).startsWith('spiel:')) { try { const alt = curSpiel; curSpiel = JSON.parse(String(raw).slice(6));
+    // Jingle beim Wechsel auf ein Spiel/Thema (z. B. Glöckchen beim Weihnachts-Stream) – nicht beim Laden der Quelle
+    if (curSpiel && curSpiel.jingle && (!alt || alt.id !== curSpiel.id) && performance.now() > 5000) sfx(curSpiel.jingle, 100); } catch (e) {} return; }
+  if (String(c.id).startsWith('sound:')) { sfx('/sounds/' + String(c.id).slice(6).replace(/[^a-z0-9-]/gi, '') + '.mp3', 100); return; }   // reiner Sound-Knopf
   if (c.id === 'chat') { chatManual = c.an === undefined ? !chatManual : !!c.an; chatUpdate(); return; }
   if (c.id === 'streamprint') { spManual = c.an === undefined ? !spManual : !!c.an; spUpdate(); return; }
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
