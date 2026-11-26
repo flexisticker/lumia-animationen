@@ -81,7 +81,7 @@
   "szenePause": "Kurze Pause | Bleib dran – gleich geht's weiter",
   "szeneGleich": "Gleich geht's weiter | Nicht weggehen",
   "szeneWeiter": "Weiter geht's! | Schön, dass du noch da bist",
-  "szeneEnde": "Danke & bis bald! | Folg MichaModus, dann verpasst du nichts",
+  "szeneEnde": "Danke & bis bald! | Folg {KANAL}, dann verpasst du nichts",
   "szeneBrb": "Bin gleich zurück! | Nicht weggehen – es geht gleich weiter",
   "szeneTechnik": "Technische Störung | Wir sind gleich wieder da",
   "chatWann": "party",

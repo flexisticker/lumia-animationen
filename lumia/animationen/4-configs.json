@@ -1103,8 +1103,8 @@
   "szeneEnde": {
     "order": 83,
     "type": "input",
-    "label": "Ende (Titel | Unterzeile)",
-    "value": "Danke & bis bald! | Folg MichaModus, dann verpasst du nichts",
+    "label": "Ende ({KANAL} = Kanalname) (Titel | Unterzeile)",
+    "value": "Danke & bis bald! | Folg {KANAL}, dann verpasst du nichts",
     "visibleIf": {
       "key": "bereich",
       "equals": [

@@ -187,3 +187,5 @@
   `logoHype` (hüpft bei Alerts). CSS `.logo` mit Glanz per mask auf das Logo selbst. 3dbymicha-Vorgabe nimmt `/logo/3dbymicha.png`, sobald die Datei unter `medien/logo/` liegt.
   Slogans 3dbymicha um „3D-Druck · Textilveredelung · Werbetassen“ + „Dein Motiv auf Shirt, Tasse oder als 3D-Druck“ ergänzt (einmalige Umstellung gespeicherter Slogans).
   **Offen:** Michaels Logo-Datei (kam nur als Chat-Bild, nicht als Datei) – Untertitel soll „3D-Druck · Textilveredelung · Werbetassen“ werden. Geprüft mit Platzhalter-Logo (Headless, hoch + quer).
+- 26.11.2026: **Ende-Ansage zeigte bei 3dbymicha „Folg MichaModus“** (fester Text). Jetzt Platzhalter `{KANAL}` (= `bannerText` des Kanals) in `szeneEnde`, 3dbymicha-Vorgabe
+  „Danke & bis bald! | Folg 3dbymicha – 3D-Druck, Textil & Werbetassen“; gespeicherte szene*-Texte anderer Kanäle werden beim Start von „MichaModus“ auf `{KANAL}` umgestellt. Banner-HTML startet leer. Geprüft (Headless) für beide Kanäle.

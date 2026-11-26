@@ -459,7 +459,7 @@ const SCENES = {
   pause: ['szenePause', 'Kurze Pause', 'Bleib dran – gleich geht\'s weiter', 0],
   gleich: ['szeneGleich', 'Gleich geht\'s weiter', 'Nicht weggehen', 0],
   weiter: ['szeneWeiter', 'Weiter geht\'s!', 'Schön, dass du noch da bist', 5],
-  ende: ['szeneEnde', 'Danke & bis bald!', 'Folg MichaModus, dann verpasst du nichts', 0],
+  ende: ['szeneEnde', 'Danke & bis bald!', 'Folg {KANAL}, dann verpasst du nichts', 0],
   brb: ['szeneBrb', 'Bin gleich zurück!', 'Nicht weggehen – es geht gleich weiter', 0],
   technik: ['szeneTechnik', 'Technische Störung', 'Wir sind gleich wieder da', 0],
 };
@@ -488,7 +488,7 @@ function showScene(id) {
   if (id === 'aus' || !SCENES[id]) { scene.classList.remove('show'); return; }
   const [key, t, s, secs] = SCENES[id];
   const eigen = sceneGame(id);
-  const [title, sub] = String(eigen || D[key] || (t + ' | ' + s)).split('|').map(x => x.trim());
+  const [title, sub] = String(eigen || D[key] || (t + ' | ' + s)).replace(/\{KANAL\}/g, D.bannerText || 'MichaModus').split('|').map(x => x.trim());   // {KANAL} = Name des gewählten Kanals
   document.getElementById('sceneTitle').textContent = title;
   const subEl = document.getElementById('sceneSub'); subEl.textContent = sub || '';
   if (!secs) { const d = document.createElement('span'); d.className = 'dots'; d.innerHTML = '<span>.</span><span>.</span><span>.</span>'; subEl.append(d); }

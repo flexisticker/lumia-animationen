@@ -36,7 +36,7 @@ Object.assign(DEFAULTS.hinten, { video: '/hintergrund/party-schleife.mp4', zockV
 const PRESETS = {
   michamodus: { name: 'MichaModus', vorne: {}, hinten: {}, aktion: { titel: 'MichaModus · Steuerung' } },
   '3dbymicha': { name: '3dbymicha',
-    vorne: { bannerText: '3dbymicha', logoBild: fs.existsSync(path.join(MEDIA, 'logo', '3dbymicha.png')) ? '/logo/3dbymicha.png' : '', slogans: ['Werde Teil von 3dbymicha!', '3D-Druck · Textilveredelung · Werbetassen', 'Dein Motiv auf Shirt, Tasse oder als 3D-Druck 👕☕', 'Live aus der Druckwerkstatt 🖨️', 'Folgen & zusehen, wie es entsteht',
+    vorne: { bannerText: '3dbymicha', szeneEnde: 'Danke & bis bald! | Folg 3dbymicha – 3D-Druck, Textil & Werbetassen', logoBild: fs.existsSync(path.join(MEDIA, 'logo', '3dbymicha.png')) ? '/logo/3dbymicha.png' : '', slogans: ['Werde Teil von 3dbymicha!', '3D-Druck · Textilveredelung · Werbetassen', 'Dein Motiv auf Shirt, Tasse oder als 3D-Druck 👕☕', 'Live aus der Druckwerkstatt 🖨️', 'Folgen & zusehen, wie es entsteht',
       'Like-Herzen an – wir drucken weiter!', 'Hier wird gedruckt, getüftelt & gelacht 😄', 'Wünsch dir ein Modell im Chat 💬', 'Jede Rose zählt 🌹', 'Neu hier? Sag Hallo 👋'].join('\n'),
       bannerFarbe1: '#ff7a00', bannerFarbe2: '#00c2ff', bannerFarbe3: '#ffd54f' },
     hinten: { video: '/hintergrund/werkstatt.mp4', videoQuer: '/hintergrund/werkstatt-quer.mp4', f2Wann: 'immer', f1Y: 56, f1Hoehe: 30, f1Schild: '🖨️ PRINTMODUS' },
@@ -122,6 +122,8 @@ for (const sp of saved.spiele || []) if (sp.id === 'talk' && sp.musik === 'chill
 // 26.11.2026: 3dbymicha macht auch Textilveredelung + Werbetassen → Slogans ergänzen (einmalig, nur wenn noch nicht drin)
 { const v = saved.profile && saved.profile['3dbymicha'] && saved.profile['3dbymicha'].vorne;
   if (v && typeof v.slogans === 'string' && !/werbetass/i.test(v.slogans)) v.slogans = ['3D-Druck · Textilveredelung · Werbetassen', 'Dein Motiv auf Shirt, Tasse oder als 3D-Druck 👕☕', v.slogans].join('\n'); }
+// 26.11.2026: Ende-Ansage nannte bei 3dbymicha „MichaModus“ → gespeicherte Texte anderer Kanäle auf den Kanalnamen umstellen
+for (const [p, pr] of Object.entries(saved.profile || {})) { const v = pr && pr.vorne; if (p !== 'michamodus' && v) for (const k of Object.keys(v)) if (/^szene/.test(k) && typeof v[k] === 'string') v[k] = v[k].replace(/MichaModus/g, '{KANAL}'); }
 // Slogan-Korrektur 22.11.2026: MichaModus = Gaming & Spaß, Drucken gehört zu 3dbymicha
 for (const p of Object.keys(saved.profile)) { const v = saved.profile[p].vorne; if (v && typeof v.slogans === 'string') v.slogans = v.slogans.replace('Hier wird gedruckt, gelacht & gefeiert', p === '3dbymicha' ? 'Hier wird gedruckt, getüftelt & gelacht 😄' : 'Hier wird gezockt, gelacht & gefeiert 🎮'); }
 let secret = readJson(SECRET_FILE, {});

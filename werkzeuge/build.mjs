@@ -112,7 +112,7 @@ add('szeneStartSpiel', { type: 'input', label: 'Start: Zeile zum Spiel ({SPIEL} 
 add('szeneEndeSpiel', { type: 'input', label: 'Ende: Zeile zum Spiel ({SPIEL} = Name)', value: 'Danke fürs Zuschauen bei {SPIEL}!', ...vis('szenen') });
 for (const [k, l, v] of [['szeneStart', 'Live startet gleich', "Live startet gleich! | Schnapp dir was zu trinken"],
   ['szenePause', 'Kurze Pause', "Kurze Pause | Bleib dran – gleich geht's weiter"], ['szeneGleich', "Gleich geht's weiter", "Gleich geht's weiter | Nicht weggehen"],
-  ['szeneWeiter', "Weiter geht's", "Weiter geht's! | Schön, dass du noch da bist"], ['szeneEnde', 'Ende', 'Danke & bis bald! | Folg MichaModus, dann verpasst du nichts'],
+  ['szeneWeiter', "Weiter geht's", "Weiter geht's! | Schön, dass du noch da bist"], ['szeneEnde', 'Ende ({KANAL} = Kanalname)', 'Danke & bis bald! | Folg {KANAL}, dann verpasst du nichts'],
   ['szeneBrb', 'BRB – bin gleich zurück', 'Bin gleich zurück! | Nicht weggehen – es geht gleich weiter'], ['szeneTechnik', 'Technische Störung', 'Technische Störung | Wir sind gleich wieder da']])
   add(k, { type: 'input', label: `${l} (Titel | Unterzeile)`, value: v, ...vis('szenen') });
 // Chat-Einblendung (gemischt TikTok/Twitch/…, mit Plattform-Schild vorne)
