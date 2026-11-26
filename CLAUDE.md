@@ -199,3 +199,13 @@
   crf 22), Musik-Genre `weihnachten` (3 Titel Stable Audio 2.5: Lo-Fi-Glöckchen, festlich-orchestral, Jazz am Kamin; loudnorm −16, Fades), Atmo Kaminfeuer + Wind + ferne Schlittenglöckchen,
   eigene Start/Ende-Texte, **Jingle** beim Wechsel aufs Thema (`spiel.jingle` = /sounds/weihnachten.mp3, vordere Quelle spielt ihn bei Spielwechsel, nicht beim Laden). Neuer reiner Sound-Knopf
   `sound:<name>` (vorne spielt /sounds/<name>.mp3), am Tablet „🎅 Ho ho ho!“ (/sounds/hohoho.mp3). Kosten zusammen ca. 3 $. Geprüft (Headless): Hintergrund, Musik, Atmo, Jingle, Ho-ho-ho.
+- 26.11.2026: **Kanäle unterscheiden sich nur noch in Texten** (Wunsch Michael): `KANAL_TEXTE` (vorne bannerText/slogans/szene*/logoBild/geschenkText, hinten f1–3Schild, aktion titel/modus1Name/modus2Name/modus2Ico)
+  liegen je Kanal in `saved.profile[kanal]`, alles andere gemeinsam in `saved.profile.michamodus` (`zielProfil`, `settingsFor`, `nurTexte`/`ohneTexte`). 3dbymicha-Preset nur noch Texte.
+  Kanalwechsel behält Modus, Spiel und Musik (kein `zustand` je Kanal mehr). Hintergründe kommen über **„Was läuft gerade“** (Studio-Menü, früher „Spiele & OBS“): neue Vorgaben
+  `werkstatt` (3D-Druck-Werkstatt, Musik chill), `party-buehne` (ohne Fenster), `zockerbude`; `SPIEL_VORGABEN` erlaubt absolute Bildpfade (`/hintergrund/…`).
+  **Hue je Thema:** `HUE_SPIEL_LICHT` (Vorgaben je Thema, z. B. WoW Kamin-Flackern orange/blau, Weihnachten warm flackernd), je Thema änderbar (`spiel.licht {effekt, farbe1, farbe2, hell}`, Studio-Feld „Licht (Hue)“ mit ▶ = `/api/hue/test {spiel, licht}` 6 s).
+  `hueGrundDef` nimmt im Zockmodus das Themen-Licht, sonst `saved.hue.grund.alle` (Grundlicht gilt für beide Kanäle). Neuer Effekt `flackern` (zwei Farben, Kamin/Kerzen). Mit Bridge-Nachbau geprüft.
+- 26.11.2026: **Mehr Musik** (Freigabe Michael, ca. 2,40 $): je 1 Titel mehr für alle Genres (hype-2, funk-4, chill-4, lofi-6, fantasy-4, space-4, synthwave-4, chiptune-4, mittelalter-4, mystisch-4) + weihnachten-4/-5 (Stable Audio 2.5, gleiche Nachbearbeitung).
+  **Weihnachts-Gimmicks:** Sounds `medien/sounds/{schlitten,glocken,schneeball,geschenk,prost,elfen}.mp3` (ElevenLabs SFX, loudnorm −14) und 5 Animationen `xmas-schlitten|schnee|geschenke|baum|schneemann` (hoch + quer, MP4 + Alpha-WebM, ca. 1,90 $, gruppe knopf).
+  Tablet: eigener Bereich „🎄 Weihnachten“ (Animationen aus `MM_LIST` mit `xmas-`-Präfix + `XMAS_SOUNDS` als `sound:<name>`), abschaltbar `weihnachtAn` (Tablet-Steuerung); xmas-* stehen nicht in den Standard-Gimmick-Knöpfen. `mmList` trägt jetzt `ico`.
+  **Logo 3dbymicha weiter offen** (Datei fehlt im Repo).

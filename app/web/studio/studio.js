@@ -13,7 +13,7 @@ async function load() {
 }
 const NAV = [
   ['Live', [['start', '🏠', 'Übersicht'], ['geschenke', '🎁', 'Geschenke'], ['test', '🧪', 'Testen'], ['galerie', '🎬', 'Animationen ansehen']]],
-  ['Aussehen', [['vorne', '✨', 'Animationen & Einblendungen'], ['hinten', '🖼️', 'Hintergrund & Kameras'], ['spiele', '🎮', 'Spiele'], ['aktion', '📱', 'Tablet-Steuerung']]],
+  ['Aussehen', [['vorne', '✨', 'Animationen & Einblendungen'], ['hinten', '🖼️', 'Hintergrund & Kameras'], ['spiele', '🎮', 'Was läuft gerade'], ['aktion', '📱', 'Tablet-Steuerung']]],
   ['Verbindungen', [['lumia', '🔌', 'Lumia'], ['obs', '🎥', 'OBS & Fenster-Quellen'], ['licht', '💡', 'Licht (Hue)'], ['sprache', '🗣️', 'Sprachausgabe'], ['quellen', '🔗', 'Browserquellen für OBS']]],
 ];
 // Ampel je Verbindung (für Menü und Übersicht): ok | warn | err | aus
@@ -39,7 +39,7 @@ function renderNav() {
   nav.append(h('a', { class: 'steuer', href: '/aktion' }, '🎛️ Steuerung öffnen'));
   const sel = h('select', { class: 'kanal', onchange: async e => { await post('/api/profil', { profil: e.target.value }); await reload(); renderNav(); } });
   for (const p of S.profile || []) { const o = h('option', { value: p.id }, 'Kanal: ' + p.name); if (p.id === S.profil) o.selected = true; sel.append(o); }
-  nav.append(h('div', { class: 'kanalbox' }, sel, h('small', {}, 'Alle Einstellungen gelten für den gewählten Kanal. Umschalten wechselt auch die Browserquellen.')));
+  nav.append(h('div', { class: 'kanalbox' }, sel, h('small', {}, 'Der Kanal ändert nur Texte (Banner, Slogans, Ansagen, Logo, Modus-Namen). Alles andere – Hintergrund, Musik, Licht – gilt für beide und kommt aus „Was läuft gerade“.')));
   for (const [gruppe, eintraege] of NAV) {
     nav.append(h('div', { class: 'gruppe' }, gruppe));
     for (const [id, ico, label] of eintraege) { const a = ampel(id);
@@ -264,7 +264,7 @@ function obsPage(m) {
     h('p', { class: 'hint' }, 'In OBS: Werkzeuge → WebSocket-Server-Einstellungen → „WebSocket-Server aktivieren“, Port 4455, Passwort festlegen (dort auch „Verbindungsinfo anzeigen“). Die Szenen-Listen füllen sich nach dem Verbinden. Eigene Szene je Spiel stellst du unter „Spiele“ ein.')));
 }
 function spielePage(m) {
-  m.append(h('h1', {}, 'Spiele'), h('p', { class: 'hint' }, 'Je Spiel ein eigener Hintergrund (Schleife) für Hoch- und Querformat, eigene Musik und auf Wunsch eine eigene OBS-Szene. Tippe ein Spiel an, um es zu bearbeiten.'));
+  m.append(h('h1', {}, 'Was läuft gerade'), h('p', { class: 'hint' }, 'Spiele und Themen (z. B. Party-Bühne, Zockerbude, Werkstatt, Weihnachten): je eins mit eigenem Hintergrund für Hoch- und Querformat, Musik, Geräuschen, Hue-Licht und auf Wunsch eigener OBS-Szene. Gilt für beide Kanäle. Tippe einen Eintrag an, um ihn zu bearbeiten.'));
   // Spiele
   const list = S.spiele.map(x => ({ ...x }));
   const save = async () => { const r = await post('/api/spiele', { spiele: list }); const d = await r.json(); if (d.spiele) S.spiele = d.spiele; toast(r.ok ? '✓ Gespeichert' : 'Fehler beim Speichern', r.ok ? '' : 'warn'); };
@@ -286,6 +286,17 @@ function spielePage(m) {
         h('summary', {}, h('b', {}, g.name || 'Ohne Namen'), h('span', { class: 'hint' }, [g.video ? '🖼️ eigener Hintergrund' : '', g.musik ? '🎵 ' + ((S.musik.liste.find(x => x.id === g.musik) || {}).name || g.musik) : '', g.szene ? '🎥 ' + g.szene : '', g.ohneFenster ? 'ohne Spielfenster' : ''].filter(Boolean).join(' · ')),
           S.modus === 'zocken' && S.spiel === S.spiele[i].id ? h('span', { class: 'pill ok' }, 'läuft gerade') : null),
         field('Spiel', name), field('Hintergrund hochkant (TikTok)', vid('video')), field('Hintergrund quer (Twitch)', vid('videoQuer')),
+        field('Licht (Hue)', (() => { const E = (S.hue && S.hue.effektListe) || [], v = { ...((S.hue && S.hue.spielLicht && S.hue.spielLicht[g.id]) || {}), ...(g.licht || {}) };
+          if (!E.length) return h('span', { class: 'hint' }, 'Hue ist noch nicht eingerichtet (Verbindungen → Licht).');
+          const sel = h('select', {}, ...E.map(([id, l]) => h('option', { value: id }, l))); sel.value = v.effekt || 'zweifarbig';
+          const f1 = h('input', { type: 'color', value: v.farbe1 || '#ff3d7f', title: 'Farbe 1 (linker Spot)' }), f2 = h('input', { type: 'color', value: v.farbe2 || '#7c4dff', title: 'Farbe 2 (rechter Spot)' });
+          const hl = h('input', { type: 'range', min: 5, max: 100, value: v.hell ?? 100 }), hw = h('span', { class: 'val' }, (v.hell ?? 100) + ' %');
+          const neu = () => ({ effekt: sel.value, farbe1: f1.value, farbe2: f2.value, hell: Number(hl.value) });
+          let t; const los = () => { hw.textContent = hl.value + ' %'; clearTimeout(t); t = setTimeout(async () => { g.licht = neu(); await save(); }, 400); };
+          sel.onchange = los; f1.oninput = los; f2.oninput = los; hl.oninput = los;
+          return h('div', { class: 'efzeile' }, sel, h('span', { class: 'farben' }, f1, f2), h('span', { class: 'efhell' }, '☀', hl, hw),
+            h('button', { class: 'b', title: 'Licht 6 s vorführen', onclick: async () => { await save(); const r = await post('/api/hue/test', { spiel: S.spiele[i].id, licht: neu() }); if (!r.ok) toast((await r.json()).fehler, 'warn'); } }, '▶'));
+        })()),
         field('Geräusche (Atmo)', (() => { const file = h('input', { type: 'file', accept: 'audio/mpeg,audio/ogg,audio/wav', style: 'display:none' });
           const name = (g.video || '').match(/\/hintergrund\/(?:spiele\/)?([a-z0-9-]+?)(?:-quer)?\.mp4$/i);
           const info = h('code', {}, g.atmo || (name ? 'passend zum Hintergrund: /atmo/' + name[1] + '.mp3' : 'keine'));

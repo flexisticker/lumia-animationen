@@ -693,6 +693,41 @@
    "format": "quer",
    "bild": "a huge army of glowing purple paper planes and rockets swoops in from the left side filling the frame, sparks and confetti",
    "ton": "an epic war horn, rushing wind and a massive crowd roar"
+  },
+  {
+   "id": "xmas-schlitten",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "Santa's sleigh with glowing reindeer flies across leaving golden sparkles, snowflakes and gifts",
+   "ton": "sleigh bells, whoosh and a jolly Ho ho ho"
+  },
+  {
+   "id": "xmas-schnee",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "magical burst of glittering snowflakes exploding toward the camera, then drifting like a snow globe",
+   "ton": "icy shimmer, soft wind, twinkling chimes"
+  },
+  {
+   "id": "xmas-geschenke",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "shower of wrapped Christmas presents tumbling down, popping open with confetti, candy canes and stars",
+   "ton": "festive brass fanfare, sleigh bells, cheerful pops"
+  },
+  {
+   "id": "xmas-baum",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "Christmas tree of golden fairy lights grows upward, ornaments light up, star bursts into sparkles",
+   "ton": "glockenspiel arpeggio, magical orchestral swell, choir"
+  },
+  {
+   "id": "xmas-schneemann",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "cheerful cartoon snowman bounces in, waves and spins sending snowballs and sparkles",
+   "ton": "bouncy thud, snowball splats, happy giggle"
   }
  ]
 }

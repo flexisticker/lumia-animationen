@@ -37,13 +37,20 @@ const PRESETS = {
   michamodus: { name: 'MichaModus', vorne: {}, hinten: {}, aktion: { titel: 'MichaModus · Steuerung' } },
   '3dbymicha': { name: '3dbymicha',
     vorne: { bannerText: '3dbymicha', szeneEnde: 'Danke & bis bald! | Folg 3dbymicha – 3D-Druck, Textil & Werbetassen', logoBild: fs.existsSync(path.join(MEDIA, 'logo', '3dbymicha.png')) ? '/logo/3dbymicha.png' : '', slogans: ['Werde Teil von 3dbymicha!', '3D-Druck · Textilveredelung · Werbetassen', 'Dein Motiv auf Shirt, Tasse oder als 3D-Druck 👕☕', 'Live aus der Druckwerkstatt 🖨️', 'Folgen & zusehen, wie es entsteht',
-      'Like-Herzen an – wir drucken weiter!', 'Hier wird gedruckt, getüftelt & gelacht 😄', 'Wünsch dir ein Modell im Chat 💬', 'Jede Rose zählt 🌹', 'Neu hier? Sag Hallo 👋'].join('\n'),
-      bannerFarbe1: '#ff7a00', bannerFarbe2: '#00c2ff', bannerFarbe3: '#ffd54f' },
-    hinten: { video: '/hintergrund/werkstatt.mp4', videoQuer: '/hintergrund/werkstatt-quer.mp4', f2Wann: 'immer', f1Y: 56, f1Hoehe: 30, f1Schild: '🖨️ PRINTMODUS' },
-    aktion: { titel: '3dbymicha · Steuerung', modus1Name: 'Werkstatt', modus2Name: 'Printmodus', modus2Ico: '🖨️', spieleAn: false } },
+      'Like-Herzen an – wir drucken weiter!', 'Hier wird gedruckt, getüftelt & gelacht 😄', 'Wünsch dir ein Modell im Chat 💬', 'Jede Rose zählt 🌹', 'Neu hier? Sag Hallo 👋'].join('\n') },
+    hinten: { f1Schild: '🖨️ PRINTMODUS' },
+    aktion: { titel: '3dbymicha · Steuerung', modus1Name: 'Werkstatt', modus2Name: 'Printmodus', modus2Ico: '🖨️' } },
 };
+// 26.11.2026 (Wunsch Michael): Kanäle unterscheiden sich NUR in Texten. Alles andere (Bild, Musik, Fenster, Lage, Farben …) ist gemeinsam
+// und liegt im Profil „michamodus“; Hintergrund/Musik/Licht wechselt man über „Was läuft gerade“ (Spiele/Themen).
+const KANAL_TEXTE = { vorne: /^(bannerText|slogans|szene(Start|Pause|Gleich|Weiter|Ende|Brb|Technik)(Spiel)?|logoBild|geschenkText)$/, hinten: /^f[123]Schild$/, aktion: /^(titel|modus[12]Name|modus2Ico)$/ };
+const istText = (k, key) => KANAL_TEXTE[k].test(key);
+const nurTexte = (k, o) => Object.fromEntries(Object.entries(o || {}).filter(([key]) => istText(k, key)));
+const ohneTexte = (k, o) => Object.fromEntries(Object.entries(o || {}).filter(([key]) => !istText(k, key)));
 const BEREICHE = ['vorne', 'hinten', 'aktion'];
-const defaultsFor = (profil, k) => ({ ...DEFAULTS[k], ...((PRESETS[profil] || {})[k] || {}) });
+const defaultsFor = (profil, k) => ({ ...DEFAULTS[k], ...nurTexte(k, (PRESETS[profil] || {})[k]) });
+// wohin eine Einstellung gespeichert wird: Texte im gewählten Kanal, alles andere gemeinsam (Profil michamodus)
+const zielProfil = (k, key) => (istText(k, key) ? saved.profile[saved.profil] : saved.profile.michamodus);
 const SETTINGS_FILE = path.join(DATA, 'einstellungen.json');
 const SECRET_FILE = path.join(DATA, 'geheim.json');
 const readJson = (f, d) => { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } };
@@ -94,14 +101,14 @@ const SPIEL_VORGABEN = [
   ['wow-forever', 'WoW Forever', 'wow-forever', 'fantasy'], ['star-citizen', 'Star Citizen', 'star-citizen', 'space'], ['skerrion', 'Skerrion', 'skerrion', 'mystisch'],
   ['retro', 'Retro-Games', 'retro', 'synthwave'], ['rpg', 'RPG (allgemein)', 'rpg', 'fantasy'], ['scifi', 'Sci-Fi (allgemein)', 'scifi', 'space'],
   ['jumprun', 'Jump & Run', 'jumprun', 'chiptune'], ['pagonia', 'Pioneers of Pagonia', 'aufbau', 'mittelalter'], ['siedler4', 'Die Siedler 4', 'aufbau', 'mittelalter'],
-  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'], ['talk', 'Talk-Runde', 'talk', 'lofi', true], ['weihnachten', '🎄 Weihnachts-Stream', 'weihnachten', 'weihnachten', true],
+  ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'], ['talk', 'Talk-Runde', 'talk', 'lofi', true], ['weihnachten', '🎄 Weihnachts-Stream', 'weihnachten', 'weihnachten', true], ['werkstatt', '🖨️ 3D-Druck-Werkstatt', '/hintergrund/werkstatt', 'chill'], ['party-buehne', '🎉 Party-Bühne', '/hintergrund/party-schleife', '', true], ['zockerbude', '🎮 Zockerbude', '/hintergrund/zockerbude', ''],
 ];
 saved.spieleVorgaben ||= [];
 for (const [id, name, bild, musik, ohneFenster] of SPIEL_VORGABEN) {
   if (saved.spieleVorgaben.includes(id)) continue;
   saved.spieleVorgaben.push(id);
   if (saved.spiele.some(x => x.id === id)) continue;
-  const v = `/hintergrund/spiele/${bild}.mp4`, q = `/hintergrund/spiele/${bild}-quer.mp4`;
+  const basis = bild.startsWith('/') ? bild : `/hintergrund/spiele/${bild}`, v = `${basis}.mp4`, q = `${basis}-quer.mp4`;
   saved.spiele.push({ id, name, video: fs.existsSync(path.join(MEDIA, v)) ? v : '', videoQuer: fs.existsSync(path.join(MEDIA, q)) ? q : '', szene: '', musik, ohneFenster: !!ohneFenster,
     ...(id === 'talk' ? { start: 'Talk-Runde startet gleich! | Hol dir einen Kaffee und quatsch mit', ende: 'Danke für die Talk-Runde! | Bis zum nächsten Mal' } : {}),
     ...(id === 'weihnachten' ? { start: 'Weihnachts-Stream startet gleich! | Kakao holen & reinkuscheln 🎄', ende: 'Frohe Weihnachten! | Danke, dass ihr da wart ❤️', jingle: '/sounds/weihnachten.mp3' } : {}) });
@@ -109,7 +116,7 @@ for (const [id, name, bild, musik, ohneFenster] of SPIEL_VORGABEN) {
 // Vorgabe-Videos, die erst später ins Image kamen (z. B. Talk-Runde), nachtragen, solange das Spiel noch keins hat
 for (const [id, , bild] of SPIEL_VORGABEN) {
   const sp = saved.spiele.find(x => x.id === id); if (!sp) continue;
-  const v = `/hintergrund/spiele/${bild}.mp4`, q = `/hintergrund/spiele/${bild}-quer.mp4`;
+  const basis = bild.startsWith('/') ? bild : `/hintergrund/spiele/${bild}`, v = `${basis}.mp4`, q = `${basis}-quer.mp4`;
   if (!sp.video && fs.existsSync(path.join(MEDIA, v))) sp.video = v;
   if (!sp.videoQuer && fs.existsSync(path.join(MEDIA, q))) sp.videoQuer = q;
 }
@@ -169,7 +176,7 @@ async function tts(text) {
   ttsLaufend.set(hash, job); return job;
 }
 const cur = () => saved.profile[saved.profil];
-const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), ...saved.profile[profil][k] });
+const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), ...ohneTexte(k, saved.profile.michamodus[k]), ...nurTexte(k, saved.profile[profil][k]) });
 const profilListe = () => Object.entries(PRESETS).map(([id, p]) => ({ id, name: p.name }));
 const saveSettings = () => writeJson(SETTINGS_FILE, saved);
 const quellenListe = () => [...clients].filter(c => c.role === 'vorne' || c.role === 'hinten').map(c => ({ rolle: c.role, format: c.format, pfad: c.pfad, groesse: c.groesse }));
@@ -507,7 +514,7 @@ const hueUrl = p => `http://${saved.hue.ip}/api/${secret.hueUser}${p}`;
 const hueBereit = () => !!(saved.hue.an && saved.hue.live && saved.hue.ip && secret.hueUser && saved.hue.lampen.length);
 const hueStatus = () => { broadcast('hue', hueInfo(), ['studio']); broadcast('fenster', fensterSicht(), ['aktion', 'studio']); };
 const hueInfo = () => { const { vorher, ...h } = saved.hue; return { ...h, gekoppelt: !!secret.hueUser, status: hue.status, fehler: hue.fehler, lampenListe: hue.lampen.map(({ zustand, ...l }) => l),
-  grundAktiv: { party: hueGrundDef('party'), zocken: hueGrundDef('zocken') }, spotsAktiv: hueSpots(), effektListe: HUE_EFFEKTE, kategorien: HUE_KAT.map(([id, label, gruppe]) => ({ id, label, gruppe, ...hueEffektDef(id) })) }; };
+  grundAktiv: { party: hueGrundDef('party', false), zocken: hueGrundDef('zocken', false) }, spotsAktiv: hueSpots(), effektListe: HUE_EFFEKTE, spielLicht: Object.fromEntries(saved.spiele.map(sp => [sp.id, hueSpielLicht(sp)])), kategorien: HUE_KAT.map(([id, label, gruppe]) => ({ id, label, gruppe, ...hueEffektDef(id) })) }; };
 const hueOeffentlich = hueInfo;
 function hexXy(hex) {
   const n = parseInt(String(hex).replace('#', ''), 16) || 0;
@@ -535,7 +542,7 @@ const hueBri = (f = 1) => Math.max(1, Math.min(254, Math.round(254 * (Number(sav
 const HUE_EFFEKTE = [
   ['ambilight', 'Ambilight (Farben der Bildhälften)'], ['ambibunt', 'Ambilight bunt (Haupt- + Zweitfarbe)'], ['farbe', 'Eine Farbe'], ['zweifarbig', 'Zwei Farben (links/rechts)'],
   ['atmen', 'Atmen (langsam, gegenläufig)'], ['pulsieren', 'Pulsieren (schnell, gemeinsam)'], ['wechsel', 'Wechselblinker (links ↔ rechts)'], ['regenbogen', 'Regenbogen'],
-  ['feuer', 'Feuer (flackern)'], ['funkeln', 'Funkeln (Glitzer)'], ['kurz', 'Kurzer Farbblitz'], ['nichts', 'Nichts tun']];
+  ['feuer', 'Feuer (flackern)'], ['flackern', 'Flackern in zwei Farben (Kamin/Kerzen)'], ['funkeln', 'Funkeln (Glitzer)'], ['kurz', 'Kurzer Farbblitz'], ['nichts', 'Nichts tun']];
 const HUE_KAT = [
   ['g-klein', 'Geschenk klein (unter 100 Münzen)', 'TikTok', { effekt: 'ambilight' }],
   ['g-mittel', 'Geschenk mittel (100 – 999 Münzen)', 'TikTok', { effekt: 'ambilight', blitz: true }],
@@ -559,12 +566,34 @@ const HUE_KAT = [
   ['a-technik', 'Ansage Technik-Störung', 'Ansagen', { effekt: 'pulsieren', farbe1: '#ff2a1a', farbe2: '#ff2a1a', hell: 60 }],
   ['a-ende', 'Ansage Ende', 'Ansagen', { effekt: 'atmen', farbe1: '#ff3d7f', farbe2: '#ffd54f' }],
 ];
-const HUE_GRUND_V = { michamodus: { party: { effekt: 'atmen', farbe1: '#ff3d7f', farbe2: '#7c4dff' }, zocken: { effekt: 'zweifarbig', farbe1: '#6a4bff', farbe2: '#00c2ff' } },
-  '3dbymicha': { party: { effekt: 'farbe', farbe1: '#ffe6c4', farbe2: '#ffe6c4' }, zocken: { effekt: 'zweifarbig', farbe1: '#00c2ff', farbe2: '#ffe6c4' } } };
+const HUE_GRUND_V = { party: { effekt: 'atmen', farbe1: '#ff3d7f', farbe2: '#7c4dff' }, zocken: { effekt: 'zweifarbig', farbe1: '#6a4bff', farbe2: '#00c2ff' } };
+// Licht je „Was läuft gerade“ (Spiel/Thema) passend zum Hintergrund; überschreibbar im Studio (spiel.licht)
+const HUE_SPIEL_LICHT = {
+  'wow-forever': { effekt: 'flackern', farbe1: '#ff7a1a', farbe2: '#3a6bff' },      // Kaminfeuer links, kalte Nacht rechts
+  'star-citizen': { effekt: 'atmen', farbe1: '#2a6bff', farbe2: '#9b5cff' },
+  skerrion: { effekt: 'atmen', farbe1: '#8a3bff', farbe2: '#3b2aff' },
+  retro: { effekt: 'atmen', farbe1: '#ff2bd6', farbe2: '#00e5ff' },
+  rpg: { effekt: 'flackern', farbe1: '#ff8a2a', farbe2: '#2affb0' },                // Lagerfeuer + Portal
+  scifi: { effekt: 'atmen', farbe1: '#00e5ff', farbe2: '#ff2bd6' },
+  jumprun: { effekt: 'zweifarbig', farbe1: '#7cff6b', farbe2: '#5ac8ff' },
+  pagonia: { effekt: 'zweifarbig', farbe1: '#ffc070', farbe2: '#ffe6c4' }, siedler4: { effekt: 'zweifarbig', farbe1: '#ffc070', farbe2: '#ffe6c4' },
+  'aufbau-strategie': { effekt: 'flackern', farbe1: '#ffb347', farbe2: '#ffd08a', hell: 80 },   // Kerzen im Kriegsraum
+  talk: { effekt: 'zweifarbig', farbe1: '#ffb36b', farbe2: '#c86bff', hell: 80 },
+  weihnachten: { effekt: 'flackern', farbe1: '#ff6a1a', farbe2: '#ffd27a' },        // Kamin + Lichterkette
+  werkstatt: { effekt: 'zweifarbig', farbe1: '#00c2ff', farbe2: '#ffe6c4' },
+  'party-buehne': { effekt: 'atmen', farbe1: '#ff3d7f', farbe2: '#7c4dff' },
+  zockerbude: { effekt: 'zweifarbig', farbe1: '#6a4bff', farbe2: '#00c2ff' },
+};
 saved.hue.effekte ||= {}; saved.hue.spots ||= {};
 for (const [k, g] of Object.entries(saved.hue.grund || {})) for (const m of ['party', 'zocken']) if (typeof (g || {})[m] === 'string') g[m] = { effekt: 'farbe', farbe1: g[m], farbe2: g[m] };   // alte Einzelfarbe
+if (!saved.hue.grund.alle) saved.hue.grund.alle = saved.hue.grund.michamodus || {};   // 26.11.2026: Grundlicht für beide Kanäle gemeinsam
 const hueEffektDef = k => { const v = (HUE_KAT.find(x => x[0] === k) || [])[3] || { effekt: 'farbe' }; return { farbe1: '#ff3d7f', farbe2: '#7c4dff', dauer: 0, hell: 100, blitz: false, ...v, ...(saved.hue.effekte[k] || {}) }; };
-const hueGrundDef = (m = saved.modus) => ({ farbe1: '#ff3d7f', farbe2: '#7c4dff', hell: 100, ...(HUE_GRUND_V[saved.profil] || HUE_GRUND_V.michamodus)[m], ...((saved.hue.grund[saved.profil] || {})[m] || {}) });
+const hueSpielLicht = sp => (sp ? { farbe1: '#ff3d7f', farbe2: '#7c4dff', hell: 100, ...(HUE_SPIEL_LICHT[sp.id] || {}), ...(sp.licht || {}) } : null);
+const hueGrundDef = (m = saved.modus, mitSpiel = true) => {
+  const sp = mitSpiel && m === 'zocken' && saved.spiele.find(x => x.id === saved.spiel);
+  const spl = sp && (sp.licht || HUE_SPIEL_LICHT[sp.id]) ? hueSpielLicht(sp) : null;
+  return spl || { farbe1: '#ff3d7f', farbe2: '#7c4dff', hell: 100, ...HUE_GRUND_V[m], ...((saved.hue.grund.alle || {})[m] || {}) };
+};
 const hueSpots = () => saved.hue.lampen.map((id, i) => ({ id, seite: 'links', hell: 100, ...(i === 1 ? { seite: 'rechts' } : {}), ...(saved.hue.spots[id] || {}) }));
 function hsvHex(h, s = 1, v = 1) { const f = n => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); }; return '#' + [f(5), f(3), f(1)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join(''); }
 // Ein Effekt liefert je Spot {hex, f (Helligkeit 0..1), tt (Übergang in 1/10 s)} – oder null = nichts ändern
@@ -581,6 +610,7 @@ function hueEffekt(def, t, spot, spur) {
     case 'feuer': return { hex: ['#ff2a00', '#ff5a00', '#ff8a10', '#ffb030'][Math.floor(Math.random() * 4)], f: 0.45 + Math.random() * 0.55, tt: 1 };
     case 'funkeln': return Math.random() < 0.3 ? { hex: c2, f: 1, tt: 0 } : { hex: c1, f: 0.55, tt: 2 };
     case 'kurz': return t < 700 ? { hex: c1, f: 1, tt: 1 } : null;
+    case 'flackern': return { hex: mitte ? c1 : seiteF, f: 0.55 + Math.random() * 0.45, tt: 2 };
     case 'ambilight': case 'ambibunt': {
       if (!spur || !spur.length) return hueEffekt({ ...def, effekt: 'pulsieren' }, t, spot);
       const fr = spur[Math.min(spur.length - 1, Math.floor(t / 500))]; if (!fr) return { hex: (spur.find(Boolean) || [c1])[0], f: 0.12, tt: 3 };
@@ -724,11 +754,12 @@ const server = http.createServer(async (req, res) => {
         for (const [key, v] of Object.entries(b[k])) {
           const def = defaultsFor(saved.profil, k);
           if (!(key in def) || !['string', 'number', 'boolean'].includes(typeof v)) continue;
-          if (v === def[key]) delete cur()[k][key]; else cur()[k][key] = typeof v === 'string' ? v.slice(0, 5000) : v;
+          const ziel = zielProfil(k, key)[k];
+          if (v === def[key]) delete ziel[key]; else ziel[key] = typeof v === 'string' ? v.slice(0, 5000) : v;
         }
         broadcast('settings', { bereich: k, werte: settingsFor(k) }, [k === 'vorne' ? 'vorne' : k === 'hinten' ? 'hinten' : 'aktion']);
       }
-      if (b.reset && BEREICHE.includes(b.reset)) { cur()[b.reset] = {}; broadcast('settings', { bereich: b.reset, werte: settingsFor(b.reset) }, [b.reset]); }
+      if (b.reset && BEREICHE.includes(b.reset)) { const r = b.reset; cur()[r] = ohneTexte(r, cur()[r]); saved.profile.michamodus[r] = nurTexte(r, saved.profile.michamodus[r]); if (saved.profil === 'michamodus') cur()[r] = {}; broadcast('settings', { bereich: b.reset, werte: settingsFor(b.reset) }, [b.reset]); }
       saveSettings(); return json(res, 200, { ok: true });
     }
     if (p === '/api/lumia' && req.method === 'POST') {
@@ -781,14 +812,8 @@ const server = http.createServer(async (req, res) => {
       const b = JSON.parse((await body(req)).toString() || '{}');
       if (!PRESETS[b.profil]) return json(res, 400, { fehler: 'Unbekannter Kanal' });
       if (b.profil !== saved.profil) {
-        // Modus, Spiel und Musik gehören zum Kanal: beim Wechsel merken und den Stand des neuen Kanals zurückholen
-        // (sonst zeigte 3dbymicha sofort wieder den Spiel-Hintergrund/die Musik von MichaModus)
-        saved.profile[saved.profil].zustand = { modus: saved.modus, spiel: saved.spiel, musik: { ...saved.musik } };
+        // Seit 26.11.2026: Kanal wechselt nur die Texte – Modus, Spiel („Was läuft gerade“), Musik und Licht bleiben wie sie sind
         saved.profil = b.profil;
-        const z = saved.profile[saved.profil].zustand || { modus: 'party', spiel: '', musik: { titel: 'standard', lautstaerke: saved.musik.lautstaerke, vonSpiel: false } };
-        saved.modus = z.modus === 'zocken' ? 'zocken' : 'party';
-        saved.spiel = saved.spiele.some(x => x.id === z.spiel) ? z.spiel : '';
-        saved.musik = { ...saved.musik, ...(z.musik || {}) };
         saveSettings(); broadcastAll(); broadcast('profil', { profil: saved.profil, name: PRESETS[saved.profil].name });
         broadcast('modus', { modus: saved.modus, spiel: spielInfo() }); broadcast('musik', musikInfo()); hueRuhe();
         remember({ art: 'modus', quelle: 'knopf', text: 'Kanal: ' + PRESETS[saved.profil].name });
@@ -853,9 +878,9 @@ const server = http.createServer(async (req, res) => {
         if (v.dauer !== undefined) o.dauer = Math.max(0, Math.min(60, Number(v.dauer) || 0));
         if (v.hell !== undefined) o.hell = Math.max(5, Math.min(100, Number(v.hell) || 100));
         if (typeof v.blitz === 'boolean') o.blitz = v.blitz; return o; };
-      if (b.grund && typeof b.grund === 'object') for (const m of ['party', 'zocken']) if (b.grund[m] && typeof b.grund[m] === 'object') { const g = (h.grund[saved.profil] ||= {}); g[m] = effektOk(b.grund[m], g[m]); }
+      if (b.grund && typeof b.grund === 'object') for (const m of ['party', 'zocken']) if (b.grund[m] && typeof b.grund[m] === 'object') { const g = (h.grund.alle ||= {}); g[m] = effektOk(b.grund[m], g[m]); }
       if (b.effekte && typeof b.effekte === 'object') for (const [k, v] of Object.entries(b.effekte)) if (HUE_KAT.some(x => x[0] === k) && v && typeof v === 'object') h.effekte[k] = effektOk(v, h.effekte[k]);
-      if (b.effekteZurueck) { h.effekte = {}; delete h.grund[saved.profil]; }
+      if (b.effekteZurueck) { h.effekte = {}; h.grund.alle = {}; }
       if (b.spots && typeof b.spots === 'object') for (const [id, v] of Object.entries(b.spots)) if (/^\w{1,40}$/.test(id) && v) {
         const o = h.spots[id] ||= {}; if (['links', 'rechts', 'mitte'].includes(v.seite)) o.seite = v.seite; if (v.hell !== undefined) o.hell = Math.max(5, Math.min(100, Number(v.hell) || 100)); }
       if (b.entkoppeln) { await hueUmschalten(vorher); delete secret.hueUser; writeJson(SECRET_FILE, secret); h.an = false; h.lampen = []; hue.lampen = []; hue.status = 'aus'; }
@@ -866,6 +891,9 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/hue/test' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       if (!hueBereit()) return json(res, 409, { fehler: 'Hue ist aus oder keine Lampe gewählt' });
+      if (b.spiel) { const sp = saved.spiele.find(x => x.id === b.spiel); if (!sp) return json(res, 404, { fehler: 'Spiel unbekannt' });
+        const def = { ...hueSpielLicht(sp), ...(b.licht && typeof b.licht === 'object' ? b.licht : {}) };
+        hueAlert = { def, start: Date.now(), bis: Date.now() + 6000, spur: null, blitz: false, kat: 'test' }; hueGesendet = {}; hueTick(); return json(res, 200, { ok: true }); }
       if (b.kat && HUE_KAT.some(x => x[0] === b.kat)) {
         if (b.kat.startsWith('a-')) { hueSzene = b.kat.slice(2); hueRuhe(); setTimeout(() => { if (hueSzene === b.kat.slice(2)) { hueSzene = null; hueRuhe(); } }, 6000); }   // Ansage 6 s vorführen
         else hueStarteEffekt(b.kat, String(b.anim || { 'g-klein': 'rose', 'g-mittel': 'handherzen', 'g-gross': 'galaxie', 'g-episch': 'loewe', 'tw-sub': 'tw-sub', 'tw-bits': 'tw-bits-mittel', 'tw-hype': 'tw-hypetrain-start', 'tw-raid': 'tw-raid', knopf: 'konfetti' }[b.kat] || ''));
@@ -905,9 +933,9 @@ const server = http.createServer(async (req, res) => {
       if (!Array.isArray(b.spiele)) return json(res, 400, { fehler: 'ungültig' });
       saved.spiele = b.spiele.slice(0, 50).map(x => ({ id: String(x.id || crypto.randomBytes(4).toString('hex')).replace(/[^a-z0-9-]/gi, '').slice(0, 40) || crypto.randomBytes(4).toString('hex'),
         name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200), musik: MUSIK.some(m => m.id === x.musik) ? x.musik : '',
-        ohneFenster: !!x.ohneFenster, atmo: String(x.atmo || '').slice(0, 300), jingle: String(x.jingle || '').slice(0, 300), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
+        ohneFenster: !!x.ohneFenster, atmo: String(x.atmo || '').slice(0, 300), jingle: String(x.jingle || '').slice(0, 300), ...(x.licht && typeof x.licht === 'object' && HUE_EFFEKTE.some(e => e[0] === x.licht.effekt) ? { licht: { effekt: x.licht.effekt, farbe1: /^#[0-9a-f]{6}$/i.test(x.licht.farbe1) ? x.licht.farbe1 : '#ff3d7f', farbe2: /^#[0-9a-f]{6}$/i.test(x.licht.farbe2) ? x.licht.farbe2 : '#7c4dff', hell: Math.max(5, Math.min(100, Number(x.licht.hell) || 100)) } } : {}), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
       if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = '';
-      saveSettings(); broadcast('spiele', { spiele: saved.spiele });
+      saveSettings(); broadcast('spiele', { spiele: saved.spiele }); hueRuhe();
       if (saved.modus === 'zocken') broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
       return json(res, 200, { ok: true, spiele: saved.spiele });
     }
@@ -932,11 +960,11 @@ const server = http.createServer(async (req, res) => {
       const data = await body(req, 300e6);
       const file = `${bereich}-${key}-${crypto.randomBytes(4).toString('hex')}${ext}`;
       fs.writeFileSync(path.join(UPLOADS, file), data);
-      const old = cur()[bereich][key];
-      cur()[bereich][key] = '/uploads/' + file; saveSettings();
+      const zp = zielProfil(bereich, key)[bereich], old = zp[key];
+      zp[key] = '/uploads/' + file; saveSettings();
       if (old && old.startsWith('/uploads/')) fs.rm(path.join(UPLOADS, path.basename(old)), () => {});
       broadcast('settings', { bereich, werte: settingsFor(bereich) }, [bereich]);
-      return json(res, 200, { ok: true, adresse: cur()[bereich][key] });
+      return json(res, 200, { ok: true, adresse: zp[key] });
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 404, { fehler: 'unbekannt' });
     if (PAGES[p]) return sendFile(req, res, path.join(PUBLIC, PAGES[p]));

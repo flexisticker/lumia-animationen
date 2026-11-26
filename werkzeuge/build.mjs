@@ -12,10 +12,12 @@ const LABEL = {
   'stufe-gross': 'Stufe groß', 'stufe-episch': 'Stufe episch', folgen: 'Neuer Follower', teilen: 'Live geteilt',
   superfan: 'Superfan', schatzkiste: 'Schatzkiste', likeziel: 'Like-Ziel', 'battle-sieg': 'Battle-Ende', airhorn: 'Airhorn',
   torjubel: 'Torjubel', trommelwirbel: 'Trommelwirbel', applaus: 'Applaus', konfetti: 'Konfetti', verlosung: 'Verlosung',
-  fanfare: 'Fanfare', lacher: 'Lacher', wow: 'Wow', rimshot: 'Ba-dum-tss', herzregen: 'Herzregen', partyalarm: 'Party-Alarm'
+  fanfare: 'Fanfare', lacher: 'Lacher', wow: 'Wow', rimshot: 'Ba-dum-tss', herzregen: 'Herzregen', partyalarm: 'Party-Alarm',
+  'xmas-schlitten': 'Schlitten', 'xmas-schnee': 'Schneegestöber', 'xmas-geschenke': 'Geschenkeregen', 'xmas-baum': 'Weihnachtsbaum', 'xmas-schneemann': 'Schneemann'
 };
 const ICON = { airhorn: '📯', torjubel: '⚽', trommelwirbel: '🥁', applaus: '👏', konfetti: '🎉', verlosung: '🎡', fanfare: '🎺',
-  lacher: '😂', wow: '🤩', rimshot: '🥁', herzregen: '💖', partyalarm: '🚨' };
+  lacher: '😂', wow: '🤩', rimshot: '🥁', herzregen: '💖', partyalarm: '🚨',
+  'xmas-schlitten': '🛷', 'xmas-schnee': '❄️', 'xmas-geschenke': '🎁', 'xmas-baum': '🎄', 'xmas-schneemann': '⛄' };
 const available = new Set(fs.readdirSync(R + 'medien/animationen').map(f => f.replace(/\.mp4$/, '')));
 const items = list.filter(a => available.has(a.id)).map(a => ({ ...a, label: LABEL[a.id] || a.label || a.id, datei: a.id + '.mp4', ...(available.has(a.id + '-quer') ? { quer: a.id + '-quer.mp4' } : {}) }));
 
@@ -161,7 +163,7 @@ for (const a of items) {
   if (a.gruppe === 'stufe') add('ab_' + a.id, { type: 'number', label: `${a.label}: ab … Münzen`, value: a.ab, ...vis('stufe') });
 }
 const data = Object.fromEntries(Object.entries(cfg).map(([k, f]) => [k, f.value ?? '']));
-const mmList = items.map(({ id, gruppe, match, ab, datei, quer, label }) => ({ id, gruppe, match, ab, datei, quer, label }));
+const mmList = items.map(({ id, gruppe, match, ab, datei, quer, label }) => ({ id, gruppe, match, ab, datei, quer, label, ...(ICON[id] ? { ico: ICON[id] } : {}) }));
 
 const out = R + 'lumia/';
 fs.mkdirSync(out + 'animationen', { recursive: true });
@@ -185,13 +187,14 @@ aadd('modus1Name', { type: 'input', label: 'Name Modus 1', value: 'Party' });
 aadd('modus2Name', { type: 'input', label: 'Name Modus 2', value: 'Zockmodus' });
 aadd('modus2Ico', { type: 'input', label: 'Symbol Modus 2', value: '🎮' });
 aadd('knoepfe', { type: 'textarea', rows: 14, label: 'Knöpfe (je Zeile: Animation | Beschriftung | Symbol)', value:
-  knoepfe.filter(a => a.gruppe === 'knopf').map(a => `${a.id} | ${a.label} | ${ICON[a.id] || '✨'}`).join('\n') });
+  knoepfe.filter(a => a.gruppe === 'knopf' && !a.id.startsWith('xmas-')).map(a => `${a.id} | ${a.label} | ${ICON[a.id] || '✨'}`).join('\n') });
+aadd('weihnachtAn', { type: 'checkbox', label: 'Bereich „Weihnachten“ (Animationen + Sounds) zeigen', value: true });
 aadd('spieleAn', { type: 'checkbox', label: 'Spiele-Leiste „Was läuft gerade?“ zeigen', value: true });
 aadd('testKnoepfe', { type: 'checkbox', label: 'Test-Knöpfe für Geschenke und Ereignisse zeigen', value: true });
 aadd('nameFeld', { type: 'checkbox', label: 'Feld für Namen (z. B. Gewinner) zeigen', value: true });
 fs.writeFileSync(out + 'aktionszentrale/1-html.html', read('overlay/aktionszentrale/overlay.html'));
 fs.writeFileSync(out + 'aktionszentrale/2-css.css', read('overlay/aktionszentrale/overlay.css'));
-fs.writeFileSync(out + 'aktionszentrale/3-js.js', banner + 'window.MM_TESTS = ' + JSON.stringify(knoepfe.filter(a => a.gruppe !== 'knopf').map(a => ({ id: a.id, label: a.label }))) + ';\n' + read('overlay/aktionszentrale/overlay.js'));
+fs.writeFileSync(out + 'aktionszentrale/3-js.js', banner + 'window.MM_LIST = ' + JSON.stringify(mmList) + ';\n' + 'window.MM_TESTS = ' + JSON.stringify(knoepfe.filter(a => a.gruppe !== 'knopf').map(a => ({ id: a.id, label: a.label }))) + ';\n' + read('overlay/aktionszentrale/overlay.js'));
 fs.writeFileSync(out + 'aktionszentrale/4-configs.json', JSON.stringify(acfg, null, 2));
 fs.writeFileSync(out + 'aktionszentrale/5-data.json', JSON.stringify(Object.fromEntries(Object.entries(acfg).map(([k, f]) => [k, f.value])), null, 2));
 

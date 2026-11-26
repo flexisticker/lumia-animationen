@@ -30,7 +30,7 @@ function button(box, { id, label, ico }, extra = {}) {
 }
 
 const SCENES = [['szene:start', 'Startet gleich', '⏳'], ['szene:pause', 'Kurze Pause', '☕'], ['szene:gleich', 'Gleich weiter', '⏱️'],
-  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['sound:hohoho', 'Ho ho ho!', '🎅'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬']];
+  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬']];
 const sceneBox = document.getElementById('scenes');
 SCENES.forEach(([id, label, ico]) => {
   const b = button(sceneBox, { id, label, ico });
@@ -43,6 +43,12 @@ SCENES.forEach(([id, label, ico]) => {
 const lines = String(D.knoepfe || '').split('\n').map(l => l.split('|').map(s => s.trim())).filter(l => l[0]);
 const btnBox = document.getElementById('buttons');
 lines.forEach(([id, label, ico]) => button(btnBox, { id, label: label || id, ico }));
+
+// Weihnachten: Animationen + reine Sounds (sound:<name> spielt /sounds/<name>.mp3)
+const XMAS_SOUNDS = [['sound:hohoho', 'Ho ho ho!', '🎅'], ['sound:schlitten', 'Schlittenglocken', '🔔'], ['sound:glocken', 'Kirchenglocken', '🛎️'],
+  ['sound:schneeball', 'Schneeball', '☃️'], ['sound:geschenk', 'Geschenk auspacken', '🎀'], ['sound:prost', 'Prost!', '🥂'], ['sound:elfen', 'Elfen kichern', '🧝']];
+if (D.weihnachtAn === false) { document.getElementById('xmasTitel').style.display = 'none'; }
+else { const xb = document.getElementById('xmas'); [...(window.MM_LIST || []).filter(a => /^xmas-/.test(a.id)).map(a => [a.id, a.label, a.ico || '🎄']), ...XMAS_SOUNDS].forEach(([id, label, ico]) => button(xb, { id, label, ico })); }
 
 const tests = window.MM_TESTS || [];
 if (D.testKnoepfe === false || !tests.length) { document.getElementById('testTitle').style.display = 'none'; }

@@ -36,20 +36,26 @@
     "label": "Knöpfe (je Zeile: Animation | Beschriftung | Symbol)",
     "value": "airhorn | Airhorn | 📯\ntorjubel | Torjubel | ⚽\ntrommelwirbel | Trommelwirbel | 🥁\napplaus | Applaus | 👏\nkonfetti | Konfetti | 🎉\nverlosung | Verlosung | 🎡\nfanfare | Fanfare | 🎺\nlacher | Lacher | 😂\nwow | Wow | 🤩\nrimshot | Ba-dum-tss | 🥁\nherzregen | Herzregen | 💖\npartyalarm | Party-Alarm | 🚨"
   },
-  "spieleAn": {
+  "weihnachtAn": {
     "order": 7,
+    "type": "checkbox",
+    "label": "Bereich „Weihnachten“ (Animationen + Sounds) zeigen",
+    "value": true
+  },
+  "spieleAn": {
+    "order": 8,
     "type": "checkbox",
     "label": "Spiele-Leiste „Was läuft gerade?“ zeigen",
     "value": true
   },
   "testKnoepfe": {
-    "order": 8,
+    "order": 9,
     "type": "checkbox",
     "label": "Test-Knöpfe für Geschenke und Ereignisse zeigen",
     "value": true
   },
   "nameFeld": {
-    "order": 9,
+    "order": 10,
     "type": "checkbox",
     "label": "Feld für Namen (z. B. Gewinner) zeigen",
     "value": true

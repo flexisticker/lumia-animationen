@@ -5579,5 +5579,285 @@
         "twitch"
       ]
     }
+  },
+  "an_xmas-schlitten": {
+    "order": 400,
+    "type": "checkbox",
+    "label": "Schlitten: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_xmas-schlitten": {
+    "order": 401,
+    "type": "videoupload",
+    "label": "Schlitten: eigenes Video (hochkant)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "vq_xmas-schlitten": {
+    "order": 402,
+    "type": "videoupload",
+    "label": "Schlitten: eigenes Video (quer 16:9)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_xmas-schlitten": {
+    "order": 403,
+    "type": "slider",
+    "label": "Schlitten: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_xmas-schnee": {
+    "order": 404,
+    "type": "checkbox",
+    "label": "Schneegestöber: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_xmas-schnee": {
+    "order": 405,
+    "type": "videoupload",
+    "label": "Schneegestöber: eigenes Video (hochkant)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "vq_xmas-schnee": {
+    "order": 406,
+    "type": "videoupload",
+    "label": "Schneegestöber: eigenes Video (quer 16:9)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_xmas-schnee": {
+    "order": 407,
+    "type": "slider",
+    "label": "Schneegestöber: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_xmas-geschenke": {
+    "order": 408,
+    "type": "checkbox",
+    "label": "Geschenkeregen: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_xmas-geschenke": {
+    "order": 409,
+    "type": "videoupload",
+    "label": "Geschenkeregen: eigenes Video (hochkant)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "vq_xmas-geschenke": {
+    "order": 410,
+    "type": "videoupload",
+    "label": "Geschenkeregen: eigenes Video (quer 16:9)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_xmas-geschenke": {
+    "order": 411,
+    "type": "slider",
+    "label": "Geschenkeregen: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_xmas-baum": {
+    "order": 412,
+    "type": "checkbox",
+    "label": "Weihnachtsbaum: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_xmas-baum": {
+    "order": 413,
+    "type": "videoupload",
+    "label": "Weihnachtsbaum: eigenes Video (hochkant)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "vq_xmas-baum": {
+    "order": 414,
+    "type": "videoupload",
+    "label": "Weihnachtsbaum: eigenes Video (quer 16:9)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_xmas-baum": {
+    "order": 415,
+    "type": "slider",
+    "label": "Weihnachtsbaum: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "an_xmas-schneemann": {
+    "order": 416,
+    "type": "checkbox",
+    "label": "Schneemann: an",
+    "value": true,
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "v_xmas-schneemann": {
+    "order": 417,
+    "type": "videoupload",
+    "label": "Schneemann: eigenes Video (hochkant)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "vq_xmas-schneemann": {
+    "order": 418,
+    "type": "videoupload",
+    "label": "Schneemann: eigenes Video (quer 16:9)",
+    "value": "",
+    "accept": "video/mp4,video/webm",
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
+  },
+  "l_xmas-schneemann": {
+    "order": 419,
+    "type": "slider",
+    "label": "Schneemann: Lautstärke",
+    "value": 100,
+    "options": {
+      "min": 0,
+      "max": 150,
+      "step": 5,
+      "suffix": "%"
+    },
+    "visibleIf": {
+      "key": "bereich",
+      "equals": [
+        "knopf"
+      ]
+    }
   }
 }
