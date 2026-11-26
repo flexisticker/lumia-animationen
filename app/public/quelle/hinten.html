@@ -64,7 +64,7 @@ body.leicht .frame-glow { --a: 0deg; }
 <div id="tag1" class="tag"></div>
 <div id="tag2" class="tag"></div>
 <div id="tag3" class="tag"></div>
-<audio id="music" loop></audio>
+<audio id="music" loop></audio><audio id="atmoA" loop></audio><audio id="atmoB" loop></audio>
 
 <script>// MichaModus Studio – Verbindung der Browserquellen/Seiten zum Programm (ersetzt die Lumia-Overlay-Schnittstelle)
 (function () {
@@ -300,7 +300,31 @@ requestAnimationFrame(draw);
 function setMode(v) {
   const next = String(v || '').toLowerCase() === 'zocken' ? 'zocken' : 'party';
   if (next !== mode && D.modusSound) { try { const a = new Audio(D.modusSound); a.volume = Math.min(1, num(D.modusSoundLaut, 80) / 100); a.play().catch(() => {}); } catch (e) {} }
-  mode = next; letzterStand = '';
+  mode = next; letzterStand = ''; atmoWahl();
+}
+// ---------- Atmo: Geräusch-Schleife passend zum sichtbaren Hintergrund (Kaminfeuer, Wind, Drucker …) ----------
+// Reihenfolge: eigene Atmo am Spiel › eigene Atmo je Modus › /atmo/<name>.mp3 passend zum Videonamen (z. B. wow-forever.mp4 → /atmo/wow-forever.mp3)
+const atmoEl = [document.getElementById('atmoA'), document.getElementById('atmoB')];
+let atmoIdx = 0, atmoAkt = '';
+const atmoVol = () => Math.max(0, Math.min(1, num(D.atmoLautstaerke, 30) / 100));
+function atmoFade(el, ziel, ms, fertig) {
+  clearInterval(el._fade); const von = el.volume, t0 = performance.now();
+  el._fade = setInterval(() => { const k = Math.min(1, (performance.now() - t0) / ms); el.volume = Math.max(0, Math.min(1, von + (ziel - von) * k)); if (k >= 1) { clearInterval(el._fade); fertig && fertig(); } }, 50);
+}
+function atmoAusVideo(src) { const t = String(src || '').match(/\/hintergrund\/(?:spiele\/)?([a-z0-9-]+?)(?:-quer)?\.(?:mp4|webm)$/i); return t ? '/atmo/' + t[1].toLowerCase() + '.mp3' : ''; }
+function atmoWahl() {
+  let url = '';
+  if (D.atmoAn !== false) {
+    if (mode === 'zocken') url = (curSpiel && curSpiel.atmo) || (!curSpiel && D.atmoZocken) || atmoAusVideo((curSpiel && pick(curSpiel.video, curSpiel.videoQuer)) || zockDefault) || D.atmoZocken || '';
+    else url = D.atmoParty || (D.videoAn !== false ? atmoAusVideo(pick(D.video, D.videoQuer)) : '');
+  }
+  if (url === atmoAkt) return;
+  atmoAkt = url;
+  const alt = atmoEl[atmoIdx]; atmoIdx = 1 - atmoIdx; const neu = atmoEl[atmoIdx];
+  atmoFade(alt, 0, 1500, () => { alt.pause(); });
+  if (!url) return;
+  neu.onerror = () => {};   // keine Datei für diesen Hintergrund → einfach still
+  neu.src = url; neu.volume = 0; neu.play().then(() => atmoFade(neu, atmoVol(), 2000)).catch(() => setTimeout(() => { if (atmoAkt === url) neu.play().then(() => atmoFade(neu, atmoVol(), 2000)).catch(() => {}); }, 2000));
 }
 async function poll() {
   try { if (window.Overlay && Overlay.getVariable) { const v = await Overlay.getVariable('mm_modus'); if (v) setMode(v); } } catch (e) {}
@@ -313,8 +337,9 @@ function setSpiel(sp) {
   curSpiel = sp;
   const src = (sp && pick(sp.video, sp.videoQuer)) || zockDefault;
   if (src && vZ.getAttribute('src') !== src) { vZ.src = src; vZ.play().catch(() => {}); }
-  letzterStand = '';
+  letzterStand = ''; atmoWahl();
 }
+setTimeout(atmoWahl, 300);
 if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));

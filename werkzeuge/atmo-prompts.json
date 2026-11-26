@@ -1,0 +1,57 @@
+{
+ "hinweis": "Atmo-Schleifen je Hintergrund: elevenlabs/sound-effects/v3, 30 s, loop true, prompt_influence 0.5 (ca. 0,06 $ je Datei). Ergebnis nach medien/atmo/<name>.mp3 (Name = Videoname ohne -quer).",
+ "liste": [
+  {
+   "name": "wow-forever",
+   "text": "Ambience of a huge medieval stone castle great hall at night: two large fireplaces crackling and popping warmly, cold wind howling and gusting through the tall open gate and echoing through the hall, heavy cloth banners flapping softly, distant reverb. No music, no voices."
+  },
+  {
+   "name": "star-citizen",
+   "text": "Ambience inside a large spaceship bridge: deep low engine rumble, steady air vent hum, soft computer console beeps and quiet electronic chirps, faint hiss of mist. No music, no voices."
+  },
+  {
+   "name": "skerrion",
+   "text": "Mystical ambience of floating crystal islands in a dark void: deep ethereal wind drone, low humming of glowing purple crystals, faint magical chimes and shimmering sparkles in the distance. No music, no voices."
+  },
+  {
+   "name": "retro",
+   "text": "Ambience of a neon retro arcade hall: many arcade machines quietly bleeping and blooping in the distance, 8-bit coin sounds far away, low CRT hum and electric buzz of neon tubes, light fog machine hiss. No music, no voices."
+  },
+  {
+   "name": "rpg",
+   "text": "Night ambience in an enchanted fantasy forest camp: campfire crackling and popping, crickets chirping, an owl hooting in the distance, soft leaves rustling in a light breeze, faint magical portal hum. No music, no voices."
+  },
+  {
+   "name": "scifi",
+   "text": "Ambience of a cyberpunk apartment window at night: steady rain pattering on glass, distant hover car traffic whooshing by, low city rumble, electric buzz of neon signs. No music, no voices."
+  },
+  {
+   "name": "jumprun",
+   "text": "Cheerful outdoor ambience on floating fantasy islands: waterfalls splashing and rushing, birds chirping happily, light wind breeze, tiny distant magical sparkles. No music, no voices."
+  },
+  {
+   "name": "aufbau",
+   "text": "Peaceful medieval village morning ambience: birds singing, a gentle river flowing, wooden windmill slowly creaking, distant blacksmith hammering softly, a cow mooing far away, light breeze. No music, no voices."
+  },
+  {
+   "name": "strategie",
+   "text": "Ambience of a quiet castle war room: candles softly crackling, wind blowing gently against an old window, distant birds outside, quiet stone room tone, occasional faint paper rustle. No music, no voices."
+  },
+  {
+   "name": "talk",
+   "text": "Cozy lounge room ambience: very quiet warm room tone, a wall clock softly ticking, gentle rain against the window outside, faint distant city hum. Calm and subtle. No music, no voices."
+  },
+  {
+   "name": "zockerbude",
+   "text": "Ambience of a modern gaming room: steady soft hum of gaming PC fans, faint electrical buzz of LED lights, occasional quiet mechanical keyboard clicks and mouse clicks, calm room tone. No music, no voices."
+  },
+  {
+   "name": "werkstatt",
+   "text": "Ambience of a 3D printing workshop: several 3D printers working, rhythmic stepper motor whirring and buzzing, small cooling fans humming, occasional soft clicks of the print head, calm workshop room tone. No music, no voices."
+  },
+  {
+   "name": "party-schleife",
+   "text": "Ambience of a big concert hall before the show: excited crowd murmuring and chattering in the distance, occasional cheers and whistles, large hall reverb. No music."
+  }
+ ]
+}

@@ -320,7 +320,7 @@ function lumiaConnect() {
 }
 
 // ---------- Modus, Spiel, OBS ----------
-const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, start: sp.start || '', ende: sp.ende || '' } : null; };
+const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, atmo: sp.atmo || '', start: sp.start || '', ende: sp.ende || '' } : null; };
 // Musik: Titel + Lautstärke für alle hinteren Quellen (Lautstärke null = Wert aus den Hintergrund-Einstellungen)
 const musikInfo = () => {
   const t = saved.musik.titel, x = MUSIK.find(m => m.id === t);
@@ -904,7 +904,7 @@ const server = http.createServer(async (req, res) => {
       if (!Array.isArray(b.spiele)) return json(res, 400, { fehler: 'ungültig' });
       saved.spiele = b.spiele.slice(0, 50).map(x => ({ id: String(x.id || crypto.randomBytes(4).toString('hex')).replace(/[^a-z0-9-]/gi, '').slice(0, 40) || crypto.randomBytes(4).toString('hex'),
         name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200), musik: MUSIK.some(m => m.id === x.musik) ? x.musik : '',
-        ohneFenster: !!x.ohneFenster, start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
+        ohneFenster: !!x.ohneFenster, atmo: String(x.atmo || '').slice(0, 300), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
       if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = '';
       saveSettings(); broadcast('spiele', { spiele: saved.spiele });
       if (saved.modus === 'zocken') broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
@@ -914,7 +914,7 @@ const server = http.createServer(async (req, res) => {
       const [, , , id, key] = p.split('/');
       const name = String(url.searchParams.get('name') || ''); const ext = path.extname(name).toLowerCase();
       const sp = saved.spiele.find(x => x.id === id);
-      if (!sp || !['video', 'videoQuer'].includes(key) || !/^\.(mp4|webm)$/i.test(ext)) return json(res, 400, { fehler: 'Spiel oder Dateityp ungültig' });
+      if (!sp || !['video', 'videoQuer', 'atmo'].includes(key) || !(key === 'atmo' ? /^\.(mp3|ogg|wav)$/i : /^\.(mp4|webm)$/i).test(ext)) return json(res, 400, { fehler: 'Spiel oder Dateityp ungültig' });
       const data = await body(req, 300e6);
       const file = `spiel-${id}-${key}-${crypto.randomBytes(4).toString('hex')}${ext}`;
       fs.writeFileSync(path.join(UPLOADS, file), data);

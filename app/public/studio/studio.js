@@ -286,6 +286,15 @@ function spielePage(m) {
         h('summary', {}, h('b', {}, g.name || 'Ohne Namen'), h('span', { class: 'hint' }, [g.video ? '🖼️ eigener Hintergrund' : '', g.musik ? '🎵 ' + ((S.musik.liste.find(x => x.id === g.musik) || {}).name || g.musik) : '', g.szene ? '🎥 ' + g.szene : '', g.ohneFenster ? 'ohne Spielfenster' : ''].filter(Boolean).join(' · ')),
           S.modus === 'zocken' && S.spiel === S.spiele[i].id ? h('span', { class: 'pill ok' }, 'läuft gerade') : null),
         field('Spiel', name), field('Hintergrund hochkant (TikTok)', vid('video')), field('Hintergrund quer (Twitch)', vid('videoQuer')),
+        field('Geräusche (Atmo)', (() => { const file = h('input', { type: 'file', accept: 'audio/mpeg,audio/ogg,audio/wav', style: 'display:none' });
+          const name = (g.video || '').match(/\/hintergrund\/(?:spiele\/)?([a-z0-9-]+?)(?:-quer)?\.mp4$/i);
+          const info = h('code', {}, g.atmo || (name ? 'passend zum Hintergrund: /atmo/' + name[1] + '.mp3' : 'keine'));
+          const probe = h('audio', { controls: '', preload: 'none', src: g.atmo || (name ? '/atmo/' + name[1] + '.mp3' : ''), style: 'height:32px;max-width:220px' });
+          file.onchange = async () => { const fl = file.files[0]; if (!fl) return; await save(); info.textContent = 'lädt hoch …';
+            const r = await post(`/api/upload-spiel/${S.spiele[i].id}/atmo?name=${encodeURIComponent(fl.name)}`, fl, true);
+            if (r.ok) { g.atmo = (await r.json()).adresse; info.textContent = g.atmo; probe.src = g.atmo; toast('Geräusche gespeichert'); } else info.textContent = 'Fehler'; };
+          return h('div', { class: 'media' }, probe, info, h('button', { class: 'b', onclick: () => file.click() }, 'Eigene Datei …'), file,
+            g.atmo ? h('button', { class: 'b', onclick: async () => { g.atmo = ''; await save(); draw(); } }, 'Standard') : null); })()),
         field('Eigene OBS-Szene (optional)', sceneSelect(g.szene, async v => { g.szene = v; await save(); }, '– Gaming-Szene –')),
         field('Start-Ansage für dieses Spiel (optional, Titel | Unterzeile)', h('input', { type: 'text', value: g.start || '', placeholder: 'z. B. Raid-Abend in Azeroth! | Gleich geht\'s los', onchange: async e => { g.start = e.target.value; await save(); } })),
         field('Ende-Ansage für dieses Spiel (optional)', h('input', { type: 'text', value: g.ende || '', placeholder: 'z. B. GG & gute Nacht! | Morgen wieder', onchange: async e => { g.ende = e.target.value; await save(); } })),

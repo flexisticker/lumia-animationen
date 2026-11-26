@@ -189,3 +189,8 @@
   **Offen:** Michaels Logo-Datei (kam nur als Chat-Bild, nicht als Datei) – Untertitel soll „3D-Druck · Textilveredelung · Werbetassen“ werden. Geprüft mit Platzhalter-Logo (Headless, hoch + quer).
 - 26.11.2026: **Ende-Ansage zeigte bei 3dbymicha „Folg MichaModus“** (fester Text). Jetzt Platzhalter `{KANAL}` (= `bannerText` des Kanals) in `szeneEnde`, 3dbymicha-Vorgabe
   „Danke & bis bald! | Folg 3dbymicha – 3D-Druck, Textil & Werbetassen“; gespeicherte szene*-Texte anderer Kanäle werden beim Start von „MichaModus“ auf `{KANAL}` umgestellt. Banner-HTML startet leer. Geprüft (Headless) für beide Kanäle.
+- 26.11.2026: **Atmo-Geräusche zum Hintergrund** (Wunsch Michael: WoW Forever ohne Kaminknistern/Luftzug). Hintergrund-Overlay spielt eine Geräusch-Schleife passend zum sichtbaren Video
+  (`atmoWahl`: Spiel-`atmo` › `atmoParty`/`atmoZocken` › `/atmo/<videoname>.mp3`, z. B. wow-forever.mp4 → medien/atmo/wow-forever.mp3), zwei `<audio>` mit 1,5–2 s Überblendung, fehlende Datei = still.
+  Einstellungen hinten Bereich Bild: `atmoAn`, `atmoLautstaerke` (30), `atmoParty`, `atmoZocken`; je Spiel Upload „Geräusche (Atmo)“ (`/api/upload-spiel/<id>/atmo`, mp3/ogg/wav, `spiel.atmo`).
+  Prompts für 13 Hintergründe in `werkzeuge/atmo-prompts.json` (ElevenLabs SFX v3, 30 s, loop). **Noch nicht erzeugt:** fal-Guthaben leer (balance_exhausted) – nach Aufladen + Freigabe erzeugen
+  und nach `medien/atmo/` legen. Geprüft (Headless) mit Ersatz-Dateien: Wechsel Party → WoW → Star Citizen (fehlt → still) → Party.

@@ -1750,5 +1750,61 @@
    ]
   },
   "order": 80.0695
+ },
+ "atmoAn": {
+  "type": "checkbox",
+  "label": "Geräusche zum Hintergrund (Atmo, z. B. Kaminfeuer, Wind)",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 11.6
+ },
+ "atmoLautstaerke": {
+  "type": "slider",
+  "label": "Atmo-Lautstärke",
+  "value": 30,
+  "options": {
+   "min": 0,
+   "max": 100,
+   "step": 5,
+   "suffix": "%"
+  },
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 11.7
+ },
+ "atmoParty": {
+  "type": "soundupload",
+  "label": "Eigene Atmo Modus 1 (leer = passend zum Hintergrund)",
+  "value": "",
+  "accept": "audio/mpeg,audio/ogg,audio/wav",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 11.8
+ },
+ "atmoZocken": {
+  "type": "soundupload",
+  "label": "Eigene Atmo Modus 2 ohne Spiel (leer = passend zum Hintergrund)",
+  "value": "",
+  "accept": "audio/mpeg,audio/ogg,audio/wav",
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 11.9
  }
 }

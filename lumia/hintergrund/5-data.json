@@ -105,5 +105,9 @@
   "monPerspektiveUnten": 6,
   "monQPerspektiveUnten": 0,
   "monFrei": 30,
-  "monQFrei": 15
+  "monQFrei": 15,
+  "atmoAn": true,
+  "atmoLautstaerke": 30,
+  "atmoParty": "",
+  "atmoZocken": ""
 }
