@@ -22,8 +22,21 @@ root.setProperty('--bannerSize', num(D.bannerGroesse, 7) + 'vh');
 root.setProperty('--bannerTop', num(D.bannerAbstand, 3) + 'vh');
 root.setProperty('--cardTop', num(D.namePosition, 62) + '%');
 if (!on('bannerAn')) banner.classList.add('off');
-const title = D.bannerText || 'MichaModus';
 const slogans = String(D.slogans || '').split('\n').map(s => s.trim()).filter(Boolean);
+// Logo statt Schriftzug: animiert, Slogans wechseln darunter
+const logoEl = document.getElementById('logo');
+const mitLogo = !!D.logoBild && on('bannerAn');
+let title = D.bannerText || 'MichaModus';
+if (mitLogo) {
+  const url = String(D.logoBild).replace(/["\\]/g, '');
+  logoEl.classList.add('show', 'anim-' + (D.logoAnimation || 'alles'));
+  root.setProperty('--logoH', num(D.logoGroesse, 18) + 'vh'); root.setProperty('--logoX', num(D.logoX, 50) + '%'); root.setProperty('--logoY', num(D.logoY, 2) + 'vh');
+  root.setProperty('--logoBild', 'url("' + url + '")');
+  const img = new Image(); img.onload = () => { root.setProperty('--logoRatio', String(img.naturalWidth / img.naturalHeight || 1)); }; img.src = url;
+  banner.classList.add('unterlogo');
+  root.setProperty('--bannerTop', (num(D.logoY, 2) + num(D.logoGroesse, 18) + 0.8) + 'vh');
+  if (on('logoSlogans') && slogans.length) title = slogans[0]; else banner.classList.add('off');
+}
 function fitBanner() {
   bannerText.style.fontSize = '';
   let f = 1;
@@ -33,7 +46,7 @@ bannerText.textContent = title; fitBanner();
 let sloganIdx = 0;
 if (on('slogansAn') && slogans.length) {
   setInterval(() => {
-    const showSlogan = bannerText.textContent === title;
+    const showSlogan = mitLogo || bannerText.textContent === title;
     bannerText.style.transition = 'opacity .4s'; bannerText.style.opacity = 0;
     setTimeout(() => {
       bannerText.textContent = showSlogan ? slogans[sloganIdx++ % slogans.length] : title;
@@ -41,7 +54,8 @@ if (on('slogansAn') && slogans.length) {
     }, 400);
   }, num(D.sloganSekunden, 8) * 1000);
 }
-function bannerHype() { banner.classList.remove('hype'); void banner.offsetWidth; banner.classList.add('hype'); }
+function bannerHype() { banner.classList.remove('hype'); void banner.offsetWidth; banner.classList.add('hype');
+  if (mitLogo && on('logoHype')) { logoEl.classList.remove('hype'); void logoEl.offsetWidth; logoEl.classList.add('hype'); } }
 
 // ---------- Video mit herausgerechnetem Schwarz (WebGL) ----------
 const canvas = document.getElementById('fx');

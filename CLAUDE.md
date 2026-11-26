@@ -182,3 +182,8 @@
   in `saved.hue.effekte`, Grundlicht je Kanal/Modus als Effekt in `saved.hue.grund[kanal][modus]` (alte Einzelfarben werden umgestellt). Motor: Takt 250 ms (`hueTick`), Schicht Alert › Ansage › Grundlicht,
   sendet nur Änderungen. Overlay meldet bei `/api/hue/anim` zusätzlich alert/gruppe/muenzen → `hueKat`. Test `/api/hue/test {kat}`. Studio-Seite Licht: 1. Spots, 2. Grundlicht, 3. Effekte je Ereignis (▶ je Zeile).
   Geprüft mit Bridge-Nachbau (atmen gegenläufig, Einhorn links blau/rechts gold, Raid wechselt). Mit echten Lampen ungeprüft.
+- 26.11.2026: **Animiertes Logo statt Banner-Text** (Wunsch Michael für 3dbymicha): vorne-Bereich „Banner & Slogans“ neue Felder `logoBild` (imageupload png/webp/jpg), `logoAnimation`
+  (alles = Schweben + Glanz + Wackeln | schweben | wackeln | pulsieren | drehen (3D) | glanz | aus), `logoGroesse` (vh), `logoX`, `logoY`, `logoSlogans` (Slogans laufen kleiner unter dem Logo statt Titel),
+  `logoHype` (hüpft bei Alerts). CSS `.logo` mit Glanz per mask auf das Logo selbst. 3dbymicha-Vorgabe nimmt `/logo/3dbymicha.png`, sobald die Datei unter `medien/logo/` liegt.
+  Slogans 3dbymicha um „3D-Druck · Textilveredelung · Werbetassen“ + „Dein Motiv auf Shirt, Tasse oder als 3D-Druck“ ergänzt (einmalige Umstellung gespeicherter Slogans).
+  **Offen:** Michaels Logo-Datei (kam nur als Chat-Bild, nicht als Datei) – Untertitel soll „3D-Druck · Textilveredelung · Werbetassen“ werden. Geprüft mit Platzhalter-Logo (Headless, hoch + quer).

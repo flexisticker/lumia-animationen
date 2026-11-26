@@ -167,8 +167,8 @@ function mediaControl(bereich, key, f, v) {
   const isVideo = f.type === 'videoupload';
   const fallback = bereich !== 'vorne' ? '' : key.startsWith('vq_') ? S.vorne.medienAdresse + key.slice(3) + '-quer.mp4' : key.startsWith('v_') ? S.vorne.medienAdresse + key.slice(2) + '.mp4' : '';
   const src = v || fallback;
-  const prev = isVideo && src ? h('video', { src: vorschau(src), muted: '', preload: 'metadata', onclick: e => { e.target.muted = !e.target.muted; e.target.currentTime = 0; e.target.play(); } }) : null;
-  const file = h('input', { type: 'file', accept: f.accept || (isVideo ? 'video/*' : 'audio/*'), style: 'display:none' });
+  const prev = f.type === 'imageupload' && src ? h('img', { src, alt: '', class: 'bildvor' }) : isVideo && src ? h('video', { src: vorschau(src), muted: '', preload: 'metadata', onclick: e => { e.target.muted = !e.target.muted; e.target.currentTime = 0; e.target.play(); } }) : null;
+  const file = h('input', { type: 'file', accept: f.accept || (isVideo ? 'video/*' : f.type === 'imageupload' ? 'image/*' : 'audio/*'), style: 'display:none' });
   const info = h('code', {}, v ? v : (fallback ? 'Standard: ' + fallback : 'keine Datei'));
   file.onchange = async () => { const fl = file.files[0]; if (!fl) return; info.textContent = 'lädt hoch …';
     const r = await post(`/api/upload/${bereich}/${key}?name=${encodeURIComponent(fl.name)}`, fl, true);

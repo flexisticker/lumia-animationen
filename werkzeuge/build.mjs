@@ -47,6 +47,13 @@ add('eigeneZuordnung', { type: 'textarea', label: 'Eigene Zuordnung (je Zeile: g
 
 add('bannerAn', { type: 'checkbox', label: 'Banner oben anzeigen', value: true, ...vis('banner') });
 add('bannerText', { type: 'input', label: 'Banner-Text', value: 'MichaModus', ...vis('banner') });
+add('logoBild', { type: 'imageupload', label: 'Logo statt Banner-Text (PNG mit durchsichtigem Rand)', value: '', accept: 'image/png,image/webp,image/jpeg', ...vis('banner') });
+add('logoAnimation', { type: 'dropdown', label: 'Logo-Animation', value: 'alles', options: { alles: 'Schweben + Glanz + leichtes Wackeln', schweben: 'Schweben', wackeln: 'Wackeln', pulsieren: 'Pulsieren', drehen: '3D-Drehen', glanz: 'Nur Glanz', aus: 'Keine' }, ...vis('banner') });
+add('logoGroesse', { type: 'slider', label: 'Logo-Größe (Höhe)', value: 18, options: { min: 6, max: 45, step: 0.5, suffix: ' vh' }, ...vis('banner') });
+add('logoX', { type: 'slider', label: 'Logo waagrecht', value: 50, options: { min: 5, max: 95, step: 0.5, suffix: ' %' }, ...vis('banner') });
+add('logoY', { type: 'slider', label: 'Logo Abstand von oben', value: 2, options: { min: 0, max: 70, step: 0.5, suffix: ' vh' }, ...vis('banner') });
+add('logoSlogans', { type: 'checkbox', label: 'Slogans unter dem Logo zeigen', value: true, ...vis('banner') });
+add('logoHype', { type: 'checkbox', label: 'Logo hüpft bei Alerts', value: true, ...vis('banner') });
 add('bannerGroesse', { type: 'slider', label: 'Banner-Größe', value: 7, options: { min: 3, max: 14, step: 0.5, suffix: ' vh' }, ...vis('banner') });
 add('bannerAbstand', { type: 'slider', label: 'Abstand von oben', value: 3, options: { min: 0, max: 30, step: 0.5, suffix: ' vh' }, ...vis('banner') });
 add('bannerFarbe1', { type: 'colorpicker', label: 'Farbe 1', value: '#ff3d7f', ...vis('banner') });
