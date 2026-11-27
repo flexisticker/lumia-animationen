@@ -433,8 +433,15 @@ function setModus(modus, spielId, quelle, fromObs) {
   if (modus !== 'zocken' && spielId === undefined) { const p = saved.spiele.find(x => x.id === 'party-buehne') || saved.spiele.find(x => x.kategorie === 'party'); if (p) { modus = 'zocken'; spielId = p.id; } }
   const m = modus === 'zocken' ? 'zocken' : 'party';
   const changed = m !== saved.modus || (spielId !== undefined && spielId !== saved.spiel);
+  const spielfensterVorher = fensterSichtbar(1);
   saved.modus = m;
   if (spielId !== undefined) saved.spiel = saved.spiele.some(x => x.id === spielId) ? spielId : '';
+  // Geht durch den Wechsel das Spielfenster auf (z. B. Talk → WoW), gilt dieselbe Regel wie beim Spielfenster-Knopf:
+  // Drucker, Schreibtisch und Wand-Monitor aus (und damit auch ihre OBS-Quellen)
+  if (changed && !spielfensterVorher && fensterSichtbar(1) && (fensterSichtbar(2) || fensterSichtbar(3) || saved.monitor)) {
+    saved.fenster[2] = false; saved.fenster[3] = false; saved.monitor = false;
+    broadcast('fensterstand', { fenster: fensterStand(), monitor: '' }, ['hinten']);
+  }
   saveSettings();
   if (changed) {
     broadcast('modus', { modus: saved.modus, spiel: spielInfo() }); fensterMelden();
