@@ -25,18 +25,29 @@ if (!on('bannerAn')) banner.classList.add('off');
 const slogans = String(D.slogans || '').split('\n').map(s => s.trim()).filter(Boolean);
 // Logo statt Schriftzug: animiert, Slogans wechseln darunter
 const logoEl = document.getElementById('logo');
-const mitLogo = !!D.logoBild && on('bannerAn');
+let mitLogo = false;
 let title = D.bannerText || 'MichaModus';
-if (mitLogo) {
-  const url = String(D.logoBild).replace(/["\\]/g, '');
-  logoEl.classList.add('show', 'anim-' + (D.logoAnimation || 'alles'));
-  root.setProperty('--logoH', num(D.logoGroesse, 18) + 'vh'); root.setProperty('--logoX', num(D.logoX, 50) + '%'); root.setProperty('--logoY', num(D.logoY, 2) + 'vh');
-  root.setProperty('--logoBild', 'url("' + url + '")');
-  const img = new Image(); img.onload = () => { root.setProperty('--logoRatio', String(img.naturalWidth / img.naturalHeight || 1)); }; img.src = url;
-  banner.classList.add('unterlogo');
-  root.setProperty('--bannerTop', (num(D.logoY, 2) + num(D.logoGroesse, 18) + 0.8) + 'vh');
-  if (on('logoSlogans') && slogans.length) title = slogans[0]; else banner.classList.add('off');
+const bannerTopStd = num(D.bannerAbstand, 3) + 'vh';
+// Logo ein/aus (Tablet-Knopf „Logo ein/aus“): aus = wieder der Schriftzug
+function setLogo(an) {
+  const jetzt = !!D.logoBild && on('bannerAn') && an !== false;
+  if (jetzt === mitLogo && setLogo.done) return; setLogo.done = true; mitLogo = jetzt;
+  logoEl.className = 'logo'; banner.classList.remove('unterlogo', 'off');
+  if (!on('bannerAn')) banner.classList.add('off');
+  title = D.bannerText || 'MichaModus';
+  if (mitLogo) {
+    const url = String(D.logoBild).replace(/["\\]/g, '');
+    logoEl.classList.add('show', 'anim-' + (D.logoAnimation || 'alles'));
+    root.setProperty('--logoH', num(D.logoGroesse, 18) + 'vh'); root.setProperty('--logoX', num(D.logoX, 50) + '%'); root.setProperty('--logoY', num(D.logoY, 2) + 'vh');
+    root.setProperty('--logoBild', 'url("' + url + '")');
+    const img = new Image(); img.onload = () => { root.setProperty('--logoRatio', String(img.naturalWidth / img.naturalHeight || 1)); }; img.src = url;
+    banner.classList.add('unterlogo');
+    root.setProperty('--bannerTop', (num(D.logoY, 2) + num(D.logoGroesse, 18) + 0.8) + 'vh');
+    if (on('logoSlogans') && slogans.length) title = slogans[0]; else banner.classList.add('off');
+  } else root.setProperty('--bannerTop', bannerTopStd);
+  if (typeof fitBanner === 'function' && bannerText) { bannerText.textContent = title; fitBanner(); }
 }
+setLogo(true);
 function fitBanner() {
   bannerText.style.fontSize = '';
   let f = 1;
@@ -407,6 +418,7 @@ function handleContent(raw) {
     // Jingle beim Wechsel auf ein Spiel/Thema (z. B. Glöckchen beim Weihnachts-Stream) – nicht beim Laden der Quelle
     if (curSpiel && curSpiel.jingle && (!alt || alt.id !== curSpiel.id) && performance.now() > 5000) sfx(curSpiel.jingle, 100); } catch (e) {} return; }
   if (String(c.id).startsWith('sound:')) { sfx('/sounds/' + String(c.id).slice(6).replace(/[^a-z0-9-]/gi, '') + '.mp3', 100); return; }   // reiner Sound-Knopf
+  if (c.id === 'logo') { setLogo(c.an !== false); return; }
   if (c.id === 'chat') { chatManual = c.an === undefined ? !chatManual : !!c.an; chatUpdate(); return; }
   if (c.id === 'streamprint') { spManual = c.an === undefined ? !spManual : !!c.an; spUpdate(); return; }
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }

@@ -216,3 +216,7 @@
   **Kaminfeuer hörbar:** `medien/atmo/weihnachten.mp3` neu (ElevenLabs SFX, nahes knisterndes Kaminfeuer, 30 s loop, mittlere Lautstärke −22,6 dB statt −28 → deutlich lauter als andere Atmos).
   **Hue-Effekt `kaminfeuer`** (Glut Farbe 1 ↔ Flamme Farbe 2): je Spot eigenes weiches Rauschen aus 3 Schwingungen + Zufall + seltenes Auflodern, heller = gelber, tt 200 ms; Vorgabe Weihnachten #ff3000/#ffb040.
   Geprüft (Headless + Bridge-Nachbau): Follow/kleines Geschenk/Twitch-Follow im Weihnachts-Thema → xa-*, bei WoW normal; 22 Weihnachts-Knöpfe; Lampen flackern unabhängig.
+- 27.11.2026: **3dbymicha-Logo eingebaut** (Michael hat es als Bild geschickt; Original `medien/logo/3dbymicha-original.jpg`): weißer Rand per Flood-Fill freigestellt, Unterzeile
+  „3D-Druck & Textilveredelung“ ersetzt durch „3D-Druck · Textilveredelung / & Werbetassen“ (Poppins Bold aus @fontsource/poppins, Gelb #facc3a, Band #01081a), 973×1000 PNG → `medien/logo/3dbymicha.png` (Preset nimmt es).
+  **Logo zu-/abschaltbar:** Tablet-Knopf „🏷️ Logo ein/aus“ (`/api/aktion {id:'logo'}` → `saved.logoAus`, gilt für alle Quellen, im `hallo` → bleibt nach Neuladen), Overlay `setLogo(an)` (aus = Schriftzug-Banner).
+  Kanal ohne Logo → Meldung „Kein Logo für diesen Kanal eingestellt“. Geprüft (Headless, hoch + quer, Neuladen).

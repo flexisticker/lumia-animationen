@@ -20,7 +20,7 @@ async function send(payload, btn) {
     let r = null;
     if (window.Overlay) r = await Overlay.callCommand(D.befehl || 'mm-aktion', { aktion });
     else if (window.TEST_SEND) window.TEST_SEND(aktion);
-    setStatus(r && r.label && /^(fenster|monitor)/.test(payload.id) ? r.label : 'gesendet: ' + (payload.label || payload.id), 'ok');
+    setStatus(r && r.label && /^(fenster|monitor|logo)/.test(payload.id) ? r.label : 'gesendet: ' + (payload.label || payload.id), 'ok');
   } catch (e) { setStatus('Fehler – Befehl „' + (D.befehl || 'mm-aktion') + '“ vorhanden?', 'err'); }
 }
 function button(box, { id, label, ico }, extra = {}) {
@@ -33,7 +33,7 @@ function button(box, { id, label, ico }, extra = {}) {
 }
 
 const SCENES = [['szene:start', 'Startet gleich', '⏳'], ['szene:pause', 'Kurze Pause', '☕'], ['szene:gleich', 'Gleich weiter', '⏱️'],
-  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬']];
+  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['logo', 'Logo ein/aus', '🏷️'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬']];
 const sceneBox = document.getElementById('scenes');
 SCENES.forEach(([id, label, ico]) => {
   const b = button(sceneBox, { id, label, ico });

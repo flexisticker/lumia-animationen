@@ -751,7 +751,7 @@ const server = http.createServer(async (req, res) => {
       // Studio live informieren, welche Quellen (mit Format) gerade verbunden sind
       const quellenMelden = () => { if (role === 'vorne' || role === 'hinten') broadcast('quellen', quellenListe(), ['studio']); };
       req.on('close', () => { clients.delete(c); quellenMelden(); }); quellenMelden();
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), monitor: monitorArt(), letzte, stand: STAND })}\n\n`);
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), monitor: monitorArt(), letzte, logoAus: !!saved.logoAus, stand: STAND })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
@@ -807,6 +807,10 @@ const server = http.createServer(async (req, res) => {
         const vorher = hueBereit(); saved.hue.live = a.an === undefined ? !saved.hue.live : !!a.an; saveSettings(); await hueUmschalten(vorher); hueStatus();
         a.label = 'Licht ' + (saved.hue.live ? 'folgt dem Stream' : 'normal (Hue wie vorher)');
         remember({ art: 'aktion', quelle: 'knopf', text: a.label }); return json(res, 200, { ok: true, label: a.label, an: saved.hue.live });
+      }
+      if (a.id === 'logo') {
+        saved.logoAus = a.an === undefined ? !saved.logoAus : !a.an; a.an = !saved.logoAus; saveSettings();
+        a.label = settingsFor('vorne').logoBild ? (a.an ? 'Logo an' : 'Logo aus (Schriftzug)') : 'Kein Logo für diesen Kanal eingestellt';
       }
       if (a.id === 'fenster2' || a.id === 'fenster3') { a.nr = Number(a.id.slice(7)); a.id = 'fenster'; }
       if (a.id === 'fenster') {
