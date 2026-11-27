@@ -429,6 +429,37 @@ async function obsQuellenSync() {
     }
   } finally { quellenLaeuft = false; if (quellenNochmal) { quellenNochmal = false; obsQuellenSync(); } }
 }
+// Lage & Größe der OBS-Quellen (Spiel, Drucker, Schreibtisch) an die Fenster im Hintergrund anpassen – sonst ändert der Breite-Regler nur das Loch,
+// das Spielbild darunter bleibt gleich groß. Gleiche Rechnung wie im Hintergrund-Overlay (rect), in Pixeln der OBS-Arbeitsfläche.
+let lageStand = '', lageLaeuft = false, lageNochmal = false, lageTimer = null;
+async function obsLageSync() {
+  const q = saved.obs.quellen || {};
+  if (saved.obs.lage === false || !saved.obs.an || obs.status !== 'verbunden' || !(q.spiel || q.drucker || q.schreibtisch)) return;
+  if (lageLaeuft) { lageNochmal = true; return; }
+  lageLaeuft = true;
+  try {
+    const vs = await obsRequest('GetVideoSettings', {}); if (!vs.ok) return;
+    const BW = vs.data.baseWidth, BH = vs.data.baseHeight, quer = BW > BH, h = settingsFor('hinten');
+    const num = (v, d) => (v === '' || v === undefined || v === null || isNaN(Number(v)) ? d : Number(v));
+    const QK = ['Wann', 'X', 'Y', 'Breite', 'Hoehe', 'Format'];
+    const g = (n, k) => (quer && h['f' + n + 'QuerEigen'] !== false && QK.includes(k) && h['f' + n + 'Q' + k] !== undefined && h['f' + n + 'Q' + k] !== '') ? h['f' + n + 'Q' + k] : h['f' + n + k];
+    const ziele = [[1, q.spiel], [2, q.drucker], [3, q.schreibtisch]].filter(([, name]) => name).map(([n, name]) => {
+      const W = BW * num(g(n, 'Breite'), 80) / 100, fmt = { '16:9': 16 / 9, '4:3': 4 / 3, '9:16': 9 / 16, '1:1': 1 }[g(n, 'Format')];
+      const H = fmt ? W / fmt : BH * num(g(n, 'Hoehe'), 30) / 100;
+      return { name, x: Math.round(BW * num(g(n, 'X'), 50) / 100 - W / 2), y: Math.round(BH * num(g(n, 'Y'), 40) / 100 - H / 2), w: Math.round(W), h: Math.round(H) };
+    });
+    const stand = JSON.stringify([BW, BH, ziele, obs.szenen]); if (stand === lageStand) return;
+    for (const z of ziele) {
+      for (const sceneName of obs.szenen) {
+        const r = await obsRequest('GetSceneItemList', { sceneName }); if (!r.ok) continue;
+        for (const it of r.data.sceneItems || []) if (it.sourceName === z.name)
+          await obsRequest('SetSceneItemTransform', { sceneName, sceneItemId: it.sceneItemId, sceneItemTransform: { positionX: z.x, positionY: z.y, alignment: 5, rotation: 0,
+            boundsType: 'OBS_BOUNDS_SCALE_OUTER', boundsAlignment: 0, boundsWidth: Math.max(1, z.w), boundsHeight: Math.max(1, z.h) } });
+      }
+    }
+    lageStand = stand;
+  } finally { lageLaeuft = false; if (lageNochmal) { lageNochmal = false; obsLageSync(); } }
+}
 function setModus(modus, spielId, quelle, fromObs) {
   if (modus !== 'zocken' && spielId === undefined) { const p = saved.spiele.find(x => x.id === 'party-buehne') || saved.spiele.find(x => x.kategorie === 'party'); if (p) { modus = 'zocken'; spielId = p.id; } }
   const m = modus === 'zocken' ? 'zocken' : 'party';
@@ -542,7 +573,7 @@ function obsConnect() {
       Object.assign(obs, { status: 'verbunden', fehler: '' }); obsStatus();
       obsSend(6, { requestType: 'GetSceneList', requestId: 'szenen' });
       // Quellen-Liste fürs Studio + Fenster-Quellen einmal angleichen
-      setTimeout(async () => { const r = await obsRequest('GetInputList', {}); if (r.ok) { obs.quellen = (r.data.inputs || []).map(x => x.inputName).sort(); obsStatus(); } quellenStand = {}; obsQuellenSync(); }, 500);
+      setTimeout(async () => { const r = await obsRequest('GetInputList', {}); if (r.ok) { obs.quellen = (r.data.inputs || []).map(x => x.inputName).sort(); obsStatus(); } quellenStand = {}; obsQuellenSync(); lageStand = ''; obsLageSync(); }, 500);
     } else if (msg.op === 5 && msg.d && msg.d.eventType === 'CurrentProgramSceneChanged') {
       obsScene(msg.d.eventData.sceneName);
     } else if (msg.op === 5 && msg.d && /^Input(Created|Removed|NameChanged)$/.test(msg.d.eventType)) {
@@ -848,6 +879,7 @@ const server = http.createServer(async (req, res) => {
           if (v === def[key]) delete ziel[key]; else ziel[key] = typeof v === 'string' ? v.slice(0, 5000) : v;
         }
         broadcast('settings', { bereich: k, werte: settingsFor(k) }, [k === 'vorne' ? 'vorne' : k === 'hinten' ? 'hinten' : 'aktion']);
+        if (k === 'hinten') { clearTimeout(lageTimer); lageTimer = setTimeout(obsLageSync, 300); }
       }
       if (b.reset && BEREICHE.includes(b.reset)) { const r = b.reset; cur()[r] = ohneTexte(r, cur()[r]); saved.profile.michamodus[r] = nurTexte(r, saved.profile.michamodus[r]); if (saved.profil === 'michamodus') cur()[r] = {}; broadcast('settings', { bereich: b.reset, werte: settingsFor(b.reset) }, [b.reset]); }
       saveSettings(); return json(res, 200, { ok: true });
@@ -929,13 +961,15 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/obs/quellen' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       saved.obs.quellen = Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || {})[k] ?? (saved.obs.quellen || {})[k] ?? '').trim().slice(0, 200)]));
-      quellenStand = {}; saveSettings(); obsQuellenSync(); return json(res, 200, { ok: true, quellen: saved.obs.quellen });
+      if (typeof b.lage === 'boolean') saved.obs.lage = b.lage;
+      quellenStand = {}; lageStand = ''; saveSettings(); obsQuellenSync(); obsLageSync(); return json(res, 200, { ok: true, quellen: saved.obs.quellen });
     }
     if (p === '/api/obs' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       saved.obs = { host: String(b.host || '').trim().slice(0, 100), port: Number(b.port) || 4455, an: !!b.an,
         szeneZocken: String(b.szeneZocken || ''), szeneParty: String(b.szeneParty || ''), folgen: b.folgen !== false, steuern: b.steuern !== false,
-        quellen: Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || saved.obs.quellen || {})[k] || '').slice(0, 200)])) };
+        quellen: Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || saved.obs.quellen || {})[k] || '').slice(0, 200)])),
+        lage: typeof b.lage === 'boolean' ? b.lage : saved.obs.lage !== false };
       quellenStand = {};
       if (typeof b.passwort === 'string' && b.passwort) { secret.obsPasswort = b.passwort; writeJson(SECRET_FILE, secret); }
       if (b.passwortLoeschen) { delete secret.obsPasswort; writeJson(SECRET_FILE, secret); }

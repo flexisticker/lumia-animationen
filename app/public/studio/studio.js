@@ -259,6 +259,8 @@ function obsPage(m) {
   };
   m.append(h('h2', {}, 'Welche OBS-Quelle gehört zu welchem Fenster?'), h('div', { class: 'card' }, dl,
     h('p', { class: 'hint' }, 'Ist ein Fenster zu, wird die eingetragene Quelle in OBS ausgeblendet (in allen Szenen, in denen sie vorkommt) – und beim Öffnen wieder eingeblendet. Spart Rechenleistung, z. B. bei Kameras. Leer lassen = nicht mitschalten. Wird sofort gespeichert.'),
+    h('label', { class: 'row', style: 'gap:8px;align-items:center;margin:6px 0 10px' }, h('input', { type: 'checkbox', ...(S.obs.lage !== false ? { checked: '' } : {}), onchange: async e => { await post('/api/obs/quellen', { lage: e.target.checked }); S.obs.lage = e.target.checked; toast(e.target.checked ? 'Lage & Größe werden in OBS mitgeführt' : 'Lage & Größe nicht mehr mitführen'); } }),
+      h('span', {}, h('b', {}, 'Lage & Größe in OBS mitführen'), ' – Spiel, Drucker und Schreibtisch werden in OBS genau in ihr Fenster gesetzt (Breite/Höhe/Mitte aus „Hintergrund & Kameras“). Aus = du stellst die Quellen in OBS selbst ein.')),
     zeile('spiel', '🪟', 'Spielfenster', F[1]), zeile('drucker', '🖨️', 'Drucker-Kamera', F[2]), zeile('schreibtisch', '🖥️', 'Schreibtisch-Kamera', F[3]), zeile('monitor', '📺', 'Drucker im Wand-Monitor', F['monitor-drucker']),
     !verbunden ? h('p', { class: 'hint warntext' }, 'OBS ist gerade nicht verbunden – deshalb gibt es keine Auswahlliste. Du kannst die Namen trotzdem eintippen, geschaltet wird sobald OBS verbunden ist.') : null));
   m.append(h('h2', {}, 'Verbindung & Szenen'), h('div', { class: 'card' },

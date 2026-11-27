@@ -250,3 +250,9 @@
   (true/false erzwingt, null = wie eingestellt), `einblendungSichtbar(id)` (gleiche Regel wie Overlay), `/api/aktion {id:'chat'|'streamprint'}` schaltet den sichtbaren Zustand um, `fensterSicht().chat/streamprint/streamprintMoeglich`,
   `hallo.zwang` → Shim → Overlay `chatZwang`/`spZwang` (bleibt nach Neuladen, gilt für hoch + quer, bleibt bei Hintergrundwechsel). Kacheln „💬 Chat“ / „🧾 Bondrucker“ (nur mit StreamPrint-Adresse) bei Kameras & Fenster
   (Tablet + Studio), alte Knöpfe bei den Ansagen entfernt. Geprüft (Headless) + Gesamttest ALLES OK.
+- 27.11.2026: **Wechsel zu Hintergrund mit Spielfenster schaltet Kameras aus** (Michael: „Quellen werden nicht abgeschaltet, wenn ich ins Zockerfenster geh“): `setModus` merkt `spielfensterVorher`;
+  geht das Spielfenster durch den Wechsel auf (Talk → WoW), wie beim Spielfenster-Knopf `saved.fenster[2/3] = false`, Monitor aus, SSE `fensterstand` → OBS-Quellen aus. Spiel → Spiel lässt bewusst eingeschaltete Kameras an.
+  **„Breite des Zockerfensters hochkant nicht verstellbar“:** Overlay-Regler wirkte (geprüft), aber nur auf das Loch – die OBS-Spielquelle darunter blieb gleich groß. Neu `obsLageSync()`: `GetVideoSettings` (Arbeitsfläche;
+  breiter als hoch = Quer-Werte `f<n>Q*`), Rechteck wie `rect()` im Overlay, `SetSceneItemTransform` (alignment 5 = oben links, `OBS_BOUNDS_SCALE_OUTER` = füllt das Fenster) für Spiel/Drucker/Schreibtisch in allen Szenen.
+  Auslöser: nach OBS-Verbinden, Quellen-Zuordnung, jeder Hintergrund-Einstellung (300 ms entprellt); nur bei Änderung (`lageStand`). Schalter `saved.obs.lage` (Standard an, Studio → OBS & Fenster-Quellen
+  „Lage & Größe in OBS mitführen“). OBS-Nachbau kann jetzt GetVideoSettings/SetSceneItemTransform (`OBS_B`/`OBS_H` = Arbeitsfläche). Annahme: Hintergrund-Browserquelle liegt in OBS über den Kameras/dem Spiel.
