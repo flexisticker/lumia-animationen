@@ -415,16 +415,13 @@ async function obsQuellenSync() {
   quellenLaeuft = true;
   try {
     const sicht = fensterSicht(), soll = {};
-    const setz = (name, an) => { if (name) soll[name] = !!(soll[name] || an); };
+    const setz = (namen, an) => { for (const name of quellNamen(namen)) soll[name] = !!(soll[name] || an); };
     setz(q.spiel, sicht[1]); setz(q.drucker, sicht[2]); setz(q.schreibtisch, sicht[3]); setz(q.monitor, sicht['monitor-drucker'] && sicht.monitorMoeglich);
     for (const [name, an] of Object.entries(soll)) {
       if (quellenStand[name] === an) continue;
-      let gefunden = 0;
-      for (const sceneName of obs.szenen) {
-        const r = await obsRequest('GetSceneItemList', { sceneName }); if (!r.ok) continue;
-        for (const it of r.data.sceneItems || []) if (it.sourceName === name) { gefunden++; await obsRequest('SetSceneItemEnabled', { sceneName, sceneItemId: it.sceneItemId, sceneItemEnabled: an }); }
-      }
-      if (!gefunden) remember({ art: 'fehler', quelle: 'obs', text: 'OBS-Quelle „' + name + '“ in keiner Szene gefunden' });
+      const vorkommen = await quellVorkommen(name);
+      for (const v of vorkommen) await obsRequest('SetSceneItemEnabled', { ...v, sceneItemEnabled: an });
+      if (!vorkommen.length) remember({ art: 'fehler', quelle: 'obs', text: 'OBS-Quelle „' + name + '“ in keiner Szene gefunden' });
       quellenStand[name] = an;
     }
   } finally { quellenLaeuft = false; if (quellenNochmal) { quellenNochmal = false; obsQuellenSync(); } }
@@ -432,6 +429,19 @@ async function obsQuellenSync() {
 // Lage & Größe der OBS-Quellen (Spiel, Drucker, Schreibtisch) an die Fenster im Hintergrund anpassen – sonst ändert der Breite-Regler nur das Loch,
 // das Spielbild darunter bleibt gleich groß. Gleiche Rechnung wie im Hintergrund-Overlay (rect), in Pixeln der OBS-Arbeitsfläche.
 let lageStand = '', lageLaeuft = false, lageNochmal = false, lageTimer = null;
+const quellNamen = v => String(v || '').split('\n').map(x => x.trim()).filter(Boolean);
+// Alle Vorkommen einer Quelle: Szenen und Gruppen darin (Gruppen werden über ihren Namen als sceneName angesprochen)
+async function quellVorkommen(name) {
+  const treffer = [];
+  for (const sceneName of obs.szenen) {
+    const r = await obsRequest('GetSceneItemList', { sceneName }); if (!r.ok) continue;
+    for (const it of r.data.sceneItems || []) {
+      if (it.sourceName === name) treffer.push({ sceneName, sceneItemId: it.sceneItemId });
+      if (it.isGroup) { const g = await obsRequest('GetGroupSceneItemList', { sceneName: it.sourceName }); if (g.ok) for (const gi of g.data.sceneItems || []) if (gi.sourceName === name) treffer.push({ sceneName: it.sourceName, sceneItemId: gi.sceneItemId }); }
+    }
+  }
+  return treffer;
+}
 async function obsLageSync() {
   const q = saved.obs.quellen || {};
   if (saved.obs.lage === false || !saved.obs.an || obs.status !== 'verbunden' || !(q.spiel || q.drucker || q.schreibtisch)) return;
@@ -443,17 +453,15 @@ async function obsLageSync() {
     const num = (v, d) => (v === '' || v === undefined || v === null || isNaN(Number(v)) ? d : Number(v));
     const QK = ['Wann', 'X', 'Y', 'Breite', 'Hoehe', 'Format'];
     const g = (n, k) => (quer && h['f' + n + 'QuerEigen'] !== false && QK.includes(k) && h['f' + n + 'Q' + k] !== undefined && h['f' + n + 'Q' + k] !== '') ? h['f' + n + 'Q' + k] : h['f' + n + k];
-    const ziele = [[1, q.spiel], [2, q.drucker], [3, q.schreibtisch]].filter(([, name]) => name).map(([n, name]) => {
+    const ziele = [[1, quellNamen(q.spiel)[0]], [2, quellNamen(q.drucker)[0]], [3, quellNamen(q.schreibtisch)[0]]].filter(([, name]) => name).map(([n, name]) => {
       const W = BW * num(g(n, 'Breite'), 80) / 100, fmt = { '16:9': 16 / 9, '4:3': 4 / 3, '9:16': 9 / 16, '1:1': 1 }[g(n, 'Format')];
       const H = fmt ? W / fmt : BH * num(g(n, 'Hoehe'), 30) / 100;
       return { name, x: Math.round(BW * num(g(n, 'X'), 50) / 100 - W / 2), y: Math.round(BH * num(g(n, 'Y'), 40) / 100 - H / 2), w: Math.round(W), h: Math.round(H) };
     });
     const stand = JSON.stringify([BW, BH, ziele, obs.szenen]); if (stand === lageStand) return;
     for (const z of ziele) {
-      for (const sceneName of obs.szenen) {
-        const r = await obsRequest('GetSceneItemList', { sceneName }); if (!r.ok) continue;
-        for (const it of r.data.sceneItems || []) if (it.sourceName === z.name)
-          await obsRequest('SetSceneItemTransform', { sceneName, sceneItemId: it.sceneItemId, sceneItemTransform: { positionX: z.x, positionY: z.y, alignment: 5, rotation: 0,
+      for (const v of await quellVorkommen(z.name)) {
+          await obsRequest('SetSceneItemTransform', { ...v, sceneItemTransform: { positionX: z.x, positionY: z.y, alignment: 5, rotation: 0,
             boundsType: 'OBS_BOUNDS_SCALE_OUTER', boundsAlignment: 0, boundsWidth: Math.max(1, z.w), boundsHeight: Math.max(1, z.h) } });
       }
     }
@@ -960,7 +968,7 @@ const server = http.createServer(async (req, res) => {
     // Nur die OBS-Quellen zu den Fenstern ändern (ohne neu zu verbinden) – das Studio speichert das sofort beim Auswählen
     if (p === '/api/obs/quellen' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
-      saved.obs.quellen = Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || {})[k] ?? (saved.obs.quellen || {})[k] ?? '').trim().slice(0, 200)]));
+      saved.obs.quellen = Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, quellNamen((b.quellen || {})[k] ?? (saved.obs.quellen || {})[k] ?? '').map(x => x.slice(0, 200)).slice(0, 8).join('\n')]));
       if (typeof b.lage === 'boolean') saved.obs.lage = b.lage;
       quellenStand = {}; lageStand = ''; saveSettings(); obsQuellenSync(); obsLageSync(); return json(res, 200, { ok: true, quellen: saved.obs.quellen });
     }
@@ -968,7 +976,7 @@ const server = http.createServer(async (req, res) => {
       const b = JSON.parse((await body(req)).toString() || '{}');
       saved.obs = { host: String(b.host || '').trim().slice(0, 100), port: Number(b.port) || 4455, an: !!b.an,
         szeneZocken: String(b.szeneZocken || ''), szeneParty: String(b.szeneParty || ''), folgen: b.folgen !== false, steuern: b.steuern !== false,
-        quellen: Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, String((b.quellen || saved.obs.quellen || {})[k] || '').slice(0, 200)])),
+        quellen: Object.fromEntries(['spiel', 'drucker', 'schreibtisch', 'monitor'].map(k => [k, quellNamen((b.quellen || saved.obs.quellen || {})[k]).map(x => x.slice(0, 200)).slice(0, 8).join('\n')])),
         lage: typeof b.lage === 'boolean' ? b.lage : saved.obs.lage !== false };
       quellenStand = {};
       if (typeof b.passwort === 'string' && b.passwort) { secret.obsPasswort = b.passwort; writeJson(SECRET_FILE, secret); }

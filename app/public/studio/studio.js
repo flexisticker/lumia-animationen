@@ -215,8 +215,8 @@ function settingsPage(bereich, title, hint) {
         andere ? 'Deine verbundene Quelle ist ' + (quer ? 'hochkant' : 'quer') + ' – stell im Reiter „' + (quer ? t.slice(0, 2) === 'f1' ? 'Spielfenster – TikTok (hochkant)' : 'Fenster 2 – hochkant' : t === 'f1' ? 'Spielfenster – Twitch (quer)' : 'Fenster 2 – quer') + '“ ein oder ändere in OBS die Adresse der Quelle.' : 'Gerade ist gar keine Hintergrund-Quelle verbunden (OBS offen?).')));
   }
   if (bereich === 'hinten' && /^f[123]q?$/.test(page.tab[bereich] || '')) {
-    const k = { 1: 'spiel', 2: 'drucker', 3: 'schreibtisch' }[page.tab[bereich][1]], q = (S.obs.quellen || {})[k];
-    m.append(h('div', { class: 'card info' }, '🎥 OBS-Quelle zu diesem Fenster: ', q ? h('b', {}, q) : h('i', {}, 'keine – Fenster blendet nur den Hintergrund aus'), ' ',
+    const k = { 1: 'spiel', 2: 'drucker', 3: 'schreibtisch' }[page.tab[bereich][1]], q = String((S.obs.quellen || {})[k] || '').split('\n').filter(Boolean).join(' + ');
+    m.append(h('div', { class: 'card info' }, '🎥 OBS-Quelle(n) zu diesem Fenster: ', q ? h('b', {}, q) : h('i', {}, 'keine – Fenster blendet nur den Hintergrund aus'), ' ',
       h('button', { class: 'b', onclick: () => go('obs') }, q ? 'ändern' : 'Quelle zuordnen →')));
   }
   const card = h('div', { class: 'card' }); for (const [k, f] of fields) card.append(field(f.label, control(bereich, k, f)));
@@ -249,16 +249,31 @@ function obsPage(m) {
   const qu = { spiel: '', drucker: '', schreibtisch: '', monitor: '', ...(O.quellen || {}) };
   const F = S.fensterSicht || {};
   const dl = h('datalist', { id: 'obs-quellen' }, ...(S.obsStatus.quellen || []).map(n => h('option', { value: n })));
+  // Je Fenster mehrere OBS-Quellen (z. B. Hauptbild + eigene Quelle fürs Hochkant-Bild) – alle schalten gemeinsam
   const zeile = (k, ico, name, sicht) => {
-    const i = h('input', { type: 'text', list: 'obs-quellen', value: qu[k], placeholder: verbunden ? 'Quelle wählen oder Namen tippen …' : 'Namen der OBS-Quelle genau wie in OBS tippen' });
-    const ok = h('span', { class: 'hint' }, '');
-    i.onchange = async () => { qu[k] = i.value.trim(); const r = await post('/api/obs/quellen', { quellen: { [k]: qu[k] } }); if (r.ok) { S.obs.quellen = (await r.json()).quellen; toast(qu[k] ? '„' + qu[k] + '“ schaltet jetzt mit ' + name : name + ': keine OBS-Quelle mehr'); } };
-    const unbekannt = qu[k] && verbunden && (S.obsStatus.quellen || []).length && !(S.obsStatus.quellen || []).includes(qu[k]);
-    return h('div', { class: 'qzeile' }, h('div', { class: 'qname' }, h('span', { class: 'ico' }, ico), h('b', {}, name), h('span', { class: 'pill ' + (sicht ? 'ok' : '') }, sicht ? 'gerade zu' + ' sehen' : 'zu')),
-      h('div', {}, i, unbekannt ? h('div', { class: 'hint warntext' }, '⚠ In OBS gibt es keine Quelle mit diesem Namen') : ok));
+    const namen = () => String(qu[k] || '').split('\n').map(x => x.trim()).filter(Boolean);
+    const box = h('div', {});
+    const speichern = async liste => { qu[k] = liste.join('\n'); const r = await post('/api/obs/quellen', { quellen: { [k]: qu[k] } });
+      if (r.ok) { S.obs.quellen = (await r.json()).quellen; toast(liste.length ? name + ': ' + liste.map(x => '„' + x + '“').join(' + ') : name + ': keine OBS-Quelle mehr'); } zeichnen(); };
+    const zeichnen = () => {
+      box.innerHTML = '';
+      const liste = namen(), bekannt = S.obsStatus.quellen || [];
+      for (const [j, n] of liste.entries()) {
+        const unbekannt = verbunden && bekannt.length && !bekannt.includes(n);
+        box.append(h('div', { class: 'row', style: 'gap:6px;align-items:center;margin-bottom:4px' }, h('span', { class: 'pill' + (unbekannt ? '' : ' ok') }, n), j === 0 && k !== 'monitor' ? h('span', { class: 'hint' }, 'Hauptquelle (Lage & Größe)') : null,
+          unbekannt ? h('span', { class: 'hint warntext' }, '⚠ gibt es in OBS nicht') : null,
+          h('button', { class: 'b', title: 'Entfernen', onclick: () => speichern(liste.filter((_, x) => x !== j)) }, '✕')));
+      }
+      const i = h('input', { type: 'text', list: 'obs-quellen', placeholder: liste.length ? '+ weitere Quelle (z. B. fürs Hochkant-Bild) …' : (verbunden ? 'Quelle wählen oder Namen tippen …' : 'Namen der OBS-Quelle genau wie in OBS tippen') });
+      const dazu = () => { const v = i.value.trim(); if (v && !liste.includes(v)) speichern([...liste, v]); };
+      i.onchange = dazu; i.onkeydown = e => { if (e.key === 'Enter') dazu(); };
+      box.append(i);
+    };
+    zeichnen();
+    return h('div', { class: 'qzeile' }, h('div', { class: 'qname' }, h('span', { class: 'ico' }, ico), h('b', {}, name), h('span', { class: 'pill ' + (sicht ? 'ok' : '') }, sicht ? 'gerade zu' + ' sehen' : 'zu')), box);
   };
   m.append(h('h2', {}, 'Welche OBS-Quelle gehört zu welchem Fenster?'), h('div', { class: 'card' }, dl,
-    h('p', { class: 'hint' }, 'Ist ein Fenster zu, wird die eingetragene Quelle in OBS ausgeblendet (in allen Szenen, in denen sie vorkommt) – und beim Öffnen wieder eingeblendet. Spart Rechenleistung, z. B. bei Kameras. Leer lassen = nicht mitschalten. Wird sofort gespeichert.'),
+    h('p', { class: 'hint' }, 'Ist ein Fenster zu, werden alle eingetragenen Quellen in OBS ausgeblendet (in allen Szenen und Gruppen, in denen sie vorkommen) – und beim Öffnen wieder eingeblendet. Mehrere Quellen je Fenster möglich, z. B. Hauptbild + eigene Quelle fürs Hochkant-Bild. Spart Rechenleistung, z. B. bei Kameras. Leer lassen = nicht mitschalten. Wird sofort gespeichert.'),
     h('label', { class: 'row', style: 'gap:8px;align-items:center;margin:6px 0 10px' }, h('input', { type: 'checkbox', ...(S.obs.lage !== false ? { checked: '' } : {}), onchange: async e => { await post('/api/obs/quellen', { lage: e.target.checked }); S.obs.lage = e.target.checked; toast(e.target.checked ? 'Lage & Größe werden in OBS mitgeführt' : 'Lage & Größe nicht mehr mitführen'); } }),
       h('span', {}, h('b', {}, 'Lage & Größe in OBS mitführen'), ' – Spiel, Drucker und Schreibtisch werden in OBS genau in ihr Fenster gesetzt (Breite/Höhe/Mitte aus „Hintergrund & Kameras“). Aus = du stellst die Quellen in OBS selbst ein.')),
     zeile('spiel', '🪟', 'Spielfenster', F[1]), zeile('drucker', '🖨️', 'Drucker-Kamera', F[2]), zeile('schreibtisch', '🖥️', 'Schreibtisch-Kamera', F[3]), zeile('monitor', '📺', 'Drucker im Wand-Monitor', F['monitor-drucker']),

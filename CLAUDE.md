@@ -256,3 +256,7 @@
   breiter als hoch = Quer-Werte `f<n>Q*`), Rechteck wie `rect()` im Overlay, `SetSceneItemTransform` (alignment 5 = oben links, `OBS_BOUNDS_SCALE_OUTER` = füllt das Fenster) für Spiel/Drucker/Schreibtisch in allen Szenen.
   Auslöser: nach OBS-Verbinden, Quellen-Zuordnung, jeder Hintergrund-Einstellung (300 ms entprellt); nur bei Änderung (`lageStand`). Schalter `saved.obs.lage` (Standard an, Studio → OBS & Fenster-Quellen
   „Lage & Größe in OBS mitführen“). OBS-Nachbau kann jetzt GetVideoSettings/SetSceneItemTransform (`OBS_B`/`OBS_H` = Arbeitsfläche). Annahme: Hintergrund-Browserquelle liegt in OBS über den Kameras/dem Spiel.
+- 27.11.2026: **Mehrere OBS-Quellen je Fenster** (Michael: Hochkant-Bild hat eigene Quelle, wir schalteten nur die vom Hauptbild): `saved.obs.quellen.<fenster>` = Namen mit Zeilenumbruch getrennt (max. 8, `quellNamen()`),
+  alle werden ein-/ausgeschaltet; `quellVorkommen(name)` sucht in allen Szenen **und Gruppen** (`GetGroupSceneItemList`, Gruppe als sceneName). Lage & Größe (`obsLageSync`) nur für die erste = Hauptquelle.
+  Studio OBS-Seite: je Fenster Liste mit ✕ + Eingabe „weitere Quelle“ (Enter/Auswahl), Fenster-Reiter zeigt „A + B“. OBS-Nachbau: Szene „Vertikal“, Gruppe „Hochkant-Gruppe“ mit „Spiel-Vertikal“.
+  Grenze: Szenen eines eigenen Vertikal-Plugins (z. B. Aitum Vertical) liegen nicht in der normalen OBS-Szenenliste → dort nicht erreichbar (Protokoll „in keiner Szene gefunden“).
