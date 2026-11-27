@@ -368,7 +368,7 @@ function fensterSichtbar(nr) {
 // Wand-Monitor nur sinnvoll, wenn kein Spielfenster offen ist und (je nach Einstellung) im Zockmodus → nur dann Kachel am iPad zeigen
 const monitorArt = () => (saved.monitor === true ? 'liste' : saved.monitor || '');
 const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || saved.modus === 'zocken');
-const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste', 'monitor-drucker': monitorArt() === 'drucker', monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length) });
+const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste', 'monitor-drucker': monitorArt() === 'drucker', monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), logo: !saved.logoAus && !!settingsFor('vorne').logoBild, logoMoeglich: !!settingsFor('vorne').logoBild, lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length) });
 const fensterMelden = () => { broadcast('fenster', fensterSicht(), ['aktion', 'studio']); obsQuellenSync(); };
 // OBS-Quellen zu den Fenstern mitschalten (in allen Szenen, in denen sie vorkommen). Eine Quelle für mehrere Fenster = sichtbar, wenn eines davon offen ist.
 let quellenStand = {}, quellenLaeuft = false, quellenNochmal = false;
@@ -837,7 +837,7 @@ const server = http.createServer(async (req, res) => {
       }
       if (a.id === 'logo') {
         saved.logoAus = a.an === undefined ? !saved.logoAus : !a.an; a.an = !saved.logoAus; saveSettings();
-        a.label = settingsFor('vorne').logoBild ? (a.an ? 'Logo an' : 'Logo aus (Schriftzug)') : 'Kein Logo für diesen Kanal eingestellt';
+        a.label = settingsFor('vorne').logoBild ? (a.an ? 'Logo an' : 'Logo aus (Schriftzug)') : 'Kein Logo für diesen Kanal eingestellt'; fensterMelden();
       }
       if (a.id === 'fenster2' || a.id === 'fenster3') { a.nr = Number(a.id.slice(7)); a.id = 'fenster'; }
       if (a.id === 'fenster') {

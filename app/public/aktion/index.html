@@ -167,7 +167,7 @@ async function send(payload, btn) {
     let r = null;
     if (window.Overlay) r = await Overlay.callCommand(D.befehl || 'mm-aktion', { aktion });
     else if (window.TEST_SEND) window.TEST_SEND(aktion);
-    setStatus(r && r.label && /^(fenster|monitor|logo)/.test(payload.id) ? r.label : 'gesendet: ' + (payload.label || payload.id), 'ok');
+    setStatus(r && r.label && /^(fenster|monitor|logo|licht)/.test(payload.id) ? r.label : 'gesendet: ' + (payload.label || payload.id), 'ok');
   } catch (e) { setStatus('Fehler – Befehl „' + (D.befehl || 'mm-aktion') + '“ vorhanden?', 'err'); }
 }
 function button(box, { id, label, ico }, extra = {}) {
@@ -180,7 +180,7 @@ function button(box, { id, label, ico }, extra = {}) {
 }
 
 const SCENES = [['szene:start', 'Startet gleich', '⏳'], ['szene:pause', 'Kurze Pause', '☕'], ['szene:gleich', 'Gleich weiter', '⏱️'],
-  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['logo', 'Logo ein/aus', '🏷️'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬']];
+  ['szene:weiter', 'Weiter geht\'s!', '🚀'], ['szene:ende', 'Danke & Tschüss', '👋'], ['szene:brb', 'BRB – bin gleich zurück', '🚶'], ['szene:technik', 'Technik-Störung', '🛠️'], ['szene:aus', 'Ansage weg', '✖️'], ['likes', 'Like-Fontäne', '💗'], ['streamprint', 'Bondrucker ein/aus', '🧾'], ['chat', 'Chat ein/aus', '💬']];
 const sceneBox = document.getElementById('scenes');
 SCENES.forEach(([id, label, ico]) => {
   const b = button(sceneBox, { id, label, ico });
@@ -314,7 +314,7 @@ if (window.MM_MUSIK) {
 
 // Kameras & Fenster: große Kacheln oben rechts, zeigen an, was gerade zu sehen ist
 const fensterBox = document.getElementById('fenster');
-const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Monitor: Unterstützer', '📺'], ['monitor-drucker', 'Monitor: Drucker-Kamera', '🖨️'], ['licht', 'Licht (Hue)', '💡']].map(([nr, label, ico]) => {
+const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Monitor: Unterstützer', '📺'], ['monitor-drucker', 'Monitor: Drucker-Kamera', '🖨️'], ['logo', 'Logo', '🏷️'], ['licht', 'Licht (Hue)', '💡']].map(([nr, label, ico]) => {
   const b = document.createElement('button'); b.className = 'btn';
   b.innerHTML = '<span class="ico"></span><span></span><span class="zu"></span>'; b.children[0].textContent = ico; b.children[1].textContent = label;
   b.onclick = () => send({ id: typeof nr === 'string' ? nr : nr === 1 ? 'fenster' : 'fenster' + nr, label: label + ' ein/aus' }, b);
@@ -323,6 +323,7 @@ const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Sc
 function fensterZeigen(sicht) {
   for (const f of FENSTER) { if (String(f.nr).startsWith('monitor')) f.b.style.display = sicht && sicht.monitorMoeglich ? '' : 'none';
     if (f.nr === 'licht') f.b.style.display = sicht && sicht.lichtMoeglich ? '' : 'none';
+    if (f.nr === 'logo') f.b.style.display = sicht && sicht.logoMoeglich ? '' : 'none';
     const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? (f.nr === 'licht' ? '● folgt dem Stream' : String(f.nr).startsWith('monitor') ? '● an' : '● zu sehen') : 'aus'; }
 }
 fensterZeigen(window.MM_FENSTER);

@@ -2,7 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap');
 html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
 /* Videos direkt anzeigen (Grafikkarte), Fenster-Loch per clip-path – kein Kopieren je Bild mehr */
-#bg { position: fixed; inset: 0; background: #120c1f; pointer-events: none; }
+#bg { position: fixed; inset: 0; background: #120c1f; pointer-events: none; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
 #bg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 #bgZock { opacity: 0; }
 #dimZ { position: absolute; inset: 0; background: rgba(5,10,40,.55); opacity: 0; }

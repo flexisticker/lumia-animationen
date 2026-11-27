@@ -231,3 +231,7 @@
   Tablet: Modus-Knöpfe ausgeblendet, Themen gruppiert (`MM_KATEGORIEN`, Emoji am Namensanfang wird Symbol). Studio: Übersicht mit Schnellwahl nach Kategorien statt Modus, Seite „Was läuft gerade“ gruppiert
   mit Kategorie je Eintrag + Kategorien-Karte; Licht-Seite: Grundlicht kommt vom Thema; OBS-Szenen heißen „mit/ohne Spielfenster“. Weihnachts-Alerts brauchen keinen Zockmodus mehr.
   Geprüft (Headless, alte Daten ohne Kategorien): Einsortierung, Tablet-Gruppen, WoW → Fensterloch, Talk → kein Loch, Studio-Seiten ohne Fehler.
+- 27.11.2026: **Kameras überlappend = Bild teilweise verdeckt** (Michael: „Drucker/Schreibtisch nicht richtig einstellbar“): Fensterlöcher wurden per `clip-path: path(evenodd …)` geschnitten → wo sich
+  zwei Fenster überlappen (Standard hochkant: Drucker X72 B46 und Schreibtisch X27 B42 überlappen bei 34–48 %), war das Loch wieder zu. Jetzt SVG-Maske (`mask-image` data-URL mit `<mask>`,
+  Löcher schwarz → Vereinigung), nur bei Änderung neu gesetzt. Lage/Größe-Einstellungen selbst wirkten (geprüft). Geprüft (Headless, Alpha): Überlappung durchsichtig, außerhalb deckend.
+  **Logo-Schalter als Kachel** oben bei „Kameras & Fenster“ (Tablet + Studio-Übersicht), Zustand in `fensterSicht().logo`/`logoMoeglich` (nur wenn Kanal ein Logo hat); Knopf bei den Ansagen entfernt.

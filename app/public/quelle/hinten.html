@@ -4,7 +4,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap');
 html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
 /* Videos direkt anzeigen (Grafikkarte), Fenster-Loch per clip-path – kein Kopieren je Bild mehr */
-#bg { position: fixed; inset: 0; background: #120c1f; pointer-events: none; }
+#bg { position: fixed; inset: 0; background: #120c1f; pointer-events: none; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; }
 #bg video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
 #bgZock { opacity: 0; }
 #dimZ { position: absolute; inset: 0; background: rgba(5,10,40,.55); opacity: 0; }
@@ -295,8 +295,12 @@ function draw(now) {
   }
   monEl.classList.toggle('show', monZeigen && monitorAn === 'liste');
   if (monLoch) loch += monLoch;
-  // Loch (Spielfenster) voll durchsichtig ausschneiden
-  bg.style.clipPath = loch ? `path(evenodd, "M0 0H${cv.width}V${cv.height}H0Z${loch}")` : '';
+  // Löcher (Spielfenster, Kameras, Monitor) voll durchsichtig ausschneiden – als Maske, damit sich überlappende Fenster
+  // vereinigen (mit clip-path „evenodd“ wurde die Überlappung zweier Fenster wieder zugedeckt)
+  bg.style.clipPath = '';
+  const maske = loch ? 'url("data:image/svg+xml,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${cv.width}' height='${cv.height}'><defs><mask id='m' maskUnits='userSpaceOnUse' x='0' y='0' width='${cv.width}' height='${cv.height}'><rect width='${cv.width}' height='${cv.height}' fill='white'/><path d='${loch}' fill='black'/></mask></defs><rect width='${cv.width}' height='${cv.height}' fill='black' mask='url(#m)'/></svg>`) + '")' : '';
+  if (bg.dataset.maske !== maske) { bg.dataset.maske = maske; for (const k of ['maskImage', 'webkitMaskImage']) bg.style[k] = maske || 'none'; }
+  window.MM_LOCH = loch;
 }
 requestAnimationFrame(draw);
 function setMode(v) {

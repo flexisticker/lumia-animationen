@@ -168,8 +168,12 @@ function draw(now) {
   }
   monEl.classList.toggle('show', monZeigen && monitorAn === 'liste');
   if (monLoch) loch += monLoch;
-  // Loch (Spielfenster) voll durchsichtig ausschneiden
-  bg.style.clipPath = loch ? `path(evenodd, "M0 0H${cv.width}V${cv.height}H0Z${loch}")` : '';
+  // Löcher (Spielfenster, Kameras, Monitor) voll durchsichtig ausschneiden – als Maske, damit sich überlappende Fenster
+  // vereinigen (mit clip-path „evenodd“ wurde die Überlappung zweier Fenster wieder zugedeckt)
+  bg.style.clipPath = '';
+  const maske = loch ? 'url("data:image/svg+xml,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='${cv.width}' height='${cv.height}'><defs><mask id='m' maskUnits='userSpaceOnUse' x='0' y='0' width='${cv.width}' height='${cv.height}'><rect width='${cv.width}' height='${cv.height}' fill='white'/><path d='${loch}' fill='black'/></mask></defs><rect width='${cv.width}' height='${cv.height}' fill='black' mask='url(#m)'/></svg>`) + '")' : '';
+  if (bg.dataset.maske !== maske) { bg.dataset.maske = maske; for (const k of ['maskImage', 'webkitMaskImage']) bg.style[k] = maske || 'none'; }
+  window.MM_LOCH = loch;
 }
 requestAnimationFrame(draw);
 function setMode(v) {
