@@ -377,7 +377,7 @@ function lichtPage(m) {
       ...[['links', 'steht links (linke Bildhälfte)'], ['rechts', 'steht rechts (rechte Bildhälfte)'], ['mitte', 'Mitte (Hauptfarbe)']].map(([v, t]) => h('option', { value: v, ...(sp.seite === v ? { selected: '' } : {}) }, t)));
     const hl = h('input', { type: 'range', min: 5, max: 100, value: sp.hell ?? 100 }), hw = h('span', { class: 'val' }, (sp.hell ?? 100) + ' %'); let tm;
     hl.oninput = () => { hw.textContent = hl.value + ' %'; clearTimeout(tm); tm = setTimeout(() => speichern({ spots: { [l.id]: { hell: Number(hl.value) } } }, 'Helligkeit „' + l.name + '“'), 350); };
-    spots.append(h('div', { class: 'spot' + (l.farbig ? '' : ' grau') }, h('label', { class: 'lampe' }, i, ' 💡 ', h('b', {}, l.name), l.farbig ? '' : h('span', { class: 'hint' }, ' (kann keine Farben)')),
+    spots.append(h('div', { class: 'spot' + (l.farbig ? '' : ' grau') }, h('label', { class: 'lampe' }, i, ' 💡 ', h('b', {}, l.name), l.farbig ? '' : h('span', { class: 'hint' }, ' (kann keine Farben)'), l.modell ? h('span', { class: 'hint' }, ' · ' + l.modell) : '', l.erreichbar === false ? h('span', { class: 'hint', style: 'color:#ff6b6b' }, ' · nicht erreichbar (Strom/Funk?)') : ''),
       an ? h('div', { class: 'row' }, seite, h('span', { class: 'efhell' }, '☀', hl, hw)) : null));
   }
   m.append(h('h2', {}, '1. Spots'), h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Haken = macht mit. Die Seite bestimmt beim Ambilight, welche Bildhälfte der Spot nachleuchtet, und bei zweifarbigen Effekten, welche Farbe er bekommt (links = Farbe 1, rechts = Farbe 2).'),

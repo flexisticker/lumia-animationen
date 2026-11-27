@@ -523,6 +523,19 @@ function hexXy(hex) {
   const X = r * 0.664511 + gr * 0.154324 + b * 0.162028, Y = r * 0.283881 + gr * 0.668433 + b * 0.047685, Z = r * 0.000088 + gr * 0.07231 + b * 0.986039;
   const s = X + Y + Z || 1; return [+(X / s).toFixed(4), +(Y / s).toFixed(4)];
 }
+// Farbraum je Lampe: liegt die Farbe außerhalb, zeigen manche Lampen (v. a. fremde Hersteller) Weiß → auf den nächsten Punkt im Dreieck ziehen
+const HUE_GAMUT = { A: [[0.704, 0.296], [0.2151, 0.7106], [0.138, 0.08]], B: [[0.675, 0.322], [0.409, 0.518], [0.167, 0.04]], C: [[0.6915, 0.3083], [0.17, 0.7], [0.1532, 0.0475]] };
+function xyImGamut(p, g) {
+  if (!g) return p;
+  const kreuz = (a, b, c) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const [r, gr, b] = g, d1 = kreuz(r, gr, p), d2 = kreuz(gr, b, p), d3 = kreuz(b, r, p);
+  if ((d1 >= 0 && d2 >= 0 && d3 >= 0) || (d1 <= 0 && d2 <= 0 && d3 <= 0)) return p;
+  const naechst = (a, c) => { const dx = c[0] - a[0], dy = c[1] - a[1]; const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy))); return [a[0] + t * dx, a[1] + t * dy]; };
+  const k = [naechst(r, gr), naechst(gr, b), naechst(b, r)].sort((u, v) => Math.hypot(u[0] - p[0], u[1] - p[1]) - Math.hypot(v[0] - p[0], v[1] - p[1]))[0];
+  return [+k[0].toFixed(4), +k[1].toFixed(4)];
+}
+const hueGamut = id => { const l = hue.lampen.find(x => x.id === id); return l && l.gamut; };
+const hueFehlerGemeldet = new Set();
 // Senden mit Bremse (Bridge verträgt ~10 Befehle/s): je Lampe gilt nur der neueste Wunsch
 const hueSoll = new Map(); let hueLaeuft = false;
 function hueSetze(id, st) { hueSoll.set(id, { ...(hueSoll.get(id) || {}), ...st }); if (!hueLaeuft) hueSende(); }
@@ -530,7 +543,10 @@ async function hueSende() {
   hueLaeuft = true;
   while (hueSoll.size) {
     const [id, st] = hueSoll.entries().next().value; hueSoll.delete(id);
-    try { const r = await fetch(hueUrl(`/lights/${id}/state`), { method: 'PUT', body: JSON.stringify(st), signal: AbortSignal.timeout(2500) }); await r.text();
+    try { const r = await fetch(hueUrl(`/lights/${id}/state`), { method: 'PUT', body: JSON.stringify(st), signal: AbortSignal.timeout(2500) }); const antwort = await r.text();
+      // Fehler der Bridge je Lampe melden (einmal je Meldung), z. B. „Lampe nicht erreichbar“ oder „Farbe nicht verfügbar“
+      try { for (const x of JSON.parse(antwort)) if (x && x.error) { const l = hue.lampen.find(y => y.id === id); const t = 'Hue: ' + (l ? l.name : 'Lampe ' + id) + ' – ' + x.error.description;
+        if (!hueFehlerGemeldet.has(t)) { hueFehlerGemeldet.add(t); remember({ art: 'fehler', quelle: 'hue', text: t }); } } } catch {}
       if (hue.status !== 'verbunden') { hue.status = 'verbunden'; hue.fehler = ''; hueStatus(); } }
     catch { if (hue.status !== 'fehler') { hue.status = 'fehler'; hue.fehler = 'Hue Bridge nicht erreichbar (' + saved.hue.ip + ')'; hueStatus(); } }
     await new Promise(r => setTimeout(r, 110));
@@ -643,7 +659,7 @@ function hueTick() {
   for (const spot of hueSpots()) {
     let e = schicht.blitz && t < 280 ? { hex: '#ffffff', f: 1, tt: 0 } : hueEffekt(schicht.def, schicht.blitz ? t - 280 : t, spot, schicht.spur);
     if (!e) { if (hueAlert && schicht.def.effekt === 'kurz') { hueAlert = null; } continue; }
-    const st = { on: true, bri: hueBri(e.f * (Number(schicht.def.hell ?? 100) / 100) * (Number(spot.hell ?? 100) / 100)), xy: hexXy(e.hex), transitiontime: Math.max(0, Math.round(e.tt)) };
+    const st = { on: true, bri: hueBri(e.f * (Number(schicht.def.hell ?? 100) / 100) * (Number(spot.hell ?? 100) / 100)), xy: xyImGamut(hexXy(e.hex), hueGamut(spot.id)), transitiontime: Math.max(0, Math.round(e.tt)) };
     const sig = st.bri + '|' + st.xy.join(',');
     if (hueGesendet[spot.id] === sig) continue;
     hueGesendet[spot.id] = sig; hueSetze(spot.id, st);
@@ -685,7 +701,9 @@ async function hueLampenLaden() {
   try {
     const d = await (await fetch(hueUrl('/lights'), { signal: AbortSignal.timeout(3000) })).json();
     if (Array.isArray(d) && d[0] && d[0].error) throw new Error(d[0].error.description);
-    hue.lampen = Object.entries(d).map(([id, l]) => ({ id, name: l.name, farbig: !!(l.state && l.state.xy), an: !!(l.state && l.state.on), zustand: l.state }));
+    hue.lampen = Object.entries(d).map(([id, l]) => { const ctl = (l.capabilities && l.capabilities.control) || {};
+      const gamut = Array.isArray(ctl.colorgamut) && ctl.colorgamut.length === 3 ? ctl.colorgamut : HUE_GAMUT[ctl.colorgamuttype] || (l.state && l.state.xy ? HUE_GAMUT.C : null);
+      return { id, name: l.name, farbig: !!(l.state && l.state.xy), an: !!(l.state && l.state.on), zustand: l.state, gamut, modell: [l.manufacturername, l.modelid].filter(Boolean).join(' '), erreichbar: !(l.state && l.state.reachable === false) }; });
     hue.status = 'verbunden'; hue.fehler = '';
   } catch (e) { hue.status = 'fehler'; hue.fehler = 'Bridge antwortet nicht: ' + (e.message || e); }
   hueStatus(); return hue.lampen;

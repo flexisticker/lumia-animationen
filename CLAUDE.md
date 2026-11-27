@@ -220,3 +220,7 @@
   „3D-Druck & Textilveredelung“ ersetzt durch „3D-Druck · Textilveredelung / & Werbetassen“ (Poppins Bold aus @fontsource/poppins, Gelb #facc3a, Band #01081a), 973×1000 PNG → `medien/logo/3dbymicha.png` (Preset nimmt es).
   **Logo zu-/abschaltbar:** Tablet-Knopf „🏷️ Logo ein/aus“ (`/api/aktion {id:'logo'}` → `saved.logoAus`, gilt für alle Quellen, im `hallo` → bleibt nach Neuladen), Overlay `setLogo(an)` (aus = Schriftzug-Banner).
   Kanal ohne Logo → Meldung „Kein Logo für diesen Kanal eingestellt“. Geprüft (Headless, hoch + quer, Neuladen).
+- 27.11.2026: **Hue: ein Spot rötlich, der andere weiß** (Michael, Kaminfeuer). Ursache nicht sicher (kein Zugriff aufs Heimnetz). Gebaut: Farbe je Lampe in ihren Farbraum ziehen
+  (`xyImGamut`, Gamut aus `capabilities.control.colorgamut` bzw. `colorgamuttype` A/B/C, sonst C) – fremde Lampen (z. B. IKEA/Innr) zeigen bei Farben außerhalb oft Weiß;
+  Antwort der Bridge wird ausgewertet, Fehler je Lampe einmal ins Studio-Protokoll („Hue: <Lampe> – …“); Studio-Licht zeigt je Spot Hersteller/Modell und „nicht erreichbar“.
+  Weitere mögliche Ursachen bei Michael: Hue-App-Automation/„Natürliches Licht“, Lumia oder Hue Sync steuern dieselbe Lampe. Geprüft mit Bridge-Nachbau (Gamut B, Fehlerantwort).
