@@ -419,8 +419,9 @@ function handleContent(raw) {
     if (curSpiel && curSpiel.jingle && (!alt || alt.id !== curSpiel.id) && performance.now() > 5000) sfx(curSpiel.jingle, 100); } catch (e) {} try { spUpdate(); chatUpdate(); } catch (e) {} return; }
   if (String(c.id).startsWith('sound:')) { sfx('/sounds/' + String(c.id).slice(6).replace(/[^a-z0-9-]/gi, '') + '.mp3', 100); return; }   // reiner Sound-Knopf
   if (c.id === 'logo') { setLogo(c.an !== false); return; }
-  if (c.id === 'chat') { chatManual = c.an === undefined ? !chatManual : !!c.an; chatUpdate(); return; }
-  if (c.id === 'streamprint') { spManual = c.an === undefined ? !spManual : !!c.an; spUpdate(); return; }
+  // Chat/Bondrucker: an = true/false erzwingt, null = wie eingestellt; ohne Angabe (alte Lumia-Steuerung) = umschalten
+  if (c.id === 'chat') { chatZwang = c.an === undefined ? !chatBox.classList.contains('show') : c.an; chatUpdate(); return; }
+  if (c.id === 'streamprint') { spZwang = c.an === undefined ? !spManual : c.an; if (c.an === undefined) spManual = !spManual; spUpdate(); return; }
   if (String(c.id).startsWith('szene:')) { showScene(c.id.slice(6)); return; }
   if (c.id === 'likes') { likeBurst(Number(c.anzahl) || 30); return; }
   const anim = entryById(c.id);
@@ -537,12 +538,12 @@ function showScene(id) {
 window.MM = { handleAlert, handleContent, likeBurst, showScene, busy: () => !!playing || queue.length > 0 || scene.classList.contains('show') };
 
 // ---------- Chat-Einblendung ----------
-let chatManual = false;
+let chatManual = false, chatZwang = null;
 const chatBox = document.getElementById('chat');
 const PF_NAME = { tiktok: 'TikTok', twitch: 'Twitch', youtube: 'YouTube', kick: 'Kick', facebook: 'Facebook', trovo: 'Trovo' };
 function chatUpdate() {
   const wann = D.chatWann || 'party';
-  const show = wann === 'immer' || (wann === 'knopf' ? chatManual : wann === artJetzt());
+  const show = chatZwang === true || chatZwang === false ? chatZwang : wann === 'immer' || (wann === 'knopf' ? chatManual : wann === artJetzt());
   Object.assign(chatBox.style, { left: num(D.chatX, 4) + 'vw', top: num(D.chatY, 52) + 'vh', width: num(D.chatBreite, 60) + 'vw', height: num(D.chatHoehe, 30) + 'vh', fontSize: num(D.chatGroesse, 2.2) + 'vh' });
   chatBox.classList.toggle('blasen', D.chatHintergrund !== false);
   chatBox.classList.toggle('show', show);
@@ -562,7 +563,7 @@ function chatAdd(m) {
 if (window.Overlay) Overlay.on('chat', chatAdd);
 
 // ---------- StreamPrint (virtueller Bondrucker) ----------
-let curMode = D.modusStart || 'party', spManual = false;
+let curMode = D.modusStart || 'party', spManual = false, spZwang = null;
 // „party“ = Thema ohne Spielfenster (Talk, Party-Bühne, Weihnachten …), „zocken“ = Thema mit Spielfenster
 const artJetzt = () => (curMode === 'party' || (curSpiel && curSpiel.ohneFenster) ? 'party' : 'zocken');
 const sp = document.getElementById('sp'), spFrame = document.getElementById('spFrame');
@@ -570,7 +571,7 @@ const sp = document.getElementById('sp'), spFrame = document.getElementById('spF
 const spG = k => (FORMAT === 'quer' && D.spQEigen !== false && D['spQ' + k] !== undefined && D['spQ' + k] !== '') ? D['spQ' + k] : D['sp' + k];
 function spUpdate() {
   const wann = spG('Wann') || 'aus';
-  const show = !!D.spUrl && (wann === 'immer' || wann === artJetzt() || (wann === 'knopf' && spManual));
+  const show = !!D.spUrl && (spZwang === true || spZwang === false ? spZwang : (wann === 'immer' || wann === artJetzt() || (wann === 'knopf' && spManual)));
   if (show && !spFrame.src) spFrame.src = D.spUrl;
   Object.assign(sp.style, { left: num(spG('X'), 3) + 'vw', top: num(spG('Y'), 20) + 'vh', width: num(spG('Breite'), 32) + 'vw', height: num(spG('Hoehe'), 60) + 'vh' });
   sp.style.setProperty('--spR', num(D.spRund, 18) + 'px');

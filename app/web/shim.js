@@ -33,7 +33,7 @@
       const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
       es.addEventListener('hallo', e => { const d = JSON.parse(e.data);
         // Neuer Programmstand (Update) → Seite neu laden, sobald nichts läuft (sonst lief alter Code weiter, bis man in OBS neu lädt)
-        if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) { const neu = () => (busy() ? setTimeout(neu, 500) : location.reload()); return neu(); } window.MM_STAND = d.stand; } modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); emit('letzte', { liste: d.letzte || [], monitor: d.monitor }); emit('overlaycontent', { content: JSON.stringify({ id: 'logo', an: !d.logoAus }) }); });
+        if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) { const neu = () => (busy() ? setTimeout(neu, 500) : location.reload()); return neu(); } window.MM_STAND = d.stand; } modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); emit('letzte', { liste: d.letzte || [], monitor: d.monitor }); emit('overlaycontent', { content: JSON.stringify({ id: 'logo', an: !d.logoAus }) }); for (const id of ['chat', 'streamprint']) emit('overlaycontent', { content: JSON.stringify({ id, an: d.zwang ? d.zwang[id] ?? null : null }) }); });
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
       es.addEventListener('letzte', e => emit('letzte', { liste: JSON.parse(e.data) }));

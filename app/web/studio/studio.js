@@ -87,6 +87,7 @@ function start(m) {
   const fk = [['fenster', 1, '🪟 Spielfenster'], ['fenster2', 2, '🖨️ Drucker'], ['fenster3', 3, '🖥️ Schreibtisch']];
   if (F.monitorMoeglich) fk.push(['monitor', 'monitor', '📺 Monitor: Unterstützer'], ['monitor-drucker', 'monitor-drucker', '📺 Monitor: Drucker']);
   if (F.logoMoeglich) fk.push(['logo', 'logo', '🏷️ Logo']);
+  fk.push(['chat', 'chat', '💬 Chat']); if (F.streamprintMoeglich) fk.push(['streamprint', 'streamprint', '🧾 Bondrucker']);
   if (F.lichtMoeglich) fk.push(['licht', 'licht', '💡 Licht folgt dem Stream']);
   m.append(h('h2', {}, 'Kameras & Fenster'), h('div', { class: 'row' }, ...fk.map(([id, k, l]) => h('button', { class: 'b schalter' + (F[k] ? ' an' : ''), onclick: async () => {
     const r = await post('/api/aktion', { id, label: l }); const d = await r.json().catch(() => ({})); if (d.label) toast(d.label); } }, l, h('small', {}, F[k] ? 'an' : 'aus')))),

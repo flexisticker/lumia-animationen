@@ -246,3 +246,7 @@
   Hintergrund ohne eigene Musik behielt Musik des vorigen Themas (→ Standardmusik, wenn `vonSpiel`); OBS-Gaming-Szene bei Talk blieb Talk (→ `saved.letztesMitFenster` bzw. Zockerbude);
   OBS-Echo-Schutz schluckte echte Rückschaltung innerhalb 5 s (→ Echo nur einmal); Tablet-Markierung folgte Umschaltungen von Studio/OBS nicht (→ `spiel:`-Nachricht aktualisiert `.active`).
   Persistenz nach Neustart geprüft (Thema, Musik, Kamera-Knopf, Fensterwerte, Kategorien).
+- 27.11.2026: **Chat (und Bondrucker) ein-/ausschaltbar** (Michael: Knopf wirkte nicht): alter Knopf setzte nur `chatManual`, das nur bei `chatWann = knopf` zählte. Jetzt Server-Zustand `saved.zwang {chat, streamprint}`
+  (true/false erzwingt, null = wie eingestellt), `einblendungSichtbar(id)` (gleiche Regel wie Overlay), `/api/aktion {id:'chat'|'streamprint'}` schaltet den sichtbaren Zustand um, `fensterSicht().chat/streamprint/streamprintMoeglich`,
+  `hallo.zwang` → Shim → Overlay `chatZwang`/`spZwang` (bleibt nach Neuladen, gilt für hoch + quer, bleibt bei Hintergrundwechsel). Kacheln „💬 Chat“ / „🧾 Bondrucker“ (nur mit StreamPrint-Adresse) bei Kameras & Fenster
+  (Tablet + Studio), alte Knöpfe bei den Ansagen entfernt. Geprüft (Headless) + Gesamttest ALLES OK.
