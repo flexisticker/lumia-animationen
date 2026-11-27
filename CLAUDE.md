@@ -235,3 +235,6 @@
   zwei Fenster überlappen (Standard hochkant: Drucker X72 B46 und Schreibtisch X27 B42 überlappen bei 34–48 %), war das Loch wieder zu. Jetzt SVG-Maske (`mask-image` data-URL mit `<mask>`,
   Löcher schwarz → Vereinigung), nur bei Änderung neu gesetzt. Lage/Größe-Einstellungen selbst wirkten (geprüft). Geprüft (Headless, Alpha): Überlappung durchsichtig, außerhalb deckend.
   **Logo-Schalter als Kachel** oben bei „Kameras & Fenster“ (Tablet + Studio-Übersicht), Zustand in `fensterSicht().logo`/`logoMoeglich` (nur wenn Kanal ein Logo hat); Knopf bei den Ansagen entfernt.
+- 27.11.2026: **„Fenstereinstellungen (Schreibtisch etc.) verloren“** = Folge von „Kanäle nur Texte“: Nicht-Text-Werte, die früher im Kanal 3dbymicha eingestellt waren, lagen noch in
+  `saved.profile['3dbymicha']`, wurden aber ignoriert. Einmalige Übernahme beim Start (`saved.kanalUebernahme1`): fehlt der Wert bei MichaModus → übernehmen; beide gesetzt → Kameras `f2*`/`f3*`
+  vom anderen Kanal, Rest bleibt MichaModus; ersetzte Werte in `saved.kanalUebernahmeSicherung`, Liste in `saved.kanalUebernahmeListe` + Container-Log. Geprüft mit nachgebautem Altstand.

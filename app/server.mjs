@@ -184,9 +184,33 @@ async function tts(text) {
   ttsLaufend.set(hash, job); return job;
 }
 const cur = () => saved.profile[saved.profil];
+// 27.11.2026: Seit „Kanäle unterscheiden sich nur in Texten“ gelten Nicht-Text-Einstellungen nur noch aus MichaModus.
+// Was früher in einem anderen Kanal eingestellt wurde (z. B. Drucker-/Schreibtischfenster bei 3dbymicha), lag noch dort, wurde aber ignoriert → einmalig übernehmen.
+// Fehlt der Wert bei MichaModus: übernehmen. Beide gesetzt: Kameras (f2*/f3*) vom anderen Kanal, alles andere bleibt MichaModus. Ersetzte Werte → saved.kanalUebernahmeSicherung.
+if (!saved.kanalUebernahme1) {
+  const ziel = saved.profile.michamodus, sicherung = {}, uebernommen = [];
+  for (const p of Object.keys(saved.profile)) {
+    if (p === 'michamodus') continue;
+    for (const k of BEREICHE) {
+      for (const [key, v] of Object.entries(ohneTexte(k, saved.profile[p][k]))) {
+        ziel[k] ||= {};
+        const hat = Object.prototype.hasOwnProperty.call(ziel[k], key);
+        if (!hat || (/^f[23]/.test(key) && ziel[k][key] !== v)) {
+          if (hat) (sicherung[k] ||= {})[key] = ziel[k][key];
+          ziel[k][key] = v; uebernommen.push(p + '/' + k + '.' + key);
+        }
+      }
+    }
+  }
+  saved.kanalUebernahme1 = new Date().toISOString();
+  if (Object.keys(sicherung).length) saved.kanalUebernahmeSicherung = sicherung;
+  if (uebernommen.length) console.log('Einstellungen aus anderen Kanälen übernommen:', uebernommen.length, uebernommen.slice(0, 40).join(', '));
+  saved.kanalUebernahmeListe = uebernommen.slice(0, 200);
+}
 const settingsFor = (k, profil = saved.profil) => ({ ...defaultsFor(profil, k), ...ohneTexte(k, saved.profile.michamodus[k]), ...nurTexte(k, saved.profile[profil][k]) });
 const profilListe = () => Object.entries(PRESETS).map(([id, p]) => ({ id, name: p.name }));
 const saveSettings = () => writeJson(SETTINGS_FILE, saved);
+if (saved.kanalUebernahmeListe && !saved.kanalUebernahmeGespeichert) { saved.kanalUebernahmeGespeichert = true; saveSettings(); }
 const quellenListe = () => [...clients].filter(c => c.role === 'vorne' || c.role === 'hinten').map(c => ({ rolle: c.role, format: c.format, pfad: c.pfad, groesse: c.groesse }));
 function broadcastAll() { for (const k of BEREICHE) broadcast('settings', { bereich: k, werte: settingsFor(k) }, [k]); fensterMelden(); }
 
