@@ -224,3 +224,10 @@
   (`xyImGamut`, Gamut aus `capabilities.control.colorgamut` bzw. `colorgamuttype` A/B/C, sonst C) – fremde Lampen (z. B. IKEA/Innr) zeigen bei Farben außerhalb oft Weiß;
   Antwort der Bridge wird ausgewertet, Fehler je Lampe einmal ins Studio-Protokoll („Hue: <Lampe> – …“); Studio-Licht zeigt je Spot Hersteller/Modell und „nicht erreichbar“.
   Weitere mögliche Ursachen bei Michael: Hue-App-Automation/„Natürliches Licht“, Lumia oder Hue Sync steuern dieselbe Lampe. Geprüft mit Bridge-Nachbau (Gamut B, Fehlerantwort).
+- 27.11.2026: **Modus entfällt in der Bedienung, „Was läuft gerade“ nach Kategorien** (Wunsch Michael): `saved.kategorien` [{id, name, ico}] (Standard Spiele, Talk, Werkstatt, Party, Specials & Feiertage;
+  Reihenfolge = Tablet; im Studio umbenennen/sortieren/neu anlegen, leere löschen), `spiel.kategorie` (Vorgabe `KAT_VORGABE`, bestehende Einträge beim Start einsortiert). Intern bleibt `saved.modus`,
+  ist aber immer `zocken` mit gewähltem Thema (Start ohne Thema → Party-Bühne); `setModus('party')` von außen (alte Lumia-Variable, OBS-Party-Szene) → Party-Bühne bzw. erstes Party-Thema.
+  „party“-Bedingungen (Chat/StreamPrint `*Wann`, Fenster `f*Wann`, Wand-Monitor) gelten jetzt über `artJetzt()` = Thema ohne Spielfenster → party, sonst zocken (Overlays vorne + hinten).
+  Tablet: Modus-Knöpfe ausgeblendet, Themen gruppiert (`MM_KATEGORIEN`, Emoji am Namensanfang wird Symbol). Studio: Übersicht mit Schnellwahl nach Kategorien statt Modus, Seite „Was läuft gerade“ gruppiert
+  mit Kategorie je Eintrag + Kategorien-Karte; Licht-Seite: Grundlicht kommt vom Thema; OBS-Szenen heißen „mit/ohne Spielfenster“. Weihnachts-Alerts brauchen keinen Zockmodus mehr.
+  Geprüft (Headless, alte Daten ohne Kategorien): Einsortierung, Tablet-Gruppen, WoW → Fensterloch, Talk → kein Loch, Studio-Seiten ohne Fehler.

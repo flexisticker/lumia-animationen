@@ -103,13 +103,17 @@ const SPIEL_VORGABEN = [
   ['jumprun', 'Jump & Run', 'jumprun', 'chiptune'], ['pagonia', 'Pioneers of Pagonia', 'aufbau', 'mittelalter'], ['siedler4', 'Die Siedler 4', 'aufbau', 'mittelalter'],
   ['aufbau-strategie', 'Aufbau & Strategie', 'strategie', 'mittelalter'], ['talk', 'Talk-Runde', 'talk', 'lofi', true], ['weihnachten', '🎄 Weihnachts-Stream', 'weihnachten', 'weihnachten', true], ['werkstatt', '🖨️ 3D-Druck-Werkstatt', '/hintergrund/werkstatt', 'chill'], ['party-buehne', '🎉 Party-Bühne', '/hintergrund/party-schleife', '', true], ['zockerbude', '🎮 Zockerbude', '/hintergrund/zockerbude', ''],
 ];
+// Kategorien für „Was läuft gerade“ (Reihenfolge = Reihenfolge am Tablet; eigene können im Studio dazukommen)
+const KAT_STANDARD = [{ id: 'spiele', name: 'Spiele', ico: '🎮' }, { id: 'talk', name: 'Talk', ico: '💬' }, { id: 'werkstatt', name: 'Werkstatt', ico: '🛠️' }, { id: 'party', name: 'Party', ico: '🎉' }, { id: 'specials', name: 'Specials & Feiertage', ico: '🎄' }];
+const KAT_VORGABE = { talk: 'talk', werkstatt: 'werkstatt', 'party-buehne': 'party', weihnachten: 'specials' };
+if (!Array.isArray(saved.kategorien) || !saved.kategorien.length) saved.kategorien = KAT_STANDARD.map(k => ({ ...k }));
 saved.spieleVorgaben ||= [];
 for (const [id, name, bild, musik, ohneFenster] of SPIEL_VORGABEN) {
   if (saved.spieleVorgaben.includes(id)) continue;
   saved.spieleVorgaben.push(id);
   if (saved.spiele.some(x => x.id === id)) continue;
   const basis = bild.startsWith('/') ? bild : `/hintergrund/spiele/${bild}`, v = `${basis}.mp4`, q = `${basis}-quer.mp4`;
-  saved.spiele.push({ id, name, video: fs.existsSync(path.join(MEDIA, v)) ? v : '', videoQuer: fs.existsSync(path.join(MEDIA, q)) ? q : '', szene: '', musik, ohneFenster: !!ohneFenster,
+  saved.spiele.push({ id, name, kategorie: KAT_VORGABE[id] || (ohneFenster ? 'talk' : 'spiele'), video: fs.existsSync(path.join(MEDIA, v)) ? v : '', videoQuer: fs.existsSync(path.join(MEDIA, q)) ? q : '', szene: '', musik, ohneFenster: !!ohneFenster,
     ...(id === 'talk' ? { start: 'Talk-Runde startet gleich! | Hol dir einen Kaffee und quatsch mit', ende: 'Danke für die Talk-Runde! | Bis zum nächsten Mal' } : {}),
     ...(id === 'weihnachten' ? { start: 'Weihnachts-Stream startet gleich! | Kakao holen & reinkuscheln 🎄', ende: 'Frohe Weihnachten! | Danke, dass ihr da wart ❤️', jingle: '/sounds/weihnachten.mp3' } : {}) });
 }
@@ -120,7 +124,11 @@ for (const [id, , bild] of SPIEL_VORGABEN) {
   if (!sp.video && fs.existsSync(path.join(MEDIA, v))) sp.video = v;
   if (!sp.videoQuer && fs.existsSync(path.join(MEDIA, q))) sp.videoQuer = q;
 }
+// Bestehende Einträge ohne Kategorie einsortieren
+for (const sp of saved.spiele) if (!sp.kategorie || !saved.kategorien.some(k => k.id === sp.kategorie)) sp.kategorie = KAT_VORGABE[sp.id] || (sp.ohneFenster ? 'talk' : 'spiele');
 saved.spiel ||= '';
+// 27.11.2026: Modus entfällt in der Bedienung – es läuft immer ein Hintergrund aus „Was läuft gerade“ (intern Modus „zocken“)
+if (saved.modus !== 'zocken' || !saved.spiele.some(x => x.id === saved.spiel)) { saved.modus = 'zocken'; if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = (saved.spiele.find(x => x.id === 'party-buehne') || saved.spiele[0] || {}).id || ''; }
 saved.obs ||= { host: '', port: 4455, an: false, szeneZocken: '', szeneParty: '', folgen: true, steuern: true };
 // 23.11.2026: Modus 2 heißt bei 3dbymicha „Printmodus“ (alte gespeicherte Standardwerte umstellen)
 { const p3 = saved.profile && saved.profile['3dbymicha'];
@@ -328,7 +336,7 @@ function lumiaConnect() {
 }
 
 // ---------- Modus, Spiel, OBS ----------
-const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, atmo: sp.atmo || '', jingle: sp.jingle || '', start: sp.start || '', ende: sp.ende || '' } : null; };
+const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, kategorie: sp.kategorie || '', video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, atmo: sp.atmo || '', jingle: sp.jingle || '', start: sp.start || '', ende: sp.ende || '' } : null; };
 // Musik: Titel + Lautstärke für alle hinteren Quellen (Lautstärke null = Wert aus den Hintergrund-Einstellungen)
 const musikInfo = () => {
   const t = saved.musik.titel, x = MUSIK.find(m => m.id === t);
@@ -386,6 +394,7 @@ async function obsQuellenSync() {
   } finally { quellenLaeuft = false; if (quellenNochmal) { quellenNochmal = false; obsQuellenSync(); } }
 }
 function setModus(modus, spielId, quelle, fromObs) {
+  if (modus !== 'zocken' && spielId === undefined) { const p = saved.spiele.find(x => x.id === 'party-buehne') || saved.spiele.find(x => x.kategorie === 'party'); if (p) { modus = 'zocken'; spielId = p.id; } }
   const m = modus === 'zocken' ? 'zocken' : 'party';
   const changed = m !== saved.modus || (spielId !== undefined && spielId !== saved.spiel);
   saved.modus = m;
@@ -408,9 +417,9 @@ function setModus(modus, spielId, quelle, fromObs) {
     let scene = m === 'zocken' ? (sp && sp.szene) || (sp && sp.ohneFenster ? saved.obs.szeneParty || saved.obs.szeneZocken : saved.obs.szeneZocken) : saved.obs.szeneParty;
     let geraten = false;
     if (!scene && saved.obs.an && saved.obs.steuern && obs.status === 'verbunden') { scene = rateSzene(m === 'zocken' && !(sp && sp.ohneFenster) ? 'zocken' : 'party'); geraten = !!scene; }
-    if (!saved.obs.an) obsInfo = 'OBS-Kopplung ist aus (Studio → Spiele & OBS)';
+    if (!saved.obs.an) obsInfo = 'OBS-Kopplung ist aus (Studio → OBS & Fenster-Quellen)';
     else if (!saved.obs.steuern) obsInfo = '„Modus schaltet die OBS-Szene“ ist aus';
-    else if (!scene) obsInfo = 'Keine OBS-Szene für ' + (m === 'zocken' ? (sp ? '„' + sp.name + '“ bzw. den Zockmodus' : 'den Zockmodus') : 'Party') + ' eingestellt (Studio → Spiele & OBS)';
+    else if (!scene) obsInfo = 'Keine OBS-Szene für ' + (sp ? '„' + sp.name + '“' : 'diesen Hintergrund') + ' eingestellt (Studio → OBS & Fenster-Quellen)';
     else if (obs.status !== 'verbunden') obsInfo = 'OBS nicht verbunden' + (obs.fehler ? ': ' + obs.fehler : '');
     else if (obs.szenen.length && !obs.szenen.includes(scene)) {
       // Name weicht ab (Groß/klein, Leerzeichen) oder Szene umbenannt → passende suchen
@@ -774,7 +783,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
     if (p === '/api/settings' && req.method === 'GET') return json(res, 200, {
-      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, musik: musikInfo(), fensterSicht: fensterSicht(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
+      kanal: PRESETS[saved.profil].name, profil: saved.profil, profile: profilListe(), vorne: settingsFor('vorne'), hinten: settingsFor('hinten'), aktion: settingsFor('aktion'), modus: saved.modus, spiel: saved.spiel, spiele: saved.spiele, kategorien: saved.kategorien, musik: musikInfo(), fensterSicht: fensterSicht(), obs: { ...saved.obs, passwort: !!secret.obsPasswort }, obsStatus: obs,
       lumia: { ...saved.lumia, schluessel: !!secret.lumiaToken }, tts: { ...saved.tts, schluessel: !!secret.elevenlabsKey }, hue: hueOeffentlich(), status: lumia, log,
       datenDauerhaft,
       quellen: [...clients].reduce((a, c) => (a[c.role] = (a[c.role] || 0) + 1, a), {}),
@@ -966,13 +975,18 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/spiele' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}');
       if (!Array.isArray(b.spiele)) return json(res, 400, { fehler: 'ungültig' });
+      if (Array.isArray(b.kategorien) && b.kategorien.length) {
+        const ids = new Set();
+        saved.kategorien = b.kategorien.slice(0, 20).map(k => { let id = String(k.id || k.name || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30) || 'kat';
+          while (ids.has(id)) id += '-2'; ids.add(id); return { id, name: String(k.name || id).slice(0, 40), ico: String(k.ico || '').slice(0, 8) }; });
+      }
       saved.spiele = b.spiele.slice(0, 50).map(x => ({ id: String(x.id || crypto.randomBytes(4).toString('hex')).replace(/[^a-z0-9-]/gi, '').slice(0, 40) || crypto.randomBytes(4).toString('hex'),
         name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200), musik: MUSIK.some(m => m.id === x.musik) ? x.musik : '',
-        ohneFenster: !!x.ohneFenster, atmo: String(x.atmo || '').slice(0, 300), jingle: String(x.jingle || '').slice(0, 300), ...(x.licht && typeof x.licht === 'object' && HUE_EFFEKTE.some(e => e[0] === x.licht.effekt) ? { licht: { effekt: x.licht.effekt, farbe1: /^#[0-9a-f]{6}$/i.test(x.licht.farbe1) ? x.licht.farbe1 : '#ff3d7f', farbe2: /^#[0-9a-f]{6}$/i.test(x.licht.farbe2) ? x.licht.farbe2 : '#7c4dff', hell: Math.max(5, Math.min(100, Number(x.licht.hell) || 100)) } } : {}), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
+        kategorie: saved.kategorien.some(k => k.id === x.kategorie) ? x.kategorie : 'spiele', ohneFenster: !!x.ohneFenster, atmo: String(x.atmo || '').slice(0, 300), jingle: String(x.jingle || '').slice(0, 300), ...(x.licht && typeof x.licht === 'object' && HUE_EFFEKTE.some(e => e[0] === x.licht.effekt) ? { licht: { effekt: x.licht.effekt, farbe1: /^#[0-9a-f]{6}$/i.test(x.licht.farbe1) ? x.licht.farbe1 : '#ff3d7f', farbe2: /^#[0-9a-f]{6}$/i.test(x.licht.farbe2) ? x.licht.farbe2 : '#7c4dff', hell: Math.max(5, Math.min(100, Number(x.licht.hell) || 100)) } } : {}), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
       if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = '';
-      saveSettings(); broadcast('spiele', { spiele: saved.spiele }); hueRuhe();
+      saveSettings(); broadcast('spiele', { spiele: saved.spiele, kategorien: saved.kategorien }); hueRuhe();
       if (saved.modus === 'zocken') broadcast('modus', { modus: saved.modus, spiel: spielInfo() });
-      return json(res, 200, { ok: true, spiele: saved.spiele });
+      return json(res, 200, { ok: true, spiele: saved.spiele, kategorien: saved.kategorien });
     }
     if (p.startsWith('/api/upload-spiel/') && req.method === 'POST') {
       const [, , , id, key] = p.split('/');

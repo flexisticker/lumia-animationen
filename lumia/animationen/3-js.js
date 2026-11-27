@@ -347,7 +347,7 @@ const XA_MAP = { 'tw-follow': 'folgen' };
 function weihnachtAktiv() {
   const w = D.weihnachtAlerts || 'thema';
   if (w === 'aus') return false; if (w === 'immer') return true;
-  return curMode === 'zocken' && !!curSpiel && /weihnacht|xmas|christmas/i.test((curSpiel.id || '') + ' ' + (curSpiel.name || ''));
+  return !!curSpiel && /weihnacht|xmas|christmas/i.test((curSpiel.id || '') + ' ' + (curSpiel.name || ''));
 }
 function festlich(anim) {
   if (!anim || !weihnachtAktiv()) return anim;
@@ -416,7 +416,7 @@ function handleContent(raw) {
   if (String(raw).startsWith('modus:')) { curMode = String(raw).slice(6); spUpdate(); chatUpdate(); return; }
   if (String(raw).startsWith('spiel:')) { try { const alt = curSpiel; curSpiel = JSON.parse(String(raw).slice(6));
     // Jingle beim Wechsel auf ein Spiel/Thema (z. B. Glöckchen beim Weihnachts-Stream) – nicht beim Laden der Quelle
-    if (curSpiel && curSpiel.jingle && (!alt || alt.id !== curSpiel.id) && performance.now() > 5000) sfx(curSpiel.jingle, 100); } catch (e) {} return; }
+    if (curSpiel && curSpiel.jingle && (!alt || alt.id !== curSpiel.id) && performance.now() > 5000) sfx(curSpiel.jingle, 100); } catch (e) {} try { spUpdate(); chatUpdate(); } catch (e) {} return; }
   if (String(c.id).startsWith('sound:')) { sfx('/sounds/' + String(c.id).slice(6).replace(/[^a-z0-9-]/gi, '') + '.mp3', 100); return; }   // reiner Sound-Knopf
   if (c.id === 'logo') { setLogo(c.an !== false); return; }
   if (c.id === 'chat') { chatManual = c.an === undefined ? !chatManual : !!c.an; chatUpdate(); return; }
@@ -542,7 +542,7 @@ const chatBox = document.getElementById('chat');
 const PF_NAME = { tiktok: 'TikTok', twitch: 'Twitch', youtube: 'YouTube', kick: 'Kick', facebook: 'Facebook', trovo: 'Trovo' };
 function chatUpdate() {
   const wann = D.chatWann || 'party';
-  const show = wann === 'immer' || (wann === 'knopf' ? chatManual : wann === curMode);
+  const show = wann === 'immer' || (wann === 'knopf' ? chatManual : wann === artJetzt());
   Object.assign(chatBox.style, { left: num(D.chatX, 4) + 'vw', top: num(D.chatY, 52) + 'vh', width: num(D.chatBreite, 60) + 'vw', height: num(D.chatHoehe, 30) + 'vh', fontSize: num(D.chatGroesse, 2.2) + 'vh' });
   chatBox.classList.toggle('blasen', D.chatHintergrund !== false);
   chatBox.classList.toggle('show', show);
@@ -563,12 +563,14 @@ if (window.Overlay) Overlay.on('chat', chatAdd);
 
 // ---------- StreamPrint (virtueller Bondrucker) ----------
 let curMode = D.modusStart || 'party', spManual = false;
+// „party“ = Thema ohne Spielfenster (Talk, Party-Bühne, Weihnachten …), „zocken“ = Thema mit Spielfenster
+const artJetzt = () => (curMode === 'party' || (curSpiel && curSpiel.ohneFenster) ? 'party' : 'zocken');
 const sp = document.getElementById('sp'), spFrame = document.getElementById('spFrame');
 // StreamPrint: in der Quer-Quelle eigene Werte (spQ*), wenn „eigene Lage“ an ist
 const spG = k => (FORMAT === 'quer' && D.spQEigen !== false && D['spQ' + k] !== undefined && D['spQ' + k] !== '') ? D['spQ' + k] : D['sp' + k];
 function spUpdate() {
   const wann = spG('Wann') || 'aus';
-  const show = !!D.spUrl && (wann === 'immer' || wann === curMode || (wann === 'knopf' && spManual));
+  const show = !!D.spUrl && (wann === 'immer' || wann === artJetzt() || (wann === 'knopf' && spManual));
   if (show && !spFrame.src) spFrame.src = D.spUrl;
   Object.assign(sp.style, { left: num(spG('X'), 3) + 'vw', top: num(spG('Y'), 20) + 'vh', width: num(spG('Breite'), 32) + 'vw', height: num(spG('Hoehe'), 60) + 'vh' });
   sp.style.setProperty('--spR', num(D.spRund, 18) + 'px');

@@ -72,9 +72,16 @@ function start(m) {
     kachel('licht', '💡', 'Licht (Hue)', !H.gekoppelt ? 'Noch nicht gekoppelt.' : !H.an ? 'Gekoppelt, aber aus.' : H.status === 'fehler' ? H.fehler : (H.lampen || []).length + ' Lampe(n) · ' + (H.live ? 'folgt dem Stream' : 'pausiert')),
     kachel('sprache', '🗣️', 'Sprachausgabe', !(S.tts && S.tts.schluessel) ? 'Kein ElevenLabs-Schlüssel – Danke-Stimme ist aus.' : S.tts.stimme ? 'Stimme: ' + (S.tts.stimmeName || S.tts.stimme) : 'Schlüssel da, aber keine Stimme gewählt.'),
     kachel('quellen', '🔗', 'Browserquellen', 'Vorne: ' + zahl('vorne', 'hoch') + ' hoch / ' + zahl('vorne', 'quer') + ' quer · Hinten: ' + zahl('hinten', 'hoch') + ' hoch / ' + zahl('hinten', 'quer') + ' quer · Tablet: ' + zahl('aktion'))));
-  m.append(h('h2', {}, 'Modus'), h('div', { class: 'row' },
-    ...[['party', '🎉 ' + (S.aktion.modus1Name || 'Party')], ['zocken', (S.aktion.modus2Ico || '🎮') + ' ' + (S.aktion.modus2Name || 'Zockmodus')]].map(([v, l]) => h('button', { class: 'b gross' + (S.modus === v ? ' p' : ''), onclick: async () => {
-      const r = await post('/api/modus', { modus: v }); const d = await r.json().catch(() => ({})); S.modus = v; render(); if (d.obs) toast(String(d.obs).startsWith('OK:') ? 'OBS-Szene: ' + d.obs.slice(3) : d.obs, String(d.obs).startsWith('OK:') ? '' : 'warn'); } }, l))));
+  // Was läuft gerade (ersetzt den alten Modus): Schnellwahl nach Kategorien
+  m.append(h('h2', {}, 'Was läuft gerade'));
+  for (const k of [...(S.kategorien || []), { id: null, name: 'Sonstiges', ico: '✨' }]) {
+    const eintraege = (S.spiele || []).filter(g => (k.id === null ? !(S.kategorien || []).some(x => x.id === g.kategorie) : g.kategorie === k.id));
+    if (!eintraege.length) continue;
+    m.append(h('div', { class: 'row' }, h('span', { class: 'hint', style: 'min-width:9em' }, (k.ico || '') + ' ' + k.name),
+      ...eintraege.map(g => h('button', { class: 'b' + (S.spiel === g.id ? ' p' : ''), onclick: async () => {
+        const r = await post('/api/modus', { modus: 'zocken', spiel: g.id }); const d = await r.json().catch(() => ({})); S.spiel = g.id; render();
+        if (d.obs) toast(String(d.obs).startsWith('OK:') ? 'OBS-Szene: ' + d.obs.slice(3) : d.obs, String(d.obs).startsWith('OK:') ? '' : 'warn'); } }, g.name))));
+  }
   // Fenster & Kameras wie am Tablet
   const F = S.fensterSicht || {};
   const fk = [['fenster', 1, '🪟 Spielfenster'], ['fenster2', 2, '🖨️ Drucker'], ['fenster3', 3, '🖥️ Schreibtisch']];
@@ -254,9 +261,9 @@ function obsPage(m) {
     !verbunden ? h('p', { class: 'hint warntext' }, 'OBS ist gerade nicht verbunden – deshalb gibt es keine Auswahlliste. Du kannst die Namen trotzdem eintippen, geschaltet wird sobald OBS verbunden ist.') : null));
   m.append(h('h2', {}, 'Verbindung & Szenen'), h('div', { class: 'card' },
     field('Verbindung an', an), field('IP-Adresse des Stream-PCs', host), field('Port', port), field('Passwort', pw),
-    field('Szene für ' + (S.aktion.modus2Name || 'Zockmodus'), sceneSelect(sz, v => (sz = v), '– automatisch (Name enthält „Gaming“, „Zock“ …) –')),
-    field('Szene für ' + (S.aktion.modus1Name || 'Party'), sceneSelect(sp, v => (sp = v), '– automatisch (Name enthält „Party“, „Chat“ …) –')),
-    field('OBS-Szene schaltet den Modus', folgen), field('Modus/Spiel schaltet die OBS-Szene', steuern),
+    field('Szene für Hintergründe mit Spielfenster (Spiele, Werkstatt)', sceneSelect(sz, v => (sz = v), '– automatisch (Name enthält „Gaming“, „Zock“ …) –')),
+    field('Szene für Hintergründe ohne Spielfenster (Talk, Party, Specials)', sceneSelect(sp, v => (sp = v), '– automatisch (Name enthält „Party“, „Chat“ …) –')),
+    field('OBS-Szene schaltet den Hintergrund', folgen), field('Hintergrund schaltet die OBS-Szene', steuern),
     h('div', { class: 'row', style: 'margin-top:12px' }, h('button', { class: 'b p', onclick: async () => {
       await post('/api/obs', { host: host.value, port: port.value, an: an.checked, passwort: pw.value, szeneZocken: sz, szeneParty: sp, folgen: folgen.checked, steuern: steuern.checked, quellen: qu });
       pw.value = ''; toast('Gespeichert – verbinde mit OBS …'); setTimeout(reload, 1500); } }, 'Speichern & verbinden'), obsStatusPill(S.obsStatus)),
@@ -267,15 +274,38 @@ function spielePage(m) {
   m.append(h('h1', {}, 'Was läuft gerade'), h('p', { class: 'hint' }, 'Spiele und Themen (z. B. Party-Bühne, Zockerbude, Werkstatt, Weihnachten): je eins mit eigenem Hintergrund für Hoch- und Querformat, Musik, Geräuschen, Hue-Licht und auf Wunsch eigener OBS-Szene. Gilt für beide Kanäle. Tippe einen Eintrag an, um ihn zu bearbeiten.'));
   // Spiele
   const list = S.spiele.map(x => ({ ...x }));
-  const save = async () => { const r = await post('/api/spiele', { spiele: list }); const d = await r.json(); if (d.spiele) S.spiele = d.spiele; toast(r.ok ? '✓ Gespeichert' : 'Fehler beim Speichern', r.ok ? '' : 'warn'); };
+  const kats = (S.kategorien || []).map(k => ({ ...k }));
+  const save = async () => { const r = await post('/api/spiele', { spiele: list, kategorien: kats }); const d = await r.json(); if (d.spiele) S.spiele = d.spiele; if (d.kategorien) { S.kategorien = d.kategorien; kats.splice(0, kats.length, ...d.kategorien.map(k => ({ ...k }))); } toast(r.ok ? '✓ Gespeichert' : 'Fehler beim Speichern', r.ok ? '' : 'warn'); };
+  // Kategorien: Reihenfolge = Reihenfolge am Tablet
+  const katBox = h('details', { class: 'card' }); m.append(katBox);
+  const drawKats = () => {
+    katBox.innerHTML = '';
+    katBox.append(h('summary', {}, h('b', {}, '🗂️ Kategorien'), h('span', { class: 'hint' }, kats.map(k => (k.ico || '') + ' ' + k.name).join(' · '))));
+    kats.forEach((k, j) => {
+      const anzahl = list.filter(g => g.kategorie === k.id).length;
+      katBox.append(h('div', { class: 'row' },
+        h('input', { type: 'text', value: k.ico || '', style: 'width:3.2em;text-align:center', title: 'Symbol (Emoji)', onchange: async e => { k.ico = e.target.value; await save(); drawKats(); draw(); } }),
+        h('input', { type: 'text', value: k.name, onchange: async e => { k.name = e.target.value; await save(); drawKats(); draw(); } }),
+        h('span', { class: 'hint' }, anzahl + ' Einträge'),
+        h('button', { class: 'b', disabled: j === 0 ? '' : null, onclick: async () => { kats.splice(j - 1, 0, kats.splice(j, 1)[0]); await save(); drawKats(); draw(); } }, '↑'),
+        h('button', { class: 'b', disabled: j === kats.length - 1 ? '' : null, onclick: async () => { kats.splice(j + 1, 0, kats.splice(j, 1)[0]); await save(); drawKats(); draw(); } }, '↓'),
+        anzahl ? null : h('button', { class: 'b', title: 'Leere Kategorie entfernen', onclick: async () => { kats.splice(j, 1); await save(); drawKats(); draw(); } }, '✕')));
+    });
+    katBox.append(h('button', { class: 'b', onclick: async () => { const n = prompt('Name der neuen Kategorie (z. B. „Kreativ“ oder „Musik“):'); if (!n) return; kats.push({ id: n, name: n, ico: '✨' }); await save(); katBox.open = true; drawKats(); draw(); } }, '+ Kategorie'));
+  };
   const box = h('div', {}); m.append(box); let offen = -1;
   const draw = () => {
     box.innerHTML = '';
-    list.forEach((g, i) => {
+    const reihen = [...kats.map(k => ({ k, eintraege: list.map((g, i) => [g, i]).filter(([g]) => g.kategorie === k.id) })),
+      { k: { id: '', name: 'Sonstiges', ico: '✨' }, eintraege: list.map((g, i) => [g, i]).filter(([g]) => !kats.some(k => k.id === g.kategorie)) }];
+    reihen.forEach(({ k, eintraege }) => {
+    if (!eintraege.length && !k.id) return;
+    box.append(h('h2', {}, (k.ico ? k.ico + ' ' : '') + k.name));
+    eintraege.forEach(([g, i]) => {
       const name = h('input', { type: 'text', value: g.name, oninput: e => { g.name = e.target.value; } , onchange: save });
       const vid = key => {
         const file = h('input', { type: 'file', accept: 'video/mp4,video/webm', style: 'display:none' });
-        const info = h('code', {}, g[key] || 'Standard (Zockmodus-Hintergrund)');
+        const info = h('code', {}, g[key] || 'Standard-Hintergrund');
         file.onchange = async () => { const fl = file.files[0]; if (!fl) return; await save(); info.textContent = 'lädt hoch …';
           const r = await post(`/api/upload-spiel/${S.spiele[i].id}/${key}?name=${encodeURIComponent(fl.name)}`, fl, true);
           if (r.ok) { g[key] = (await r.json()).adresse; info.textContent = g[key]; } else info.textContent = 'Fehler'; };
@@ -284,8 +314,9 @@ function spielePage(m) {
       };
       const auf = h('details', { class: 'card spiel', ...(offen === i ? { open: '' } : {}) },
         h('summary', {}, h('b', {}, g.name || 'Ohne Namen'), h('span', { class: 'hint' }, [g.video ? '🖼️ eigener Hintergrund' : '', g.musik ? '🎵 ' + ((S.musik.liste.find(x => x.id === g.musik) || {}).name || g.musik) : '', g.szene ? '🎥 ' + g.szene : '', g.ohneFenster ? 'ohne Spielfenster' : ''].filter(Boolean).join(' · ')),
-          S.modus === 'zocken' && S.spiel === S.spiele[i].id ? h('span', { class: 'pill ok' }, 'läuft gerade') : null),
-        field('Spiel', name), field('Hintergrund hochkant (TikTok)', vid('video')), field('Hintergrund quer (Twitch)', vid('videoQuer')),
+          S.spiel === S.spiele[i].id ? h('span', { class: 'pill ok' }, 'läuft gerade') : null),
+        field('Name', name),
+        field('Kategorie', h('select', { onchange: async e => { g.kategorie = e.target.value; offen = i; await save(); drawKats(); draw(); } }, ...kats.map(x => h('option', { value: x.id, ...(g.kategorie === x.id ? { selected: '' } : {}) }, (x.ico || '') + ' ' + x.name)))), field('Hintergrund hochkant (TikTok)', vid('video')), field('Hintergrund quer (Twitch)', vid('videoQuer')),
         field('Licht (Hue)', (() => { const E = (S.hue && S.hue.effektListe) || [], v = { ...((S.hue && S.hue.spielLicht && S.hue.spielLicht[g.id]) || {}), ...(g.licht || {}) };
           if (!E.length) return h('span', { class: 'hint' }, 'Hue ist noch nicht eingerichtet (Verbindungen → Licht).');
           const sel = h('select', {}, ...E.map(([id, l]) => h('option', { value: id }, l))); sel.value = v.effekt || 'zweifarbig';
@@ -310,16 +341,17 @@ function spielePage(m) {
         field('Start-Ansage für dieses Spiel (optional, Titel | Unterzeile)', h('input', { type: 'text', value: g.start || '', placeholder: 'z. B. Raid-Abend in Azeroth! | Gleich geht\'s los', onchange: async e => { g.start = e.target.value; await save(); } })),
         field('Ende-Ansage für dieses Spiel (optional)', h('input', { type: 'text', value: g.ende || '', placeholder: 'z. B. GG & gute Nacht! | Morgen wieder', onchange: async e => { g.ende = e.target.value; await save(); } })),
         field('Kein Spielfenster (z. B. Talk-Runde)', h('input', { type: 'checkbox', ...(g.ohneFenster ? { checked: '' } : {}), onchange: async e => { g.ohneFenster = e.target.checked; await save(); } })),
-        field('Musik beim Zocken', h('select', { onchange: async e => { g.musik = e.target.value; await save(); } },
+        field('Musik', h('select', { onchange: async e => { g.musik = e.target.value; await save(); } },
           h('option', { value: '' }, '– Musik nicht wechseln –'), ...(S.musik ? S.musik.liste : []).map(x => h('option', { value: x.id, ...(g.musik === x.id ? { selected: '' } : {}) }, x.name)))),
-        h('div', { class: 'row' }, h('button', { class: 'b p', onclick: async () => { await save(); await post('/api/modus', { modus: 'zocken', spiel: S.spiele[i].id }); } }, '🎮 Jetzt zocken'),
+        h('div', { class: 'row' }, h('button', { class: 'b p', onclick: async () => { await save(); await post('/api/modus', { modus: 'zocken', spiel: S.spiele[i].id }); S.spiel = S.spiele[i].id; toast('Läuft jetzt: ' + g.name); } }, '▶ Jetzt zeigen'),
           h('button', { class: 'b', onclick: async () => { if (confirm('„' + g.name + '“ entfernen?')) { list.splice(i, 1); await save(); draw(); } } }, 'Entfernen')));
       auf.ontoggle = () => { if (auf.open) offen = i; };
       box.append(auf);
     });
-    box.append(h('button', { class: 'b', onclick: async () => { list.push({ name: 'Neues Spiel', video: '', videoQuer: '', szene: '', musik: '' }); await save(); list.splice(0, list.length, ...S.spiele.map(x => ({ ...x }))); offen = list.length - 1; draw(); } }, '+ Spiel hinzufügen'));
+    });
+    box.append(h('button', { class: 'b', onclick: async () => { list.push({ name: 'Neuer Hintergrund', kategorie: (kats[0] || {}).id || 'spiele', video: '', videoQuer: '', szene: '', musik: '' }); await save(); list.splice(0, list.length, ...S.spiele.map(x => ({ ...x }))); offen = list.length - 1; draw(); } }, '+ Hintergrund hinzufügen'));
   };
-  draw();
+  drawKats(); draw();
 }
 // ---------- Licht (Philips Hue) ----------
 function lichtPage(m) {
@@ -383,11 +415,9 @@ function lichtPage(m) {
   m.append(h('h2', {}, '1. Spots'), h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Haken = macht mit. Die Seite bestimmt beim Ambilight, welche Bildhälfte der Spot nachleuchtet, und bei zweifarbigen Effekten, welche Farbe er bekommt (links = Farbe 1, rechts = Farbe 2).'),
     spots.childNodes.length ? spots : h('p', { class: 'hint' }, 'Keine Lampen geladen.'),
     h('button', { class: 'b', onclick: async () => { const d = await fetch('/api/hue/lampen').then(r => r.json()); S.hue = d.hue; render(); toast('Lampenliste neu geladen'); } }, '↻ Lampen neu laden')));
-  // Grundlicht je Modus
-  const G = H.grundAktiv || {};
-  m.append(h('h2', {}, '2. Grundlicht (Kanal ' + S.kanal + ')'), h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Leuchtet, solange gerade kein Alert läuft. Je Kanal und Modus eigen.'),
-    field(S.aktion.modus1Name || 'Party', effektZeile(G.party || {}, v => speichern({ grund: { party: v } }, 'Grundlicht gespeichert'))),
-    field(S.aktion.modus2Name || 'Zockmodus', effektZeile(G.zocken || {}, v => speichern({ grund: { zocken: v } }, 'Grundlicht gespeichert')))));
+  // Grundlicht kommt jetzt vom gewählten Hintergrund
+  m.append(h('h2', {}, '2. Grundlicht'), h('div', { class: 'card' }, h('p', { class: 'hint' }, 'Das Grundlicht (solange kein Alert läuft) gehört jetzt zum jeweiligen Hintergrund: Was läuft gerade → Eintrag aufklappen → „Licht (Hue)“.'),
+    h('button', { class: 'b', onclick: () => go('spiele') }, '→ Was läuft gerade')));
   // Effekte je Ereignis
   const gruppen = {};
   for (const k of H.kategorien || []) (gruppen[k.gruppe] ||= []).push(k);

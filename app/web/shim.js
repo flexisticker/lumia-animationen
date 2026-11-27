@@ -23,7 +23,7 @@
   const emit = (ev, d) => (handlers[ev] || []).forEach(cb => { try { cb(d); } catch (e) { console.error(e); } });
   window.MM_START = async function (start) {
     const s = await (await fetch('/api/settings', { cache: 'no-store' })).json();
-    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus; window.MM_MUSIK = s.musik; window.MM_FENSTER = s.fensterSicht;
+    Overlay.data = s[BEREICH] || {}; state.modus = s.modus; window.MM_PROFILE = s.profile || []; window.MM_PROFIL = s.profil; window.MM_SPIELE = s.spiele || []; window.MM_KATEGORIEN = s.kategorien || []; window.MM_SPIEL = s.spiel; window.MM_MODUS = s.modus; window.MM_MUSIK = s.musik; window.MM_FENSTER = s.fensterSicht;
     start();
     let busy = () => window.MM && window.MM.busy && window.MM.busy();
     function connect() {

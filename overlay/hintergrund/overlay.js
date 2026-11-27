@@ -106,7 +106,9 @@ function monZeichnen() {
 monZeichnen();
 if (window.Overlay) Overlay.on('letzte', d => { if (d.monitor !== undefined) monitorAn = d.monitor === true ? 'liste' : d.monitor || false; if (d.liste) { const neu = d.liste.map(e => e.id).join() !== monDaten.map(e => e.id).join(); monDaten = d.liste; if (neu) monZeichnen(); } letzterStand = ''; });
 let curSpiel = null, zwang = { 1: null, 2: null, 3: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
-function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; if (mode === 'zocken' && curSpiel && curSpiel.ohneFenster && a !== 'immer') return false; return a === 'immer' || a === mode; }
+// „party“ = Thema ohne Spielfenster (Talk, Party, Specials), „zocken“ = Thema mit Spielfenster (Spiele, Werkstatt)
+const artJetzt = () => (mode === 'party' || (curSpiel && curSpiel.ohneFenster) ? 'party' : 'zocken');
+function want(w) { if (zwang[w.n] === true || zwang[w.n] === false) return zwang[w.n]; const a = w.g('Wann') || 'aus'; return a === 'immer' || a === artJetzt(); }
 function rect(w) {
   const W = cv.width * num(w.g('Breite'), 80) / 100;
   const fmt = { '16:9': 16 / 9, '4:3': 4 / 3, '9:16': 9 / 16, '1:1': 1 }[w.g('Format')];
@@ -151,7 +153,7 @@ function draw(now) {
   }
   let monLoch = '';
   // Wand-Monitor: an, nur wenn das Spielfenster nicht zu sehen ist (und je nach Einstellung nur im Zockmodus)
-  const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || mode === 'zocken');
+  const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || artJetzt() === 'zocken');
   if (monZeigen) {
     const W = cv.width * num(MQ('Breite'), QUER ? 29.5 : 42) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 31 : 35.5) / 100;
     // Perspektive: rechte obere Ecke um pt % der Höhe tiefer, rechte untere um pb % höher (vermessen an der Lichtleiste der Zockerbude)

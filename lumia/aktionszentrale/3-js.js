@@ -111,19 +111,29 @@ if ((window.MM_PROFILE || []).length > 1) {
   });
 }
 
-// Spiel wählen (Live-Studio): schaltet Zockmodus, OBS-Szene und Spiel-Hintergrund
+// Was läuft gerade (Live-Studio): Hintergrund/Thema wählen, nach Kategorien sortiert – ersetzt die alten Modus-Knöpfe
+if (window.MM_SPIELE) { document.getElementById('modusTitel').style.display = 'none'; modeBox.style.display = 'none'; }
 if (D.spieleAn !== false && (window.MM_SPIELE || []).length) {
   const box = document.getElementById('spiele'); box.style.display = ''; document.getElementById('spielTitel').style.display = '';
-  window.MM_SPIELE.forEach(sp => {
-    const b = document.createElement('button'); b.className = 'btn' + (window.MM_MODUS === 'zocken' && sp.id === window.MM_SPIEL ? ' active' : '');
-    b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = sp.ohneFenster ? '💬' : '🎮'; b.lastChild.textContent = sp.name;
-    b.onclick = async () => {
-      box.querySelectorAll('.btn').forEach(x => x.classList.toggle('active', x === b));
-      modeBox.querySelectorAll('.btn').forEach((x, i) => x.classList.toggle('active', i === 1));
-      try { obsMeldung('Zocke: ' + sp.name, await Overlay.setVariable('mm_spiel', sp.id)); } catch (e) { setStatus('Fehler beim Umschalten', 'err'); }
-    };
-    box.append(b);
-  });
+  const kats = (window.MM_KATEGORIEN || []).slice();
+  const alle = [];
+  const gruppe = (kat, liste) => {
+    if (!liste.length) return;
+    const h = document.createElement('h3'); h.className = 'katTitel'; h.textContent = (kat.ico ? kat.ico + ' ' : '') + kat.name; box.append(h);
+    const g = document.createElement('div'); g.className = 'grid scenes'; box.append(g);
+    liste.forEach(sp => {
+      const b = document.createElement('button'); b.className = 'btn' + (sp.id === window.MM_SPIEL ? ' active' : ''); alle.push(b);
+      const em = String(sp.name).match(/^(\p{Extended_Pictographic}[\uFE0F\u200D\p{Extended_Pictographic}]*)\s*/u);
+      b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = em ? em[1] : kat.ico || '🎮'; b.lastChild.textContent = em ? sp.name.slice(em[0].length) : sp.name;
+      b.onclick = async () => {
+        alle.forEach(x => x.classList.toggle('active', x === b));
+        try { obsMeldung('Läuft: ' + sp.name, await Overlay.setVariable('mm_spiel', sp.id)); } catch (e) { setStatus('Fehler beim Umschalten', 'err'); }
+      };
+      g.append(b);
+    });
+  };
+  kats.forEach(k => gruppe(k, window.MM_SPIELE.filter(sp => sp.kategorie === k.id)));
+  gruppe({ name: 'Sonstiges', ico: '✨' }, window.MM_SPIELE.filter(sp => !kats.some(k => k.id === sp.kategorie)));
 }
 
 // Musik (Live-Studio): Titel starten/stoppen und Lautstärke – gilt für alle hinteren Quellen

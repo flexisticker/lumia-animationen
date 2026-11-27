@@ -53,3 +53,5 @@ header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-t
 .fenster .btn.active { background: linear-gradient(160deg, #0e5a52, #133047); }
 .fenster .btn.active .zu { opacity: 1; color: #7dffd9; }
 @media (max-width: 820px) { .oben { grid-template-columns: 1fr; } .oben-l .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+
+.katTitel { margin: 14px 0 6px; font-size: 15px; font-weight: 700; opacity: .75; letter-spacing: .02em; }

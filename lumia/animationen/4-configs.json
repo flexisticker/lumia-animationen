@@ -1145,8 +1145,8 @@
     "options": {
       "aus": "aus",
       "immer": "immer",
-      "party": "nur in Modus 1 (Party)",
-      "zocken": "nur in Modus 2",
+      "party": "nur ohne Spielfenster (Talk, Party, Specials)",
+      "zocken": "nur mit Spielfenster (Spiele, Werkstatt)",
       "knopf": "per Knopf (Steuerung)"
     },
     "visibleIf": {
@@ -1303,8 +1303,8 @@
       "aus": "aus",
       "immer": "immer",
       "knopf": "per Knopf (Steuerung)",
-      "party": "nur in Modus 1",
-      "zocken": "nur in Modus 2"
+      "party": "nur ohne Spielfenster (Talk, Party, Specials)",
+      "zocken": "nur mit Spielfenster (Spiele, Werkstatt)"
     },
     "visibleIf": {
       "key": "bereich",
@@ -1475,8 +1475,8 @@
       "aus": "aus",
       "immer": "immer",
       "knopf": "per Knopf (Steuerung)",
-      "party": "nur in Modus 1",
-      "zocken": "nur in Modus 2"
+      "party": "nur ohne Spielfenster (Talk, Party, Specials)",
+      "zocken": "nur mit Spielfenster (Spiele, Werkstatt)"
     },
     "visibleIf": {
       "key": "bereich",
@@ -1676,7 +1676,7 @@
     "label": "Weihnachts-Alerts verwenden (ersetzt Neuer Follower – auch Twitch –, Live geteilt, Superfan, Like-Ziel und kleine Geschenke; Geschenke mit eigener Animation bleiben)",
     "value": "thema",
     "options": {
-      "thema": "Automatisch, wenn „Weihnachts-Stream“ läuft (Zockmodus)",
+      "thema": "Automatisch, wenn „Weihnachts-Stream“ läuft",
       "immer": "Immer (ganze Adventszeit)",
       "aus": "Nie"
     },

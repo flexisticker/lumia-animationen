@@ -121,7 +121,7 @@ for (const [k, l, v] of [['szeneStart', 'Live startet gleich', "Live startet gle
   ['szeneBrb', 'BRB – bin gleich zurück', 'Bin gleich zurück! | Nicht weggehen – es geht gleich weiter'], ['szeneTechnik', 'Technische Störung', 'Technische Störung | Wir sind gleich wieder da']])
   add(k, { type: 'input', label: `${l} (Titel | Unterzeile)`, value: v, ...vis('szenen') });
 // Chat-Einblendung (gemischt TikTok/Twitch/…, mit Plattform-Schild vorne)
-add('chatWann', { type: 'dropdown', label: 'Chat zeigen', value: 'party', options: { aus: 'aus', immer: 'immer', party: 'nur in Modus 1 (Party)', zocken: 'nur in Modus 2', knopf: 'per Knopf (Steuerung)' }, ...vis('chat') });
+add('chatWann', { type: 'dropdown', label: 'Chat zeigen', value: 'party', options: { aus: 'aus', immer: 'immer', party: 'nur ohne Spielfenster (Talk, Party, Specials)', zocken: 'nur mit Spielfenster (Spiele, Werkstatt)', knopf: 'per Knopf (Steuerung)' }, ...vis('chat') });
 add('chatX', { type: 'slider', label: 'Abstand links', value: 4, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('chat') });
 add('chatY', { type: 'slider', label: 'Abstand oben', value: 52, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('chat') });
 add('chatBreite', { type: 'slider', label: 'Breite', value: 60, options: { min: 10, max: 100, step: 0.5, suffix: ' %' }, ...vis('chat') });
@@ -131,7 +131,7 @@ add('chatMax', { type: 'number', label: 'Höchstens … Nachrichten', value: 8, 
 add('chatAusblenden', { type: 'number', label: 'Nachricht ausblenden nach … s (0 = nie)', value: 45, ...vis('chat') });
 add('chatBefehleWeg', { type: 'checkbox', label: 'Befehle mit ! nicht zeigen', value: true, ...vis('chat') });
 add('chatHintergrund', { type: 'checkbox', label: 'Dunkle Blasen hinter den Nachrichten', value: true, ...vis('chat') });
-add('spWann', { type: 'dropdown', label: 'StreamPrint zeigen', value: 'aus', options: { aus: 'aus', immer: 'immer', knopf: 'per Knopf (Steuerung)', party: 'nur in Modus 1', zocken: 'nur in Modus 2' }, ...vis('streamprint') });
+add('spWann', { type: 'dropdown', label: 'StreamPrint zeigen', value: 'aus', options: { aus: 'aus', immer: 'immer', knopf: 'per Knopf (Steuerung)', party: 'nur ohne Spielfenster (Talk, Party, Specials)', zocken: 'nur mit Spielfenster (Spiele, Werkstatt)' }, ...vis('streamprint') });
 add('spUrl', { type: 'input', label: 'Adresse des Overlays', value: '', placeholder: 'http://192.168.175.20:8000/overlay?seite=mitte', ...vis('streamprint') });
 add('spWeiterleiten', { type: 'checkbox', label: 'Ereignisse an StreamPrint weiterleiten', value: false, ...vis('streamprint') });
 add('spEventUrl', { type: 'input', label: 'StreamPrint-Empfang (POST)', value: '', placeholder: 'http://192.168.175.20:8000/event', ...vis('streamprint') });
@@ -143,7 +143,7 @@ add('spRund', { type: 'slider', label: 'Runde Ecken', value: 18, options: { min:
 add('spRahmen', { type: 'checkbox', label: 'Leuchtrahmen in Banner-Farben', value: true, ...vis('streamprint') });
 // Querformat-Quelle (vorne-quer): eigene Lage/Größe/Wann
 add('spQEigen', { type: 'checkbox', label: 'Eigene Lage & Größe fürs Querformat (aus = wie hochkant)', value: true, ...vis('streamprintq') });
-add('spQWann', { type: 'dropdown', label: 'StreamPrint zeigen (quer)', value: '', options: { '': 'wie hochkant', aus: 'aus', immer: 'immer', knopf: 'per Knopf (Steuerung)', party: 'nur in Modus 1', zocken: 'nur in Modus 2' }, ...vis('streamprintq') });
+add('spQWann', { type: 'dropdown', label: 'StreamPrint zeigen (quer)', value: '', options: { '': 'wie hochkant', aus: 'aus', immer: 'immer', knopf: 'per Knopf (Steuerung)', party: 'nur ohne Spielfenster (Talk, Party, Specials)', zocken: 'nur mit Spielfenster (Spiele, Werkstatt)' }, ...vis('streamprintq') });
 add('spQX', { type: 'slider', label: 'Abstand links', value: 76, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('streamprintq') });
 add('spQY', { type: 'slider', label: 'Abstand oben', value: 12, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('streamprintq') });
 add('spQBreite', { type: 'slider', label: 'Breite', value: 20, options: { min: 5, max: 100, step: 0.5, suffix: ' %' }, ...vis('streamprintq') });
@@ -159,7 +159,7 @@ add('twBitsEpisch', { type: 'number', label: 'Bits: Stufe episch ab', value: 500
 add('knopfModus', { type: 'dropdown', label: 'Knopf drücken, während etwas läuft', value: 'knopf', options: {
   knopf: 'Knopf-Animation abbrechen und neu starten (Geschenke laufen zu Ende)', alles: 'Alles sofort abbrechen und neu starten', anstellen: 'Hinten anstellen (wie früher)' }, ...vis('knopf') });
 add('weihnachtAlerts', { type: 'dropdown', label: 'Weihnachts-Alerts verwenden (ersetzt Neuer Follower – auch Twitch –, Live geteilt, Superfan, Like-Ziel und kleine Geschenke; Geschenke mit eigener Animation bleiben)', value: 'thema', options: {
-  thema: 'Automatisch, wenn „Weihnachts-Stream“ läuft (Zockmodus)', immer: 'Immer (ganze Adventszeit)', aus: 'Nie' }, ...vis('weihnachten') });
+  thema: 'Automatisch, wenn „Weihnachts-Stream“ läuft', immer: 'Immer (ganze Adventszeit)', aus: 'Nie' }, ...vis('weihnachten') });
 for (const a of items) {
   add('an_' + a.id, { type: 'checkbox', label: `${a.label}: an`, value: true, ...vis(a.gruppe) });
   add('v_' + a.id, { type: 'videoupload', label: `${a.label}: eigenes Video${a.quer ? ' (hochkant)' : ''}`, value: '', accept: 'video/mp4,video/webm', ...vis(a.gruppe) });
@@ -188,8 +188,8 @@ let ao = 0;
 const aadd = (k, f) => { acfg[k] = { order: ++ao, ...f }; };
 aadd('befehl', { type: 'input', label: 'Lumia-Befehl, der die Animation sendet', value: 'mm-aktion' });
 aadd('titel', { type: 'input', label: 'Überschrift', value: 'MichaModus · Steuerung' });
-aadd('modus1Name', { type: 'input', label: 'Name Modus 1', value: 'Party' });
-aadd('modus2Name', { type: 'input', label: 'Name Modus 2', value: 'Zockmodus' });
+aadd('modus1Name', { type: 'input', label: 'Name Modus 1 (nur alte Lumia-Steuerung)', value: 'Party' });
+aadd('modus2Name', { type: 'input', label: 'Name Modus 2 (nur alte Lumia-Steuerung)', value: 'Zockmodus' });
 aadd('modus2Ico', { type: 'input', label: 'Symbol Modus 2', value: '🎮' });
 aadd('knoepfe', { type: 'textarea', rows: 14, label: 'Knöpfe (je Zeile: Animation | Beschriftung | Symbol)', value:
   knoepfe.filter(a => a.gruppe === 'knopf' && !a.id.startsWith('xmas-')).map(a => `${a.id} | ${a.label} | ${ICON[a.id] || '✨'}`).join('\n') });

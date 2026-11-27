@@ -14,13 +14,13 @@
   "modus1Name": {
     "order": 3,
     "type": "input",
-    "label": "Name Modus 1",
+    "label": "Name Modus 1 (nur alte Lumia-Steuerung)",
     "value": "Party"
   },
   "modus2Name": {
     "order": 4,
     "type": "input",
-    "label": "Name Modus 2",
+    "label": "Name Modus 2 (nur alte Lumia-Steuerung)",
     "value": "Zockmodus"
   },
   "modus2Ico": {
