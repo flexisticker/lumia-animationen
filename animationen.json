@@ -728,6 +728,71 @@
    "key": "black",
    "bild": "cheerful cartoon snowman bounces in, waves and spins sending snowballs and sparkles",
    "ton": "bouncy thud, snowball splats, happy giggle"
+  },
+  {
+   "id": "xmas-rentier",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "glowing red-nosed reindeer leaps across leaving golden sparkles"
+  },
+  {
+   "id": "xmas-lebkuchen",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "gingerbread man dances while sprinkles and candies burst"
+  },
+  {
+   "id": "xmas-kugeln",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "glass ornament baubles bounce in and burst into sparkles"
+  },
+  {
+   "id": "xmas-sternschnuppe",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "golden Christmas shooting star explodes into tiny stars"
+  },
+  {
+   "id": "xmas-elfen",
+   "gruppe": "knopf",
+   "key": "black",
+   "bild": "two cartoon elves juggle presents and throw confetti"
+  },
+  {
+   "id": "xa-folgen",
+   "gruppe": "weihnachten",
+   "key": "black",
+   "bild": "heart of snowflakes and fairy lights bursts into snow (Weihnachts-Version von Neuer Follower)",
+   "fuer": "folgen"
+  },
+  {
+   "id": "xa-teilen",
+   "gruppe": "weihnachten",
+   "key": "black",
+   "bild": "present box spins, lid flies off, gifts fly out (Weihnachts-Version von Live geteilt)",
+   "fuer": "teilen"
+  },
+  {
+   "id": "xa-superfan",
+   "gruppe": "weihnachten",
+   "key": "black",
+   "bild": "golden crown with holly descends with stars and snow (Weihnachts-Version von Superfan)",
+   "fuer": "superfan"
+  },
+  {
+   "id": "xa-likeziel",
+   "gruppe": "weihnachten",
+   "key": "black",
+   "bild": "explosion of hearts, snowflakes and Christmas fireworks (Weihnachts-Version von Like-Ziel)",
+   "fuer": "likeziel"
+  },
+  {
+   "id": "xa-stufe-klein",
+   "gruppe": "weihnachten",
+   "key": "black",
+   "bild": "snow globe bounces and releases sparkling snow (Weihnachts-Version von Stufe klein)",
+   "fuer": "stufe-klein"
   }
  ]
 }

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const R = new URL('..', import.meta.url).pathname;
 const read = p => fs.readFileSync(R + p, 'utf8');
 const list = JSON.parse(read('animationen.json')).liste;
-const GROUP = { twitch: 'Twitch', geschenk: 'Geschenke', stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe' };
+const GROUP = { twitch: 'Twitch', geschenk: 'Geschenke', stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe', weihnachten: 'Weihnachts-Alerts' };
 const LABEL = {
   rose: 'Rose', gg: 'GG', tiktok: 'TikTok', fingerherz: 'Fingerherz', teamherz: 'Teamherz', donut: 'Donut', parfuem: 'Parfüm',
   handherzen: 'Hand-Herzen', sonnenbrille: 'Sonnenbrille', kanone: 'Konfetti-Kanone', corgi: 'Corgi', kueken: 'Küken',
@@ -13,11 +13,14 @@ const LABEL = {
   superfan: 'Superfan', schatzkiste: 'Schatzkiste', likeziel: 'Like-Ziel', 'battle-sieg': 'Battle-Ende', airhorn: 'Airhorn',
   torjubel: 'Torjubel', trommelwirbel: 'Trommelwirbel', applaus: 'Applaus', konfetti: 'Konfetti', verlosung: 'Verlosung',
   fanfare: 'Fanfare', lacher: 'Lacher', wow: 'Wow', rimshot: 'Ba-dum-tss', herzregen: 'Herzregen', partyalarm: 'Party-Alarm',
-  'xmas-schlitten': 'Schlitten', 'xmas-schnee': 'Schneegestöber', 'xmas-geschenke': 'Geschenkeregen', 'xmas-baum': 'Weihnachtsbaum', 'xmas-schneemann': 'Schneemann'
+  'xmas-schlitten': 'Schlitten', 'xmas-schnee': 'Schneegestöber', 'xmas-geschenke': 'Geschenkeregen', 'xmas-baum': 'Weihnachtsbaum', 'xmas-schneemann': 'Schneemann',
+  'xmas-rentier': 'Rentier', 'xmas-lebkuchen': 'Lebkuchenmann', 'xmas-kugeln': 'Christbaumkugeln', 'xmas-sternschnuppe': 'Weihnachtsstern', 'xmas-elfen': 'Wichtel',
+  'xa-folgen': 'Weihnachten: Neuer Follower', 'xa-teilen': 'Weihnachten: Live geteilt', 'xa-superfan': 'Weihnachten: Superfan', 'xa-likeziel': 'Weihnachten: Like-Ziel', 'xa-stufe-klein': 'Weihnachten: kleine Geschenke'
 };
 const ICON = { airhorn: '📯', torjubel: '⚽', trommelwirbel: '🥁', applaus: '👏', konfetti: '🎉', verlosung: '🎡', fanfare: '🎺',
   lacher: '😂', wow: '🤩', rimshot: '🥁', herzregen: '💖', partyalarm: '🚨',
-  'xmas-schlitten': '🛷', 'xmas-schnee': '❄️', 'xmas-geschenke': '🎁', 'xmas-baum': '🎄', 'xmas-schneemann': '⛄' };
+  'xmas-schlitten': '🛷', 'xmas-schnee': '❄️', 'xmas-geschenke': '🎁', 'xmas-baum': '🎄', 'xmas-schneemann': '⛄',
+  'xmas-rentier': '🦌', 'xmas-lebkuchen': '🍪', 'xmas-kugeln': '🔴', 'xmas-sternschnuppe': '🌟', 'xmas-elfen': '🧝‍♂️' };
 const available = new Set(fs.readdirSync(R + 'medien/animationen').map(f => f.replace(/\.mp4$/, '')));
 const items = list.filter(a => available.has(a.id)).map(a => ({ ...a, label: LABEL[a.id] || a.label || a.id, datei: a.id + '.mp4', ...(available.has(a.id + '-quer') ? { quer: a.id + '-quer.mp4' } : {}) }));
 
@@ -33,7 +36,7 @@ const cfg = {};
 const add = (key, f) => { cfg[key] = { order: ++order, ...f }; };
 add('bereich', { type: 'dropdown', label: 'Einstellungen für', value: 'allgemein', options: {
   allgemein: 'Allgemein & Ton', banner: 'Banner & Slogans', name: 'Namens-Einblendung', likes: 'Like-Fontäne', szenen: 'Ansagen (Pause, Weiter …)', geschenk: 'Geschenke',
-  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', twitch: 'Twitch', streamprint: 'StreamPrint – hochkant (TikTok)', streamprintq: 'StreamPrint – quer (Twitch)', sprache: 'Sprachausgabe (Danke)', chat: 'Chat-Einblendung', knopf: 'Aktionsknöpfe' } });
+  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', weihnachten: 'Weihnachts-Alerts', twitch: 'Twitch', streamprint: 'StreamPrint – hochkant (TikTok)', streamprintq: 'StreamPrint – quer (Twitch)', sprache: 'Sprachausgabe (Danke)', chat: 'Chat-Einblendung', knopf: 'Aktionsknöpfe' } });
 const vis = b => ({ visibleIf: { key: 'bereich', equals: [b] } });
 add('lautstaerke', { type: 'slider', label: 'Lautstärke gesamt', value: 80, options: { min: 0, max: 100, step: 5, suffix: '%' }, ...vis('allgemein') });
 add('medienAdresse', { type: 'input', label: 'Adresse der Videos (Ordner, endet mit /)', value: '', placeholder: 'leer = nur hochgeladene Videos', ...vis('allgemein') });
@@ -155,6 +158,8 @@ add('twBitsGross', { type: 'number', label: 'Bits: Stufe groß ab', value: 1000,
 add('twBitsEpisch', { type: 'number', label: 'Bits: Stufe episch ab', value: 5000, ...vis('twitch') });
 add('knopfModus', { type: 'dropdown', label: 'Knopf drücken, während etwas läuft', value: 'knopf', options: {
   knopf: 'Knopf-Animation abbrechen und neu starten (Geschenke laufen zu Ende)', alles: 'Alles sofort abbrechen und neu starten', anstellen: 'Hinten anstellen (wie früher)' }, ...vis('knopf') });
+add('weihnachtAlerts', { type: 'dropdown', label: 'Weihnachts-Alerts verwenden (ersetzt Neuer Follower – auch Twitch –, Live geteilt, Superfan, Like-Ziel und kleine Geschenke; Geschenke mit eigener Animation bleiben)', value: 'thema', options: {
+  thema: 'Automatisch, wenn „Weihnachts-Stream“ läuft (Zockmodus)', immer: 'Immer (ganze Adventszeit)', aus: 'Nie' }, ...vis('weihnachten') });
 for (const a of items) {
   add('an_' + a.id, { type: 'checkbox', label: `${a.label}: an`, value: true, ...vis(a.gruppe) });
   add('v_' + a.id, { type: 'videoupload', label: `${a.label}: eigenes Video${a.quer ? ' (hochkant)' : ''}`, value: '', accept: 'video/mp4,video/webm', ...vis(a.gruppe) });

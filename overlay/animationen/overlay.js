@@ -329,6 +329,19 @@ function giftAnim(giftName, coinsTotal) {
   return t ? t.a : null;
 }
 
+// Weihnachts-Alerts: im Weihnachts-Thema (oder „immer“) laufen die Weihnachts-Versionen (Animations-ID xa-<id>)
+const XA_MAP = { 'tw-follow': 'folgen' };
+function weihnachtAktiv() {
+  const w = D.weihnachtAlerts || 'thema';
+  if (w === 'aus') return false; if (w === 'immer') return true;
+  return curMode === 'zocken' && !!curSpiel && /weihnacht|xmas|christmas/i.test((curSpiel.id || '') + ' ' + (curSpiel.name || ''));
+}
+function festlich(anim) {
+  if (!anim || !weihnachtAktiv()) return anim;
+  const x = entryById('xa-' + (XA_MAP[anim.id] || anim.id));
+  return x && enabled(x) && videoUrl(x) ? x : anim;
+}
+
 // ---------- Ereignisse aus Lumia ----------
 const TEXT = {
   'tiktok-follower': ['folgen', 'folgt jetzt!'],
@@ -368,19 +381,19 @@ function twitchAlert(data, s) {
 }
 function handleAlert(data) {
   const s = data.extraSettings || {};
-  if (String(data.alert || '').startsWith('twitch-')) { const it = twitchAlert(data, s); if (it && it.anim) enqueue(it); return; }
+  if (String(data.alert || '').startsWith('twitch-')) { const it = twitchAlert(data, s); if (it && it.anim) { it.anim = festlich(it.anim); enqueue(it); } return; }
   if (data.alert === 'tiktok-like') { const n = Number(s.amount || s.userLikeCount || (data.dynamic && data.dynamic.value)) || 5; likeBurst(n, true); likeTag(s.username, n); return; }
   if (data.alert === 'tiktok-gift') {
     const amount = Number(s.giftAmount) || 1;
     const coins = (Number(s.coins) || Number(s.value) || 1) * amount;
     if (coins < num(D.minMuenzen, 1)) return;
-    const anim = giftAnim(s.giftName, coins);
+    const anim = festlich(giftAnim(s.giftName, coins));
     enqueue({ anim, user: s.username, avatar: s.avatar, amount, key: (s.username || '') + '|' + (s.giftName || ''), plattform: 'tiktok', alert: data.alert, roh: { geschenk: s.giftName || 'Geschenk', muenzen: coins },
       text: (D.geschenkText || 'schickt {GESCHENK}').replace('{GESCHENK}', s.giftName || 'ein Geschenk') });
     return;
   }
   const t = TEXT[data.alert];
-  if (t) enqueue({ anim: entryById(t[0]), user: s.username || (data.alert === 'tiktok-totalLikes' ? 'Ihr alle' : ''), avatar: s.avatar, amount: 1, text: t[1], plattform: 'tiktok', alert: data.alert });
+  if (t) enqueue({ anim: festlich(entryById(t[0])), user: s.username || (data.alert === 'tiktok-totalLikes' ? 'Ihr alle' : ''), avatar: s.avatar, amount: 1, text: t[1], plattform: 'tiktok', alert: data.alert });
 }
 
 // Aktionsknöpfe (Aktionszentrale, Lumia-Befehl „Overlay: Inhalt senden“ oder MCP): Inhalt = Animations-ID,

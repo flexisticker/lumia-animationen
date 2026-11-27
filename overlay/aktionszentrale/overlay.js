@@ -46,7 +46,8 @@ lines.forEach(([id, label, ico]) => button(btnBox, { id, label: label || id, ico
 
 // Weihnachten: Animationen + reine Sounds (sound:<name> spielt /sounds/<name>.mp3)
 const XMAS_SOUNDS = [['sound:hohoho', 'Ho ho ho!', '🎅'], ['sound:schlitten', 'Schlittenglocken', '🔔'], ['sound:glocken', 'Kirchenglocken', '🛎️'],
-  ['sound:schneeball', 'Schneeball', '☃️'], ['sound:geschenk', 'Geschenk auspacken', '🎀'], ['sound:prost', 'Prost!', '🥂'], ['sound:elfen', 'Elfen kichern', '🧝']];
+  ['sound:schneeball', 'Schneeball', '☃️'], ['sound:geschenk', 'Geschenk auspacken', '🎀'], ['sound:prost', 'Prost!', '🥂'], ['sound:elfen', 'Elfen kichern', '🧝'],
+  ['sound:rentier', 'Rentierhufe', '🦌'], ['sound:zauber', 'Weihnachtszauber', '✨'], ['sound:knallbonbon', 'Knallbonbon', '🎉'], ['sound:engel', 'Engelschor', '😇'], ['sound:knusper', 'Knusper knusper', '🍪']];
 if (D.weihnachtAn === false) { document.getElementById('xmasTitel').style.display = 'none'; }
 else { const xb = document.getElementById('xmas'); [...(window.MM_LIST || []).filter(a => /^xmas-/.test(a.id)).map(a => [a.id, a.label, a.ico || '🎄']), ...XMAS_SOUNDS].forEach(([id, label, ico]) => button(xb, { id, label, ico })); }
 

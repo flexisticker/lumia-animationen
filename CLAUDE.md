@@ -209,3 +209,10 @@
   **Weihnachts-Gimmicks:** Sounds `medien/sounds/{schlitten,glocken,schneeball,geschenk,prost,elfen}.mp3` (ElevenLabs SFX, loudnorm −14) und 5 Animationen `xmas-schlitten|schnee|geschenke|baum|schneemann` (hoch + quer, MP4 + Alpha-WebM, ca. 1,90 $, gruppe knopf).
   Tablet: eigener Bereich „🎄 Weihnachten“ (Animationen aus `MM_LIST` mit `xmas-`-Präfix + `XMAS_SOUNDS` als `sound:<name>`), abschaltbar `weihnachtAn` (Tablet-Steuerung); xmas-* stehen nicht in den Standard-Gimmick-Knöpfen. `mmList` trägt jetzt `ico`.
   **Logo 3dbymicha weiter offen** (Datei fehlt im Repo).
+- 27.11.2026: **Weihnachten Runde 2** (Wunsch Michael „je 5“, ca. 5 $): Musik `weihnachten-6…10` (Swing-Jazz, Winterwunderland-Orchester, Xmas-Pop, Akustik, Chiptune; jetzt 10 Titel),
+  Sounds `rentier, zauber, knallbonbon, engel, knusper` (Tablet-Bereich „🎄 Weihnachten“, `XMAS_SOUNDS`), Knopf-Animationen `xmas-rentier|lebkuchen|kugeln|sternschnuppe|elfen`,
+  **Weihnachts-Alerts** `xa-folgen|teilen|superfan|likeziel|stufe-klein` (gruppe `weihnachten`, Studio-Bereich „Weihnachts-Alerts“): Overlay `festlich(anim)` ersetzt eine Animation durch `xa-<id>`
+  (Twitch-Follow über `XA_MAP` → xa-folgen), wenn `weihnachtAlerts` = immer oder (Standard `thema`) Zockmodus + Thema mit „weihnacht“ in ID/Name; Geschenke mit eigener Animation bleiben.
+  **Kaminfeuer hörbar:** `medien/atmo/weihnachten.mp3` neu (ElevenLabs SFX, nahes knisterndes Kaminfeuer, 30 s loop, mittlere Lautstärke −22,6 dB statt −28 → deutlich lauter als andere Atmos).
+  **Hue-Effekt `kaminfeuer`** (Glut Farbe 1 ↔ Flamme Farbe 2): je Spot eigenes weiches Rauschen aus 3 Schwingungen + Zufall + seltenes Auflodern, heller = gelber, tt 200 ms; Vorgabe Weihnachten #ff3000/#ffb040.
+  Geprüft (Headless + Bridge-Nachbau): Follow/kleines Geschenk/Twitch-Follow im Weihnachts-Thema → xa-*, bei WoW normal; 22 Weihnachts-Knöpfe; Lampen flackern unabhängig.

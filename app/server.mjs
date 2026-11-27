@@ -542,7 +542,7 @@ const hueBri = (f = 1) => Math.max(1, Math.min(254, Math.round(254 * (Number(sav
 const HUE_EFFEKTE = [
   ['ambilight', 'Ambilight (Farben der Bildhälften)'], ['ambibunt', 'Ambilight bunt (Haupt- + Zweitfarbe)'], ['farbe', 'Eine Farbe'], ['zweifarbig', 'Zwei Farben (links/rechts)'],
   ['atmen', 'Atmen (langsam, gegenläufig)'], ['pulsieren', 'Pulsieren (schnell, gemeinsam)'], ['wechsel', 'Wechselblinker (links ↔ rechts)'], ['regenbogen', 'Regenbogen'],
-  ['feuer', 'Feuer (flackern)'], ['flackern', 'Flackern in zwei Farben (Kamin/Kerzen)'], ['funkeln', 'Funkeln (Glitzer)'], ['kurz', 'Kurzer Farbblitz'], ['nichts', 'Nichts tun']];
+  ['feuer', 'Feuer (flackern)'], ['kaminfeuer', 'Kaminfeuer (echte Flammen: Glut → Flamme)'], ['flackern', 'Flackern in zwei Farben (Kamin/Kerzen)'], ['funkeln', 'Funkeln (Glitzer)'], ['kurz', 'Kurzer Farbblitz'], ['nichts', 'Nichts tun']];
 const HUE_KAT = [
   ['g-klein', 'Geschenk klein (unter 100 Münzen)', 'TikTok', { effekt: 'ambilight' }],
   ['g-mittel', 'Geschenk mittel (100 – 999 Münzen)', 'TikTok', { effekt: 'ambilight', blitz: true }],
@@ -579,7 +579,7 @@ const HUE_SPIEL_LICHT = {
   pagonia: { effekt: 'zweifarbig', farbe1: '#ffc070', farbe2: '#ffe6c4' }, siedler4: { effekt: 'zweifarbig', farbe1: '#ffc070', farbe2: '#ffe6c4' },
   'aufbau-strategie': { effekt: 'flackern', farbe1: '#ffb347', farbe2: '#ffd08a', hell: 80 },   // Kerzen im Kriegsraum
   talk: { effekt: 'zweifarbig', farbe1: '#ffb36b', farbe2: '#c86bff', hell: 80 },
-  weihnachten: { effekt: 'flackern', farbe1: '#ff6a1a', farbe2: '#ffd27a' },        // Kamin + Lichterkette
+  weihnachten: { effekt: 'kaminfeuer', farbe1: '#ff3000', farbe2: '#ffb040' },      // Kaminfeuer: Glut (Farbe 1) ↔ Flamme (Farbe 2)
   werkstatt: { effekt: 'zweifarbig', farbe1: '#00c2ff', farbe2: '#ffe6c4' },
   'party-buehne': { effekt: 'atmen', farbe1: '#ff3d7f', farbe2: '#7c4dff' },
   zockerbude: { effekt: 'zweifarbig', farbe1: '#6a4bff', farbe2: '#00c2ff' },
@@ -597,6 +597,10 @@ const hueGrundDef = (m = saved.modus, mitSpiel = true) => {
 const hueSpots = () => saved.hue.lampen.map((id, i) => ({ id, seite: 'links', hell: 100, ...(i === 1 ? { seite: 'rechts' } : {}), ...(saved.hue.spots[id] || {}) }));
 function hsvHex(h, s = 1, v = 1) { const f = n => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); }; return '#' + [f(5), f(3), f(1)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join(''); }
 // Ein Effekt liefert je Spot {hex, f (Helligkeit 0..1), tt (Übergang in 1/10 s)} – oder null = nichts ändern
+function mixHex(a, b, p) {
+  const h = x => [1, 3, 5].map(i => parseInt(String(x).slice(i, i + 2), 16) || 0), A = h(a), B = h(b);
+  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * p).toString(16).padStart(2, '0')).join('');
+}
 function hueEffekt(def, t, spot, spur) {
   const r = spot.seite === 'rechts', mitte = spot.seite === 'mitte', c1 = def.farbe1, c2 = def.farbe2 || c1, seiteF = r ? c2 : c1;
   switch (def.effekt) {
@@ -610,6 +614,15 @@ function hueEffekt(def, t, spot, spur) {
     case 'feuer': return { hex: ['#ff2a00', '#ff5a00', '#ff8a10', '#ffb030'][Math.floor(Math.random() * 4)], f: 0.45 + Math.random() * 0.55, tt: 1 };
     case 'funkeln': return Math.random() < 0.3 ? { hex: c2, f: 1, tt: 0 } : { hex: c1, f: 0.55, tt: 2 };
     case 'kurz': return t < 700 ? { hex: c1, f: 1, tt: 1 } : null;
+    case 'kaminfeuer': {
+      // Flammen: je Spot eigenes, weiches „Rauschen“ aus mehreren Schwingungen + kleine Zufallszucker; hell = gelblicher, dunkel = rote Glut
+      const sek = t / 1000, sd = spot.seite === 'rechts' ? 2.3 : spot.seite === 'mitte' ? 4.1 : 0.7;
+      let n = 0.45 * Math.sin(sek * 1.3 + sd) + 0.3 * Math.sin(sek * 3.7 + sd * 2.1) + 0.25 * Math.sin(sek * 8.9 + sd * 3.3);
+      n = (n + 1) / 2 + (Math.random() - 0.5) * 0.25;
+      if (Math.random() < 0.04) n += 0.35;                    // kurz auflodern
+      const p = Math.max(0, Math.min(1, n));
+      return { hex: mixHex(c1, c2, p), f: 0.3 + 0.7 * p, tt: 2 };
+    }
     case 'flackern': return { hex: mitte ? c1 : seiteF, f: 0.55 + Math.random() * 0.45, tt: 2 };
     case 'ambilight': case 'ambibunt': {
       if (!spur || !spur.length) return hueEffekt({ ...def, effekt: 'pulsieren' }, t, spot);
