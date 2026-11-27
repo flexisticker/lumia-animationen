@@ -1392,8 +1392,8 @@
   "label": "Zeigen (wenn per Knopf an und kein Spielfenster offen)",
   "value": "zocken",
   "options": {
-   "zocken": "nur im Zockmodus",
-   "immer": "in beiden Modi"
+   "zocken": "nur bei Hintergründen mit Wand-Bildschirm (Zockerbude)",
+   "immer": "bei jedem Hintergrund"
   },
   "visibleIf": {
    "key": "bereich",

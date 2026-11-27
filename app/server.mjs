@@ -360,7 +360,7 @@ function lumiaConnect() {
 }
 
 // ---------- Modus, Spiel, OBS ----------
-const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, kategorie: sp.kategorie || '', video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, atmo: sp.atmo || '', jingle: sp.jingle || '', start: sp.start || '', ende: sp.ende || '' } : null; };
+const spielInfo = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return sp ? { id: sp.id, name: sp.name, kategorie: sp.kategorie || '', wandMonitor: hatBildschirm(sp), video: sp.video || '', videoQuer: sp.videoQuer || '', ohneFenster: !!sp.ohneFenster, atmo: sp.atmo || '', jingle: sp.jingle || '', start: sp.start || '', ende: sp.ende || '' } : null; };
 // Musik: Titel + Lautstärke für alle hinteren Quellen (Lautstärke null = Wert aus den Hintergrund-Einstellungen)
 const musikInfo = () => {
   const t = saved.musik.titel, x = MUSIK.find(m => m.id === t);
@@ -391,7 +391,8 @@ function fensterSichtbar(nr) {
 }
 // Wand-Monitor nur sinnvoll, wenn kein Spielfenster offen ist und (je nach Einstellung) im Zockmodus → nur dann Kachel am iPad zeigen
 const monitorArt = () => (saved.monitor === true ? 'liste' : saved.monitor || '');
-const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || saved.modus === 'zocken');
+const hatBildschirm = sp => !!sp && (sp.wandMonitor === true || (sp.wandMonitor !== false && /zockerbude/i.test((sp.video || '') + ' ' + (sp.videoQuer || '') + ' ' + sp.id)));
+const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || hatBildschirm(saved.spiele.find(x => x.id === saved.spiel)));
 const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste', 'monitor-drucker': monitorArt() === 'drucker', monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), logo: !saved.logoAus && !!settingsFor('vorne').logoBild, logoMoeglich: !!settingsFor('vorne').logoBild, lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length) });
 const fensterMelden = () => { broadcast('fenster', fensterSicht(), ['aktion', 'studio']); obsQuellenSync(); };
 // OBS-Quellen zu den Fenstern mitschalten (in allen Szenen, in denen sie vorkommen). Eine Quelle für mehrere Fenster = sichtbar, wenn eines davon offen ist.
@@ -1006,7 +1007,7 @@ const server = http.createServer(async (req, res) => {
       }
       saved.spiele = b.spiele.slice(0, 50).map(x => ({ id: String(x.id || crypto.randomBytes(4).toString('hex')).replace(/[^a-z0-9-]/gi, '').slice(0, 40) || crypto.randomBytes(4).toString('hex'),
         name: String(x.name || 'Spiel').slice(0, 60), video: String(x.video || '').slice(0, 300), videoQuer: String(x.videoQuer || '').slice(0, 300), szene: String(x.szene || '').slice(0, 200), musik: MUSIK.some(m => m.id === x.musik) ? x.musik : '',
-        kategorie: saved.kategorien.some(k => k.id === x.kategorie) ? x.kategorie : 'spiele', ohneFenster: !!x.ohneFenster, atmo: String(x.atmo || '').slice(0, 300), jingle: String(x.jingle || '').slice(0, 300), ...(x.licht && typeof x.licht === 'object' && HUE_EFFEKTE.some(e => e[0] === x.licht.effekt) ? { licht: { effekt: x.licht.effekt, farbe1: /^#[0-9a-f]{6}$/i.test(x.licht.farbe1) ? x.licht.farbe1 : '#ff3d7f', farbe2: /^#[0-9a-f]{6}$/i.test(x.licht.farbe2) ? x.licht.farbe2 : '#7c4dff', hell: Math.max(5, Math.min(100, Number(x.licht.hell) || 100)) } } : {}), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
+        kategorie: saved.kategorien.some(k => k.id === x.kategorie) ? x.kategorie : 'spiele', ohneFenster: !!x.ohneFenster, ...(typeof x.wandMonitor === 'boolean' ? { wandMonitor: x.wandMonitor } : {}), atmo: String(x.atmo || '').slice(0, 300), jingle: String(x.jingle || '').slice(0, 300), ...(x.licht && typeof x.licht === 'object' && HUE_EFFEKTE.some(e => e[0] === x.licht.effekt) ? { licht: { effekt: x.licht.effekt, farbe1: /^#[0-9a-f]{6}$/i.test(x.licht.farbe1) ? x.licht.farbe1 : '#ff3d7f', farbe2: /^#[0-9a-f]{6}$/i.test(x.licht.farbe2) ? x.licht.farbe2 : '#7c4dff', hell: Math.max(5, Math.min(100, Number(x.licht.hell) || 100)) } } : {}), start: String(x.start || '').slice(0, 160), ende: String(x.ende || '').slice(0, 160) }));
       if (!saved.spiele.some(x => x.id === saved.spiel)) saved.spiel = '';
       saveSettings(); broadcast('spiele', { spiele: saved.spiele, kategorien: saved.kategorien }); hueRuhe();
       if (saved.modus === 'zocken') broadcast('modus', { modus: saved.modus, spiel: spielInfo() });

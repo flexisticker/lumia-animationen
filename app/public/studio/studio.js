@@ -341,6 +341,7 @@ function spielePage(m) {
         field('Eigene OBS-Szene (optional)', sceneSelect(g.szene, async v => { g.szene = v; await save(); }, '– Gaming-Szene –')),
         field('Start-Ansage für dieses Spiel (optional, Titel | Unterzeile)', h('input', { type: 'text', value: g.start || '', placeholder: 'z. B. Raid-Abend in Azeroth! | Gleich geht\'s los', onchange: async e => { g.start = e.target.value; await save(); } })),
         field('Ende-Ansage für dieses Spiel (optional)', h('input', { type: 'text', value: g.ende || '', placeholder: 'z. B. GG & gute Nacht! | Morgen wieder', onchange: async e => { g.ende = e.target.value; await save(); } })),
+        field('Wand-Monitor möglich (Hintergrund hat den Bildschirm wie die Zockerbude)', h('input', { type: 'checkbox', ...((g.wandMonitor === true || (g.wandMonitor !== false && /zockerbude/i.test((g.video || '') + ' ' + (g.videoQuer || '') + ' ' + g.id))) ? { checked: '' } : {}), onchange: async e => { g.wandMonitor = e.target.checked; await save(); } })),
         field('Kein Spielfenster (z. B. Talk-Runde)', h('input', { type: 'checkbox', ...(g.ohneFenster ? { checked: '' } : {}), onchange: async e => { g.ohneFenster = e.target.checked; await save(); } })),
         field('Musik', h('select', { onchange: async e => { g.musik = e.target.value; await save(); } },
           h('option', { value: '' }, '– Musik nicht wechseln –'), ...(S.musik ? S.musik.liste : []).map(x => h('option', { value: x.id, ...(g.musik === x.id ? { selected: '' } : {}) }, x.name)))),

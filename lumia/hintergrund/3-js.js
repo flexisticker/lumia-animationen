@@ -153,7 +153,7 @@ function draw(now) {
   }
   let monLoch = '';
   // Wand-Monitor: an, nur wenn das Spielfenster nicht zu sehen ist (und je nach Einstellung nur im Zockmodus)
-  const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || artJetzt() === 'zocken');
+  const monZeigen = monitorAn && WIN[0].t < 0.02 && !want(WIN[0]) && ((D.monWann || 'zocken') === 'immer' || (!curSpiel ? artJetzt() === 'zocken' : !!curSpiel.wandMonitor));
   if (monZeigen) {
     const W = cv.width * num(MQ('Breite'), QUER ? 29.5 : 42) / 100, H = cv.height * num(MQ('Hoehe'), QUER ? 31 : 35.5) / 100;
     // Perspektive: rechte obere Ecke um pt % der Höhe tiefer, rechte untere um pb % höher (vermessen an der Lichtleiste der Zockerbude)

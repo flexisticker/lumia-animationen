@@ -238,3 +238,6 @@
 - 27.11.2026: **„Fenstereinstellungen (Schreibtisch etc.) verloren“** = Folge von „Kanäle nur Texte“: Nicht-Text-Werte, die früher im Kanal 3dbymicha eingestellt waren, lagen noch in
   `saved.profile['3dbymicha']`, wurden aber ignoriert. Einmalige Übernahme beim Start (`saved.kanalUebernahme1`): fehlt der Wert bei MichaModus → übernehmen; beide gesetzt → Kameras `f2*`/`f3*`
   vom anderen Kanal, Rest bleibt MichaModus; ersetzte Werte in `saved.kanalUebernahmeSicherung`, Liste in `saved.kanalUebernahmeListe` + Container-Log. Geprüft mit nachgebautem Altstand.
+- 27.11.2026: **Wand-Monitor ging nicht** (nach Modus-Umbau): Server `monitorMoeglich` prüfte `saved.modus === 'zocken'` (jetzt immer wahr), Overlay prüfte `artJetzt()` → Tablet bot Monitor z. B. auf der Party-Bühne an,
+  Overlay zeigte ihn nie. Jetzt gebunden an Hintergründe mit Wand-Bildschirm: `hatBildschirm(sp)` = `sp.wandMonitor` (Studio-Häkchen „Wand-Monitor möglich“) bzw. automatisch bei „zockerbude“ in Video/ID;
+  `spielInfo().wandMonitor` → Overlay. `monWann` „zocken“ heißt jetzt „nur bei Hintergründen mit Wand-Bildschirm“. Spielfenster muss aus sein (verdeckt den Bildschirm). Geprüft (Headless).
