@@ -269,7 +269,7 @@ if (D.spieleAn !== false && (window.MM_SPIELE || []).length) {
     const h = document.createElement('h3'); h.className = 'katTitel'; h.textContent = (kat.ico ? kat.ico + ' ' : '') + kat.name; box.append(h);
     const g = document.createElement('div'); g.className = 'grid scenes'; box.append(g);
     liste.forEach(sp => {
-      const b = document.createElement('button'); b.className = 'btn' + (sp.id === window.MM_SPIEL ? ' active' : ''); alle.push(b);
+      const b = document.createElement('button'); b.className = 'btn' + (sp.id === window.MM_SPIEL ? ' active' : ''); b.dataset.spiel = sp.id; alle.push(b);
       const em = String(sp.name).match(/^(\p{Extended_Pictographic}[\uFE0F\u200D\p{Extended_Pictographic}]*)\s*/u);
       b.innerHTML = '<span class="ico"></span><span></span>'; b.firstChild.textContent = em ? em[1] : kat.ico || '🎮'; b.lastChild.textContent = em ? sp.name.slice(em[0].length) : sp.name;
       b.onclick = async () => {
@@ -280,6 +280,9 @@ if (D.spieleAn !== false && (window.MM_SPIELE || []).length) {
     });
   };
   kats.forEach(k => gruppe(k, window.MM_SPIELE.filter(sp => sp.kategorie === k.id)));
+  // Umschaltung von woanders (Studio, OBS, anderes Tablet) → Markierung nachziehen
+  if (window.Overlay && Overlay.on) Overlay.on('overlaycontent', d => { const c = String(d.content || ''); if (!c.startsWith('spiel:')) return;
+    try { const sp = JSON.parse(c.slice(6)); if (sp && sp.id) { window.MM_SPIEL = sp.id; alle.forEach(x => x.classList.toggle('active', x.dataset.spiel === sp.id)); } } catch (e) {} });
   gruppe({ name: 'Sonstiges', ico: '✨' }, window.MM_SPIELE.filter(sp => !kats.some(k => k.id === sp.kategorie)));
 }
 

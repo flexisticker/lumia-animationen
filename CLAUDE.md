@@ -241,3 +241,8 @@
 - 27.11.2026: **Wand-Monitor ging nicht** (nach Modus-Umbau): Server `monitorMoeglich` prüfte `saved.modus === 'zocken'` (jetzt immer wahr), Overlay prüfte `artJetzt()` → Tablet bot Monitor z. B. auf der Party-Bühne an,
   Overlay zeigte ihn nie. Jetzt gebunden an Hintergründe mit Wand-Bildschirm: `hatBildschirm(sp)` = `sp.wandMonitor` (Studio-Häkchen „Wand-Monitor möglich“) bzw. automatisch bei „zockerbude“ in Video/ID;
   `spielInfo().wandMonitor` → Overlay. `monWann` „zocken“ heißt jetzt „nur bei Hintergründen mit Wand-Bildschirm“. Spielfenster muss aus sein (verdeckt den Bildschirm). Geprüft (Headless).
+- 27.11.2026: **Gesamtprüfung nach Modus-Umbau** (Wunsch Michael „alles logisch durchchecken“), Test liegt jetzt im Repo: `werkzeuge/test/` (LIESMICH, OBS-/Hue-Nachbau, `gesamttest.cjs`, 70 Prüfungen). Behoben:
+  Server-`fensterSichtbar` nutzte noch `saved.modus` (→ jetzt gleiche Regel wie Overlay: Thema ohne Spielfenster = party); Hintergrundwechsel hart geschnitten (→ `wechselVideo`: zweites `<video id=bgNeu>` 0,8 s einblenden, dann übernehmen);
+  Hintergrund ohne eigene Musik behielt Musik des vorigen Themas (→ Standardmusik, wenn `vonSpiel`); OBS-Gaming-Szene bei Talk blieb Talk (→ `saved.letztesMitFenster` bzw. Zockerbude);
+  OBS-Echo-Schutz schluckte echte Rückschaltung innerhalb 5 s (→ Echo nur einmal); Tablet-Markierung folgte Umschaltungen von Studio/OBS nicht (→ `spiel:`-Nachricht aktualisiert `.active`).
+  Persistenz nach Neustart geprüft (Thema, Musik, Kamera-Knopf, Fensterwerte, Kategorien).

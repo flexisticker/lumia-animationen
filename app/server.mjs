@@ -386,8 +386,9 @@ const fensterStand = () => ({ 1: saved.fenster[1] ?? null, 2: saved.fenster[2] ?
 function fensterSichtbar(nr) {
   if (saved.fenster[nr] === true || saved.fenster[nr] === false) return saved.fenster[nr];
   const w = settingsFor('hinten')['f' + nr + 'Wann'] || 'aus', sp = saved.spiele.find(x => x.id === saved.spiel);
-  if (saved.modus === 'zocken' && sp && sp.ohneFenster && w !== 'immer') return false;
-  return w === 'immer' || w === saved.modus;
+  // wie im Hintergrund-Overlay (artJetzt): Thema ohne Spielfenster = „party“, sonst „zocken“
+  const art = saved.modus === 'party' || (sp && sp.ohneFenster) ? 'party' : 'zocken';
+  return w === 'immer' || w === art;
 }
 // Wand-Monitor nur sinnvoll, wenn kein Spielfenster offen ist und (je nach Einstellung) im Zockmodus → nur dann Kachel am iPad zeigen
 const monitorArt = () => (saved.monitor === true ? 'liste' : saved.monitor || '');
@@ -430,7 +431,9 @@ function setModus(modus, spielId, quelle, fromObs) {
     // Musik je Spiel: beim Zocken die Musik des Spiels, zurück in Modus 1 wieder Standard (nur wenn das Spiel sie gesetzt hatte)
     const sp = saved.spiele.find(x => x.id === saved.spiel);
     if (m === 'zocken' && sp && sp.musik && sp.musik !== saved.musik.titel && saved.musik.titel !== 'aus') setMusik({ titel: sp.musik, vonSpiel: true });
-    else if (m === 'party' && saved.musik.vonSpiel) setMusik({ titel: 'standard' });
+    // Hintergrund ohne eigene Musik: hatte der vorige Hintergrund die Musik gesetzt → zurück zur Standardmusik (von Hand gewählte Musik bleibt)
+    else if ((m === 'party' || (sp && !sp.musik)) && saved.musik.vonSpiel && saved.musik.titel !== 'aus') setMusik({ titel: 'standard' });
+    if (sp && !sp.ohneFenster) saved.letztesMitFenster = sp.id;
     hueRuhe();
     remember({ art: 'modus', quelle, text: saved.modus + (saved.modus === 'zocken' && spielInfo() ? ' · ' + spielInfo().name : '') });
   }
@@ -488,10 +491,15 @@ function rateSzene(m) {
 function obsScene(name) {
   obs.aktuell = name; obsStatus();
   if (!saved.obs.folgen) return;
-  if (name === lastSetScene && Date.now() - lastSetAt < 5000) return; // Echo unserer eigenen Umschaltung
+  if (name === lastSetScene && Date.now() - lastSetAt < 5000) { lastSetScene = ''; return; } // Echo unserer eigenen Umschaltung (nur einmal schlucken)
   const sp = saved.spiele.find(x => x.szene && x.szene === name);
   if (sp) return setModus('zocken', sp.id, 'obs', true);
-  if (saved.obs.szeneZocken && name === saved.obs.szeneZocken) return setModus('zocken', undefined, 'obs', true);
+  if (saved.obs.szeneZocken && name === saved.obs.szeneZocken) {
+    // Gaming-Szene, aber gerade läuft ein Hintergrund ohne Spielfenster (Talk, Party …) → zuletzt genutzter Hintergrund mit Spielfenster bzw. Zockerbude
+    const jetzt = saved.spiele.find(x => x.id === saved.spiel);
+    if (jetzt && jetzt.ohneFenster) { const ziel = saved.spiele.find(x => x.id === saved.letztesMitFenster && !x.ohneFenster) || saved.spiele.find(x => x.id === 'zockerbude') || saved.spiele.find(x => !x.ohneFenster); if (ziel) return setModus('zocken', ziel.id, 'obs', true); }
+    return setModus('zocken', undefined, 'obs', true);
+  }
   if (saved.obs.szeneParty && name === saved.obs.szeneParty) return setModus('party', undefined, 'obs', true);
 }
 function obsConnect() {
