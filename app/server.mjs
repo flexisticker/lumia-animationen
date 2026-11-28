@@ -425,7 +425,7 @@ function einblendungSichtbar(id) {
 }
 const hatBildschirm = sp => !!sp && (sp.wandMonitor === true || (sp.wandMonitor !== false && /zockerbude/i.test((sp.video || '') + ' ' + (sp.videoQuer || '') + ' ' + sp.id)));
 const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || hatBildschirm(saved.spiele.find(x => x.id === saved.spiel)));
-const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste' && monitorMoeglich(), 'monitor-drucker': monitorArt() === 'drucker' && monitorMoeglich(), monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), logo: !saved.logoAus && !!settingsFor('vorne').logoBild, chat: einblendungSichtbar('chat'), streamprint: einblendungSichtbar('streamprint'), streamprintMoeglich: !!settingsFor('vorne').spUrl, logoMoeglich: !!settingsFor('vorne').logoBild, lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length), dienstePause: dienste.pause, diensteMoeglich: !!(saved.dienste && saved.dienste.an) });
+const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste' && monitorMoeglich(), 'monitor-drucker': monitorArt() === 'drucker' && monitorMoeglich(), monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), logo: !saved.logoAus && !!settingsFor('vorne').logoBild, chat: einblendungSichtbar('chat'), streamprint: einblendungSichtbar('streamprint'), streamprintMoeglich: !!settingsFor('vorne').spUrl, logoMoeglich: !!settingsFor('vorne').logoBild, lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length), dienstePause: dienste.pause, diensteMoeglich: !!(saved.dienste && saved.dienste.an), ruhe: !saved.ruheAus });
 const fensterMelden = () => { broadcast('fenster', fensterSicht(), ['aktion', 'studio']); obsQuellenSync(); };
 // OBS-Quellen zu den Fenstern mitschalten (in allen Szenen, in denen sie vorkommen). Eine Quelle für mehrere Fenster = sichtbar, wenn eines davon offen ist.
 let quellenStand = {}, quellenLaeuft = false, quellenNochmal = false;
@@ -1076,7 +1076,7 @@ const server = http.createServer(async (req, res) => {
       // Studio live informieren, welche Quellen (mit Format) gerade verbunden sind
       const quellenMelden = () => { if (role === 'vorne' || role === 'hinten') broadcast('quellen', quellenListe(), ['studio']); };
       req.on('close', () => { clients.delete(c); quellenMelden(); }); quellenMelden();
-      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), monitor: monitorArt(), letzte, logoAus: !!saved.logoAus, zwang: saved.zwang, stand: STAND })}\n\n`);
+      res.write(`event: hallo\ndata: ${JSON.stringify({ modus: saved.modus, spiel: spielInfo(), musik: musikInfo(), fenster: fensterStand(), monitor: monitorArt(), letzte, logoAus: !!saved.logoAus, ruheAus: !!saved.ruheAus, zwang: saved.zwang, stand: STAND })}\n\n`);
       if (role === 'studio') { res.write(`event: lumia\ndata: ${JSON.stringify(lumia)}\n\n`); res.write(`event: obs\ndata: ${JSON.stringify(obs)}\n\n`); }
       return;
     }
@@ -1194,6 +1194,11 @@ const server = http.createServer(async (req, res) => {
         saved.zwang[a.id] = an; a.an = an; saveSettings(); fensterMelden();
         a.label = (a.id === 'chat' ? 'Chat ' : 'Bondrucker ') + (an ? 'an' : 'aus');
         if (a.id === 'streamprint' && !settingsFor('vorne').spUrl) a.label = 'Bondrucker: keine StreamPrint-Adresse eingestellt';
+      }
+      // Ruhe beim Zocken: Hintergrund als Standbild + keine Dauer-Animationen (Logo, Banner, Rahmen), solange das Spielfenster offen ist
+      if (a.id === 'ruhe') {
+        saved.ruheAus = a.an === undefined ? !saved.ruheAus : !a.an; a.an = !saved.ruheAus; saveSettings();
+        a.label = a.an ? 'Ruhe beim Zocken an (Hintergrund steht still, entlastet OBS)' : 'Ruhe beim Zocken aus (alles bewegt sich)'; fensterMelden();
       }
       if (a.id === 'logo') {
         saved.logoAus = a.an === undefined ? !saved.logoAus : !a.an; a.an = !saved.logoAus; saveSettings();

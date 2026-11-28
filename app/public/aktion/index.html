@@ -126,7 +126,7 @@ header { position: sticky; top: 0; z-index: 10; background: var(--bg); padding-t
       const musikMsg = m => { if (!m) return; window.MM_MUSIK = m; emit('overlaycontent', { content: 'musik:' + JSON.stringify(m) }); };
       es.addEventListener('hallo', e => { const d = JSON.parse(e.data);
         // Neuer Programmstand (Update) → Seite neu laden, sobald nichts läuft (sonst lief alter Code weiter, bis man in OBS neu lädt)
-        if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) { const neu = () => (busy() ? setTimeout(neu, 500) : location.reload()); return neu(); } window.MM_STAND = d.stand; } modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); emit('letzte', { liste: d.letzte || [], monitor: d.monitor }); emit('overlaycontent', { content: JSON.stringify({ id: 'logo', an: !d.logoAus }) }); for (const id of ['chat', 'streamprint']) emit('overlaycontent', { content: JSON.stringify({ id, an: d.zwang ? d.zwang[id] ?? null : null }) }); });
+        if (d.stand) { if (window.MM_STAND && window.MM_STAND !== d.stand) { const neu = () => (busy() ? setTimeout(neu, 500) : location.reload()); return neu(); } window.MM_STAND = d.stand; } modusMsg(d); musikMsg(d.musik); emit('overlaycontent', { content: 'fenster:' + JSON.stringify(d.fenster || {}) }); emit('letzte', { liste: d.letzte || [], monitor: d.monitor }); emit('overlaycontent', { content: JSON.stringify({ id: 'logo', an: !d.logoAus }) }); emit('overlaycontent', { content: JSON.stringify({ id: 'ruhe', an: !d.ruheAus }) }); for (const id of ['chat', 'streamprint']) emit('overlaycontent', { content: JSON.stringify({ id, an: d.zwang ? d.zwang[id] ?? null : null }) }); });
       es.addEventListener('musik', e => musikMsg(JSON.parse(e.data)));
       es.addEventListener('chat', e => emit('chat', JSON.parse(e.data)));
       es.addEventListener('letzte', e => emit('letzte', { liste: JSON.parse(e.data) }));
@@ -332,7 +332,7 @@ if (window.MM_MUSIK) {
 
 // Kameras & Fenster: große Kacheln oben rechts, zeigen an, was gerade zu sehen ist
 const fensterBox = document.getElementById('fenster');
-const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Monitor: Unterstützer', '📺'], ['monitor-drucker', 'Monitor: Drucker-Kamera', '🖨️'], ['logo', 'Logo', '🏷️'], ['chat', 'Chat', '💬'], ['streamprint', 'Bondrucker', '🧾'], ['licht', 'Licht (Hue)', '💡'], ['dienste', 'Server-Dienste (Ollama …)', '🧠']].map(([nr, label, ico]) => {
+const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Monitor: Unterstützer', '📺'], ['monitor-drucker', 'Monitor: Drucker-Kamera', '🖨️'], ['logo', 'Logo', '🏷️'], ['chat', 'Chat', '💬'], ['streamprint', 'Bondrucker', '🧾'], ['licht', 'Licht (Hue)', '💡'], ['ruhe', 'Ruhe beim Zocken', '🎮'], ['dienste', 'Server-Dienste (Ollama …)', '🧠']].map(([nr, label, ico]) => {
   const b = document.createElement('button'); b.className = 'btn';
   b.innerHTML = '<span class="ico"></span><span></span><span class="zu"></span>'; b.children[0].textContent = ico; b.children[1].textContent = label;
   b.onclick = () => send({ id: typeof nr === 'string' ? nr : nr === 1 ? 'fenster' : 'fenster' + nr, label: label + ' ein/aus' }, b);
@@ -343,6 +343,7 @@ function fensterZeigen(sicht) {
     if (f.nr === 'licht') f.b.style.display = sicht && sicht.lichtMoeglich ? '' : 'none';
     if (f.nr === 'logo') f.b.style.display = sicht && sicht.logoMoeglich ? '' : 'none';
     if (f.nr === 'streamprint') f.b.style.display = sicht && sicht.streamprintMoeglich ? '' : 'none';
+    if (f.nr === 'ruhe') { const r = !!(sicht && sicht.ruhe); f.b.classList.toggle('active', r); f.b.children[2].textContent = r ? '● an' : 'aus'; continue; }
     if (f.nr === 'dienste') { f.b.style.display = sicht && sicht.diensteMoeglich ? '' : 'none'; const p = !!(sicht && sicht.dienstePause); f.b.classList.toggle('active', p); f.b.children[2].textContent = p ? '● pausiert' : 'laufen'; continue; }
     const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? (f.nr === 'licht' ? '● folgt dem Stream' : String(f.nr).startsWith('monitor') ? '● an' : '● zu sehen') : (String(f.nr).startsWith('monitor') && sicht && !sicht.monitorMoeglich ? 'aus · tippen = Zockerbude' : 'aus'); }
 }

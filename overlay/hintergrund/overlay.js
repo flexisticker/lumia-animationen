@@ -105,6 +105,7 @@ function monZeichnen() {
 }
 monZeichnen();
 if (window.Overlay) Overlay.on('letzte', d => { if (d.monitor !== undefined) monitorAn = d.monitor === true ? 'liste' : d.monitor || false; if (d.liste) { const neu = d.liste.map(e => e.id).join() !== monDaten.map(e => e.id).join(); monDaten = d.liste; if (neu) monZeichnen(); } letzterStand = ''; });
+let ruheAn = true;   // Kachel „Ruhe beim Zocken“
 let curSpiel = null, zwang = { 1: null, 2: null, 3: null }; // per Knopf erzwungen (true/false), null = wie eingestellt
 // „party“ = Thema ohne Spielfenster (Talk, Party, Specials), „zocken“ = Thema mit Spielfenster (Spiele, Werkstatt)
 const artJetzt = () => (mode === 'party' || (curSpiel && curSpiel.ohneFenster) ? 'party' : 'zocken');
@@ -138,7 +139,7 @@ function draw(now) {
   vZ.style.opacity = hatZ ? e : 0;
   // Entlastung: unsichtbares Video nicht weiter abspielen; beim Zocken (Spielfenster offen) Hintergrund als Standbild –
   // er ist dann fast ganz verdeckt, spart aber pro Quelle ein laufendes Full-HD-Video (wichtig, wenn das Spiel die Grafikkarte auslastet)
-  const standbild = D.zockStandbild !== false && WIN[0].t > 0.97;
+  const standbild = ruheAn && D.zockStandbild !== false && WIN[0].t > 0.97;
   spielen(vP, !(e >= 1 && hatZ) && !(standbild && !hatZ));
   spielen(vZ, hatZ && e > 0 && !standbild);
   dimZ.style.opacity = hatZ ? 0 : e;                       // ohne Zock-Video: Party-Video abgedunkelt
@@ -255,7 +256,7 @@ if (window.Overlay) Overlay.on('overlaycontent', d => {
   const c = String(d.content || '');
   if (c.startsWith('modus:')) setMode(c.slice(6));
   if (c.startsWith('fenster:')) { try { zwang = { 1: null, 2: null, 3: null, ...JSON.parse(c.slice(8)) }; } catch (e) {} letzterStand = ''; }
-  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'monitor') { monitorAn = a.art || false; letzterStand = ''; } if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
+  if (c.startsWith('{')) { try { const a = JSON.parse(c); if (a.id === 'monitor') { monitorAn = a.art || false; letzterStand = ''; } if (a.id === 'ruhe') { ruheAn = a.an !== false; letzterStand = ''; } if (a.id === 'fenster') { zwang[[2, 3].includes(Number(a.nr)) ? Number(a.nr) : 1] = !!a.an; letzterStand = ''; } } catch (e) {} }
   if (c.startsWith('spiel:')) { try { setSpiel(JSON.parse(c.slice(6))); } catch (e) {} }
   if (c.startsWith('musik:')) { try { setMusik(JSON.parse(c.slice(6))); } catch (e) {} }
 });

@@ -314,3 +314,6 @@
   Fix `Xvfb … -extension MIT-SHM` in `start.sh`. Im Nachbau (Xvfb ohne MIT-SHM + OBS 30) zeigt die Vorschau danach Inhalt (xwd-Screenshot geprüft). VNC überträgt keinen Ton – Ton nur über die Pegel bzw. NDI prüfen.
 - 28.11.2026: OBS-Log bei Michael: **„[obs-browser]: CEF failed to initialize. Exit code: 21“** (Chromium RESULT_CODE_PROFILE_IN_USE) → `SingletonLock` des vorigen Containers (anderer Hostname) im CEF-Profil unter /config.
   `start.sh` löscht jetzt `Singleton*` unter /config/obs-studio vor dem Start. Außerdem lief bei ihm noch das alte Image (Update holte es nicht) → immer `docker pull` + neu anlegen.
+- 28.11.2026: **Kachel „🎮 Ruhe beim Zocken“** (Tablet + Studio-Übersicht): ein Schalter für Hintergrund-Standbild + `zockruhe` vorne. Server `saved.ruheAus` (Standard aus = Ruhe an), `/api/aktion {id:'ruhe'}`,
+  `fensterSicht().ruhe`, `hallo.ruheAus` → Shim → `{id:'ruhe', an}` an vorne (`ruheAn` in `chatUpdate`) und hinten (`ruheAn` in `draw`). Die Einzelschalter `zockStandbild`/`zockRuhe` bleiben zusätzlich.
+  Gedacht: mit NDI vom Render-Server Ruhe aus (alles läuft weiter), ohne NDI an. Geprüft (Headless): an/aus, nach Neuladen, Tablet-Kachel.

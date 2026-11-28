@@ -90,6 +90,7 @@ function start(m) {
   if (F.logoMoeglich) fk.push(['logo', 'logo', '🏷️ Logo']);
   fk.push(['chat', 'chat', '💬 Chat']); if (F.streamprintMoeglich) fk.push(['streamprint', 'streamprint', '🧾 Bondrucker']);
   if (F.lichtMoeglich) fk.push(['licht', 'licht', '💡 Licht folgt dem Stream']);
+  fk.push(['ruhe', 'ruhe', '🎮 Ruhe beim Zocken']);
   if (F.diensteMoeglich) fk.push(['dienste', 'dienstePause', '🧠 Server-Dienste pausiert']);
   m.append(h('h2', {}, 'Kameras & Fenster'), h('div', { class: 'row' }, ...fk.map(([id, k, l]) => h('button', { class: 'b schalter' + (F[k] ? ' an' : ''), onclick: async () => {
     const r = await post('/api/aktion', { id, label: l }); const d = await r.json().catch(() => ({})); if (d.label) toast(d.label); } }, l, h('small', {}, F[k] ? 'an' : 'aus')))),
