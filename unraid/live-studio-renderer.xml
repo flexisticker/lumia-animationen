@@ -11,9 +11,10 @@
   <Category>Tools:</Category>
   <WebUI>http://[IP]:6080/vnc.html</WebUI>
   <Icon>http://192.168.1.10:8120/live-studio-icon.png</Icon>
-  <ExtraParams>--hostname live-studio-renderer --shm-size=2g --runtime=nvidia</ExtraParams>
+  <ExtraParams>--hostname live-studio-renderer --shm-size=2g --runtime=nvidia --cap-add=SYS_NICE --cpu-shares=4096</ExtraParams>
   <Config Name="Einstellungen" Target="/config" Default="/mnt/user/appdata/live-studio-renderer" Mode="rw" Description="OBS-Einstellungen des Render-Servers" Type="Path" Display="always" Required="true">/mnt/user/appdata/live-studio-renderer</Config>
   <Config Name="OBS-WebSocket-Passwort" Target="OBS_WS_PASSWORT" Default="" Mode="" Description="Passwort, mit dem Live-Studio dieses OBS einrichtet (in Live-Studio → Render-Server dasselbe eintragen)" Type="Variable" Display="always" Required="false" Mask="true"></Config>
   <Config Name="Web-Oberfläche: Passwort" Target="VNC_PASSWORT" Default="" Mode="" Description="Optional: Passwort für die Web-Oberfläche (Port 6080)" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Priorität" Target="PRIO" Default="-10" Mode="" Description="Vorrang für OBS und Browserquellen: -20 (höchster) bis 0 (normal). Braucht --cap-add=SYS_NICE unter Extra Parameters." Type="Variable" Display="advanced" Required="false">-10</Config>
   <Config Name="Grafikkarte" Target="NVIDIA_VISIBLE_DEVICES" Default="all" Mode="" Description="Nvidia-Karte (GPU-UUID aus dem Nvidia-Driver-Plugin oder all). Ohne Karte: Feld leeren und --runtime=nvidia unter Extra Parameters entfernen." Type="Variable" Display="always" Required="false">all</Config>
 </Container>

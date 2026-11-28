@@ -325,3 +325,5 @@
   + `10_nvidia.json` (die vom Docker-Toolkit eingebundenen Dateien bleiben), startet `Xorg :1` mit eigener xorg.conf (Treiber nvidia, BusID dezimal, `AllowEmptyInitialConfiguration`, `UseDisplayDevice None`, Virtual WxH; erst `vt7`, sonst `-keeptty`),
   prüft per `glxinfo` auf „nvidia“, sonst Rückfall auf Xvfb + Mesa (mit Grund im Log). Mit Nvidia `BrowserHWAccel=true` (Chromium auf der Karte), sonst false. Image: `xserver-xorg-core kmod pkg-config libglvnd-dev procps`.
   **Ungetestet** (keine Grafikkarte in der Sandbox) – Diagnose über `docker logs` (Zeilen „Grafik: …“) und `/tmp/Xorg.1.log` im Container.
+- 28.11.2026: **Render-Server läuft auf der GTX 1050 Ti** (Michael bestätigt, NDI flüssig). **Vorrang:** `start.sh` setzt alle 15 s für alle Prozesse von `obs` (OBS + CEF-Browserquellen) und Xorg/Xvfb `renice $PRIO` (Variable `PRIO`, Standard −10) + `ionice -c2 -n0`;
+  braucht `--cap-add=SYS_NICE` (Vorlage Extra Parameters, dazu `--cpu-shares=4096` = Vorrang bei CPU-Knappheit gegenüber anderen Containern, Standard 1024). Log „Vorrang: …“ meldet, ob es geklappt hat.

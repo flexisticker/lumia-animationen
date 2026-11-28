@@ -126,6 +126,22 @@ websockify --web /usr/share/novnc 6080 localhost:5900 >/dev/null 2>&1 &
 # Grafik-Prüfung fürs Protokoll (docker logs): welcher OpenGL-Treiber zeichnet
 su obs -s /bin/bash -c "glxinfo -B 2>&1 | grep -E 'OpenGL renderer|direct rendering'" || echo "glxinfo: kein OpenGL"
 echo "Render-Server läuft: Web-Oberfläche auf Port 6080 (vnc.html), OBS-WebSocket auf Port 4455"
+# Vorrang: OBS, Browserquellen (CEF) und Bildschirm bekommen hohe Priorität (PRIO -20…0, Standard -10; braucht --cap-add=SYS_NICE).
+# Läuft alle 15 s, damit auch neu gestartete Browserquellen-Prozesse mitkommen.
+PRIO="${PRIO:--10}"
+( erst=1
+  while true; do
+    ok=1
+    for pid in $(pgrep -u obs) $(pgrep -x Xorg) $(pgrep -x Xvfb); do
+      renice -n "$PRIO" -p "$pid" >/dev/null 2>&1 || ok=0
+      ionice -c2 -n0 -p "$pid" >/dev/null 2>&1 || true
+    done
+    if [ -n "$erst" ] && [ -n "$(pgrep -u obs -x obs)" ]; then
+      [ "$ok" = 1 ] && echo "Vorrang: OBS läuft mit Priorität $PRIO" || echo "Vorrang: Priorität $PRIO nicht möglich – unter Extra Parameters --cap-add=SYS_NICE ergänzen"
+      erst=""
+    fi
+    sleep 15
+  done ) &
 # OBS laufen lassen; stürzt es ab, startet es nach 3 s neu
 while true; do
   su obs -s /bin/bash -c 'cd /home/obs && dbus-launch --exit-with-session obs --disable-shutdown-check --multi --minimize-to-tray' || true
