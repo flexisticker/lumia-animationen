@@ -304,3 +304,6 @@
   in global.ini/user.ini (Chromium bekommt im Container keine GPU-Anzeige), `BROWSER_GPU=1` schaltet zurück. Ob das die Ursache war: offen (Rückmeldung Michael).
 - 28.11.2026: Render-Server per `docker run` angelegt → in Unraid ohne Vorlage (kein Edit/Update). Lösung: Vorlage nach `/boot/config/plugins/dockerMan/templates-user/my-live-studio-renderer.xml` schreiben (Inhalt = `unraid/live-studio-renderer.xml`),
   Container über „Add Container“ mit dieser Vorlage neu anlegen. Zusätzlich Studio-Knopf „⟳ Render-Server neu starten“ (`POST /api/render/neustart`, Docker-API restart des Containers mit „live-studio-renderer“ im Namen, braucht den Docker-Socket).
+- 28.11.2026: Render-Server zeigt **kein Bild** (auch die Eigenschaften-Vorschau schwarz, Ton läuft) → OBS zeichnet im Container nichts. Image: Mesa-Treiber (`libgl1-mesa-dri`, `libegl-mesa0`, `libglx-mesa0`, `mesa-utils`) fehlten
+  wegen `--no-install-recommends`; dazu `__GLX_VENDOR_LIBRARY_NAME=mesa` + `__EGL_VENDOR_LIBRARY_FILENAMES` auf Mesa und `NVIDIA_DRIVER_CAPABILITIES=compute,video,utility` (ohne graphics – der Nvidia-GL-Treiber
+  passt nicht zu Xvfb). Folge: gezeichnet wird mit llvmpipe auf der Server-CPU, nicht mit der 1050 Ti. `start.sh` schreibt `glxinfo -B` ins Container-Log. Ergebnis offen.

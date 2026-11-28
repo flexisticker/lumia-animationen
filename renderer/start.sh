@@ -27,6 +27,8 @@ su obs -s /bin/bash -c 'openbox' >/dev/null 2>&1 &
 if [ -n "$VNCPW" ]; then x11vnc -storepasswd "$VNCPW" /tmp/vncpw >/dev/null; VNCOPT="-rfbauth /tmp/vncpw"; else VNCOPT="-nopw"; fi
 x11vnc -display :1 -forever -shared -quiet -localhost -rfbport 5900 $VNCOPT >/dev/null 2>&1 &
 websockify --web /usr/share/novnc 6080 localhost:5900 >/dev/null 2>&1 &
+# Grafik-Prüfung fürs Protokoll (docker logs): welcher OpenGL-Treiber zeichnet
+su obs -s /bin/bash -c "glxinfo -B 2>&1 | grep -E 'OpenGL renderer|direct rendering'" || echo "glxinfo: kein OpenGL"
 echo "Render-Server läuft: Web-Oberfläche auf Port 6080 (vnc.html), OBS-WebSocket auf Port 4455"
 # OBS laufen lassen; stürzt es ab, startet es nach 3 s neu
 while true; do

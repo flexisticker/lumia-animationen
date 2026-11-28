@@ -3,11 +3,13 @@
 # Web-Oberfläche zum Nachsehen: http://<server>:6080/vnc.html  ·  OBS-WebSocket: Port 4455 (Live-Studio richtet alles darüber ein)
 FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 DISPLAY=:1 HOME=/home/obs \
-    NVIDIA_DRIVER_CAPABILITIES=all
+    NVIDIA_DRIVER_CAPABILITIES=compute,video,utility \
+    __GLX_VENDOR_LIBRARY_NAME=mesa __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl jq sudo software-properties-common gpg-agent \
       xvfb x11vnc novnc websockify openbox dbus-x11 xauth fonts-dejavu fonts-noto-color-emoji \
       avahi-daemon libnss3 libxss1 libasound2t64 pulseaudio \
+      libgl1 libegl1 libgl1-mesa-dri libegl-mesa0 libglx-mesa0 mesa-utils \
     && add-apt-repository -y ppa:obsproject/obs-studio && apt-get update \
     && apt-get install -y --no-install-recommends obs-studio \
     && rm -rf /var/lib/apt/lists/*
