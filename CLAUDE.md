@@ -330,3 +330,15 @@
 - 28.11.2026: **NDI stockt am PC alle ~10 s (Bild + Ton), Render-Server selbst flüssig** (VNC ok, GPU 16 %, 114 Mbit/s, IPS aus half nicht). Empfehlungen am PC: NDI-Quelle „Quell-Timing“, Framesync, Hardwarebeschleunigung, Keep running.
   Code: Render-Bildrate `saved.render.fps` 0 = automatisch wie das PC-OBS (`GetVideoSettings` über die bestehende OBS-Verbindung), `renderEinrichten` setzt `SetVideoSettings` im Render-OBS + Browserquellen-fps; alte feste 30 → 0 (`fpsAuto1`).
   Nachbauten: obs-nachbau liefert `OBS_FPS` (60), render-nachbau kennt Get/SetVideoSettings. Ursache des Stockens noch offen (Netz/UDM-Routing zwischen 192.168.1.x und 192.168.175.x?).
+- 28.11.2026: **Render-Server-CPU am Limit** (4 Kerne, Load 8–12, OBS 200 % fürs NDI-Verpacken, Michael braucht alle 4 Bilder). Vorher: Renderer nach **VLAN 175** verlegt (Unraid VLAN 175 ohne IP,
+  Docker-Netz `br0.175` 192.168.175.0/24 GW .1, Container `--network br0.175 --ip 192.168.175.240`), Live-Studio-Container (`michamodus-medien`) auf **Netzwerktyp Host** + Variable `PORT=8120`
+  (aus dem Bridge-Netz kam es nicht ins VLAN; zweites Netz per `docker network connect` brach den Weg zum PC). NDI damit besser, aber weiter Stocken durch CPU.
+  **Neu: Übertragung „SRT über die Grafikkarte“** (`saved.render.modus` srt|ndi, `ziel` (leer = `saved.obs.host`), `srtPort` 9710, `kbps` 40000, `codec` hevc|h264, `aktiv`):
+  Render-OBS Arbeitsfläche 4080×3240 (`ATLAS`): Szene „LS Farbe“ (vorne-hoch 0/0, hinten-hoch 1080/0, vorne-quer 2160/0, hinten-quer 2160/1080), Szene „LS Maske“ (= LS Farbe + Shaderfilter `SHADER_MASKE`: Alpha → Grau),
+  Programm „Live-Studio Atlas“ = Farbe oben + Maske halb so groß ab y 2160. Ton nur von den Hochkant-Quellen (Quer stumm). Einfacher Ausgang NVENC (`nvenc_hevc`/`nvenc`), `rtmp_custom` mit `srt://<PC>:9710?mode=caller`,
+  Wächter alle 30 s startet den Ausgang neu. NDI-Filter im SRT-Modus aus. Image: `renderer/shaderfilter-get.sh` installiert exeldro/obs-shaderfilter (deb oder Archiv).
+  PC (`/api/render/empfang`, über die bestehende OBS-Verbindung): Szene „Live-Studio Empfang“ mit Medienquelle „Live-Studio Atlas (SRT)“ (`srt://0.0.0.0:9710?mode=listener`, hw_decode) + 4 Quellen „LS <format>“
+  (Source Clone + Shaderfilter `shaderZusammen()` (Farbe / Maske, ent-vormultipliziert) + Zuschnitt `crop_filter`), Ton auf dem ersten Hochkant-Klon. `umstellen` bzw. `nurTauschen` ersetzt NDI-Quellen von Live-Studio
+  in allen Szenen/Leinwänden/Gruppen (gleiche Lage, Ebene darüber, NDI nur ausgeblendet), „Zurück zu NDI“ umgekehrt. PC braucht Plugins Shaderfilter + Source Clone (Michael hat beide).
+  Getestet nur mit Nachbauten (render-nachbau: Stream/Video/Shader, obs-nachbau: Empfang + NDI-Tausch, `OBS_OHNE_CLONE`/`OHNE_SHADER`), Gesamttest ALLES OK. **Ungetestet:** echtes NVENC im Container (Encoder-Name „nvenc_hevc“ im einfachen Modus),
+  Shaderfilter-Einstellungsnamen (`shader_text`, `from_file`), Source-Clone-Einstellungen (`source`, `audio`), SRT-Empfang/Firewall am PC, Bildqualität der Maske.

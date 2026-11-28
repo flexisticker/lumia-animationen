@@ -745,6 +745,25 @@ saved.render ||= { host: '', port: 4455, url: '', formate: ['vorne-hoch', 'hinte
 if (!saved.render.fpsAuto1) { if (Number(saved.render.fps) === 30) saved.render.fps = 0; saved.render.fpsAuto1 = true; } // alte feste 30 → automatisch wie PC
 const RENDER_FORMATE = { 'vorne-hoch': [1080, 1920], 'vorne-quer': [1920, 1080], 'hinten-hoch': [1080, 1920], 'hinten-quer': [1920, 1080] };
 const ndiName = f => 'Live-Studio ' + f.replace('-', ' ');
+// Übertragung „SRT“: alle vier Bilder auf einer Fläche (Atlas), Durchsichtigkeit als Graubild in halber Größe darunter,
+// die Grafikkarte des Servers verpackt das (NVENC) und schickt EINEN SRT-Stream an das OBS am PC. Dort setzt je Bild ein Shader Farbe + Maske wieder zusammen.
+const ATLAS = { w: 4080, h: 3240, farbH: 2160, pos: { 'vorne-hoch': [0, 0], 'hinten-hoch': [1080, 0], 'vorne-quer': [2160, 0], 'hinten-quer': [2160, 1080] } };
+saved.render.modus ||= 'ndi'; saved.render.srtPort ||= 9710; saved.render.kbps ||= 40000; saved.render.codec ||= 'hevc';
+const SHADER_MASKE = 'float4 mainImage(VertData v_in) : TARGET\n{\n    float a = image.Sample(textureSampler, v_in.uv).a;\n    return float4(a, a, a, 1.0);\n}\n';
+const shaderZusammen = () => `// Live-Studio: Farbe (oben) + Durchsichtigkeit (Graubild in halber Größe unten) wieder zusammensetzen
+float4 mainImage(VertData v_in) : TARGET
+{
+    float2 p = v_in.uv * uv_size;
+    if (p.y >= ${ATLAS.farbH}.0) return float4(0.0, 0.0, 0.0, 0.0);
+    float2 m = float2(p.x * 0.5, ${ATLAS.farbH}.0 + p.y * 0.5);
+    float a = image.Sample(textureSampler, m / uv_size).r;
+    a = saturate((a - 0.03) / 0.94);
+    if (a <= 0.0) return float4(0.0, 0.0, 0.0, 0.0);
+    float4 c = image.Sample(textureSampler, v_in.uv);
+    return float4(saturate(c.rgb / a), a);
+}
+`;
+const pcZiel = () => String(saved.render.ziel || saved.obs.host || '').trim();
 // Kurze eigene OBS-Sitzung (getrennt von der Verbindung zum Stream-OBS)
 function obsSitzung(host, port, passwort) {
   return new Promise((resolve) => {
@@ -776,6 +795,8 @@ async function renderEinrichten(basisUrl) {
   const log = [];
   try {
     const v = await s.anfrage('GetVersion'); log.push('OBS ' + ((v.data || {}).obsVersion || '?'));
+    // laufender Ausgang blockiert Änderungen an Bildrate/Arbeitsfläche → erst anhalten (bei SRT startet er am Ende neu)
+    const st0 = await s.anfrage('GetStreamStatus'); if (st0.ok && st0.data.outputActive) { await s.anfrage('StopStream'); await new Promise(r => setTimeout(r, 2000)); }
     const fk = await s.anfrage('GetSourceFilterKindList');
     const kinds = (fk.data && fk.data.sourceFilterKinds) || [];
     const ndiKind = kinds.find(k => k === 'ndi_filter') || kinds.find(k => /ndi/i.test(k) && !/audio/i.test(k));
@@ -790,9 +811,15 @@ async function renderEinrichten(basisUrl) {
     if (vs.ok && Math.round(vs.data.fpsNumerator / (vs.data.fpsDenominator || 1)) !== fps) {
       const sv = await s.anfrage('SetVideoSettings', { fpsNumerator: fps, fpsDenominator: 1 });
       log.push(sv.ok ? 'Render-OBS auf ' + fps + ' Bilder/s gestellt' : 'Bildrate im Render-OBS nicht änderbar: ' + sv.fehler); }
+    const srt = R.modus === 'srt';
+    // Arbeitsfläche: bei SRT die ganze Atlas-Fläche, sonst normal
+    const zielW = srt ? ATLAS.w : 1920, zielH = srt ? ATLAS.h : 1080;
+    if (vs.ok && (vs.data.baseWidth !== zielW || vs.data.baseHeight !== zielH || vs.data.outputWidth !== zielW || vs.data.outputHeight !== zielH)) {
+      const sv = await s.anfrage('SetVideoSettings', { baseWidth: zielW, baseHeight: zielH, outputWidth: zielW, outputHeight: zielH });
+      log.push(sv.ok ? 'Arbeitsfläche ' + zielW + '×' + zielH : 'Arbeitsfläche nicht änderbar: ' + sv.fehler); }
     const szene = 'Live-Studio Render';
     const sc = await s.anfrage('CreateScene', { sceneName: szene }); if (!sc.ok && sc.code !== 601) log.push('Szene: ' + sc.fehler);
-    await s.anfrage('SetCurrentProgramScene', { sceneName: szene });
+    if (!srt) await s.anfrage('SetCurrentProgramScene', { sceneName: szene });
     const url = String(R.url || basisUrl).replace(/\/+$/, '');
     for (const f of Object.keys(RENDER_FORMATE)) {
       const name = 'LS ' + f, [w, h] = RENDER_FORMATE[f], an = R.formate.includes(f);
@@ -805,14 +832,144 @@ async function renderEinrichten(basisUrl) {
         const fs2 = { ndi_filter_ndiname: ndiName(f) };
         const nf = await s.anfrage('CreateSourceFilter', { sourceName: name, filterName: 'NDI-Ausgang', filterKind: ndiKind, filterSettings: fs2 });
         if (!nf.ok) await s.anfrage('SetSourceFilterSettings', { sourceName: name, filterName: 'NDI-Ausgang', filterSettings: fs2, overlay: true });
-        await s.anfrage('SetSourceFilterEnabled', { sourceName: name, filterName: 'NDI-Ausgang', filterEnabled: an });
+        await s.anfrage('SetSourceFilterEnabled', { sourceName: name, filterName: 'NDI-Ausgang', filterEnabled: an && !srt });
       }
-      if (an) log.push('✓ ' + f + ' → NDI „' + ndiName(f) + '“');
+      // Ton: bei SRT nur die Hochkant-Bilder (sonst kämen die Geräusche doppelt in den einen Stream)
+      await s.anfrage('SetInputMute', { inputName: name, inputMuted: srt && /quer/.test(f) });
+      if (an && !srt) log.push('✓ ' + f + ' → NDI „' + ndiName(f) + '“');
     }
+    if (srt) { const a = await atlasEinrichten(s, R, log, fps); if (!a.ok) return { ok: false, fehler: a.fehler, log }; }
     R.stand = new Date().toISOString(); saveSettings();
-    return { ok: true, log, ndi: R.formate.map(ndiName) };
+    return { ok: true, log, ndi: srt ? [] : R.formate.map(ndiName) };
   } finally { s.schliessen(); }
 }
+// Atlas-Szenen im Render-OBS + Ausgang über die Grafikkarte (NVENC) als SRT an den PC
+async function atlasEinrichten(s, R, log, fps) {
+  const fk = await s.anfrage('GetSourceFilterKindList');
+  if (!((fk.data && fk.data.sourceFilterKinds) || []).includes('shader_filter')) return { ok: false, fehler: 'Im Render-OBS fehlt das Plugin „Shaderfilter“ – Render-Server-Image aktualisieren' };
+  const ziel = pcZiel(); if (!ziel) return { ok: false, fehler: 'Adresse des Stream-PCs fehlt (OBS-Verbindung einrichten oder „Ziel“ eintragen)' };
+  const mk = async n => { const r = await s.anfrage('CreateScene', { sceneName: n }); if (!r.ok && r.code !== 601) log.push('Szene ' + n + ': ' + r.fehler); };
+  const item = async (szene, quelle) => { let id = await s.anfrage('GetSceneItemId', { sceneName: szene, sourceName: quelle });
+    if (!id.ok) { const c = await s.anfrage('CreateSceneItem', { sceneName: szene, sourceName: quelle }); if (!c.ok) { log.push(quelle + ' → ' + szene + ': ' + c.fehler); return null; } return c.data.sceneItemId; }
+    return id.data.sceneItemId; };
+  await mk('LS Farbe'); await mk('LS Maske'); await mk('Live-Studio Atlas');
+  for (const [f, [x, y]] of Object.entries(ATLAS.pos)) {
+    const id = await item('LS Farbe', 'LS ' + f); if (id === null) continue;
+    await s.anfrage('SetSceneItemTransform', { sceneName: 'LS Farbe', sceneItemId: id, sceneItemTransform: { positionX: x, positionY: y, scaleX: 1, scaleY: 1, rotation: 0, alignment: 5, boundsType: 'OBS_BOUNDS_NONE', cropLeft: 0, cropTop: 0, cropRight: 0, cropBottom: 0 } });
+    await s.anfrage('SetSceneItemEnabled', { sceneName: 'LS Farbe', sceneItemId: id, sceneItemEnabled: R.formate.includes(f) });
+  }
+  // Maske = Szene „LS Farbe“ mit Shader (Durchsichtigkeit als Graubild)
+  const mId = await item('LS Maske', 'LS Farbe');
+  if (mId !== null) await s.anfrage('SetSceneItemTransform', { sceneName: 'LS Maske', sceneItemId: mId, sceneItemTransform: { positionX: 0, positionY: 0, scaleX: 1, scaleY: 1, alignment: 5 } });
+  const fs = { from_file: false, shader_text: SHADER_MASKE, override_entire_effect: false };
+  const nf = await s.anfrage('CreateSourceFilter', { sourceName: 'LS Maske', filterName: 'Durchsichtigkeit', filterKind: 'shader_filter', filterSettings: fs });
+  if (!nf.ok) await s.anfrage('SetSourceFilterSettings', { sourceName: 'LS Maske', filterName: 'Durchsichtigkeit', filterSettings: fs, overlay: true });
+  // Atlas: Farbe oben, Maske halb so groß darunter
+  const a1 = await item('Live-Studio Atlas', 'LS Farbe'), a2 = await item('Live-Studio Atlas', 'LS Maske');
+  if (a1 !== null) await s.anfrage('SetSceneItemTransform', { sceneName: 'Live-Studio Atlas', sceneItemId: a1, sceneItemTransform: { positionX: 0, positionY: 0, scaleX: 1, scaleY: 1, alignment: 5, cropBottom: ATLAS.h - ATLAS.farbH } });
+  if (a2 !== null) await s.anfrage('SetSceneItemTransform', { sceneName: 'Live-Studio Atlas', sceneItemId: a2, sceneItemTransform: { positionX: 0, positionY: ATLAS.farbH, scaleX: 0.5, scaleY: 0.5, alignment: 5, cropBottom: ATLAS.h - ATLAS.farbH } });
+  await s.anfrage('SetCurrentProgramScene', { sceneName: 'Live-Studio Atlas' });
+  // Ausgang: einfacher Modus, NVENC, SRT an den PC
+  const prof = [['Output', 'Mode', 'Simple'], ['SimpleOutput', 'StreamEncoder', R.codec === 'h264' ? 'nvenc' : 'nvenc_hevc'], ['SimpleOutput', 'VBitrate', String(R.kbps)],
+    ['SimpleOutput', 'ABitrate', '192'], ['SimpleOutput', 'UseAdvanced', 'false'], ['SimpleOutput', 'NVENCPreset2', 'p4']];
+  for (const [parameterCategory, parameterName, parameterValue] of prof) await s.anfrage('SetProfileParameter', { parameterCategory, parameterName, parameterValue });
+  const url = `srt://${ziel}:${R.srtPort}?mode=caller&latency=200000&pkt_size=1316`;
+  const ss = await s.anfrage('SetStreamServiceSettings', { streamServiceType: 'rtmp_custom', streamServiceSettings: { server: url, key: '', use_auth: false } });
+  if (!ss.ok) return { ok: false, fehler: 'Stream-Ziel nicht setzbar: ' + ss.fehler };
+  const go = await s.anfrage('StartStream');
+  await new Promise(r => setTimeout(r, 3000));
+  const st = await s.anfrage('GetStreamStatus');
+  const laeuft = st.ok && st.data.outputActive;
+  log.push((laeuft ? '✓ ' : '⚠️ ') + 'SRT über die Grafikkarte (' + (R.codec === 'h264' ? 'H.264' : 'HEVC') + ', ' + Math.round(R.kbps / 1000) + ' Mbit/s, ' + fps + ' Bilder/s) → ' + ziel + ':' + R.srtPort +
+    (laeuft ? '' : ' – startet nicht' + (go.ok ? ' (wartet auf den PC – Empfang am PC einrichten)' : ': ' + go.fehler)));
+  return { ok: true };
+}
+// Empfang am PC einrichten: Medienquelle (SRT, lauscht), je Bild eine Kopie (Source Clone) mit Shader + Zuschnitt;
+// optional die NDI-Quellen in allen Szenen durch die neuen Quellen ersetzen (NDI wird nur ausgeblendet, nicht gelöscht).
+async function pcEmpfang(umstellen) {
+  const R = saved.render, log = [];
+  if (obs.status !== 'verbunden') return { ok: false, fehler: 'Live-Studio ist nicht mit dem OBS am PC verbunden (OBS & Fenster-Quellen)' };
+  const ik = await obsRequest('GetInputKindList', {}), fk = await obsRequest('GetSourceFilterKindList', {});
+  const kinds = (ik.data && ik.data.inputKinds) || [], fkinds = (fk.data && fk.data.sourceFilterKinds) || [];
+  const fehlt = []; if (!kinds.includes('source-clone')) fehlt.push('„Source Clone“'); if (!fkinds.includes('shader_filter')) fehlt.push('„Shaderfilter“ (obs-shaderfilter)');
+  if (fehlt.length) return { ok: false, fehler: 'Im OBS am PC fehlt: ' + fehlt.join(' und ') + '. Bitte installieren und OBS neu starten.' };
+  const hilfe = 'Live-Studio Empfang', atlas = 'Live-Studio Atlas (SRT)';
+  const cs = await obsRequest('CreateScene', { sceneName: hilfe }); if (!cs.ok && !/exist|601/i.test(cs.fehler)) log.push('Szene: ' + cs.fehler);
+  const ms = { is_local_file: false, input: `srt://0.0.0.0:${R.srtPort}?mode=listener&latency=200000`, input_format: 'mpegts', hw_decode: true, close_when_inactive: false,
+    restart_on_activate: false, clear_on_media_end: false, buffering_mb: 1, reconnect_delay_sec: 1 };
+  const ci = await obsRequest('CreateInput', { sceneName: hilfe, inputName: atlas, inputKind: 'ffmpeg_source', inputSettings: ms, sceneItemEnabled: true });
+  if (!ci.ok) await obsRequest('SetInputSettings', { inputName: atlas, inputSettings: ms, overlay: true });
+  log.push('✓ Empfang „' + atlas + '“ lauscht auf Port ' + R.srtPort + ' (UDP)');
+  // Ton über das erste genutzte Hochkant-Bild (der Stream hat nur eine Tonspur)
+  const tonF = R.formate.find(f => /hoch/.test(f)) || R.formate[0];
+  for (const f of Object.keys(RENDER_FORMATE)) {
+    const name = 'LS ' + f, [w, h] = RENDER_FORMATE[f], [x, y] = ATLAS.pos[f];
+    const cs2 = { source: atlas, audio: f === tonF };
+    const c = await obsRequest('CreateInput', { sceneName: hilfe, inputName: name, inputKind: 'source-clone', inputSettings: cs2, sceneItemEnabled: false });
+    if (!c.ok) await obsRequest('SetInputSettings', { inputName: name, inputSettings: cs2, overlay: true });
+    const sh = { from_file: false, shader_text: shaderZusammen(), override_entire_effect: false };
+    if (!(await obsRequest('CreateSourceFilter', { sourceName: name, filterName: 'Durchsichtigkeit', filterKind: 'shader_filter', filterSettings: sh })).ok)
+      await obsRequest('SetSourceFilterSettings', { sourceName: name, filterName: 'Durchsichtigkeit', filterSettings: sh, overlay: true });
+    const cr = { relative: true, left: x, top: y, right: ATLAS.w - x - w, bottom: ATLAS.h - y - h };
+    if (!(await obsRequest('CreateSourceFilter', { sourceName: name, filterName: 'Zuschnitt', filterKind: 'crop_filter', filterSettings: cr })).ok)
+      await obsRequest('SetSourceFilterSettings', { sourceName: name, filterName: 'Zuschnitt', filterSettings: cr, overlay: true });
+    log.push('✓ Quelle „' + name + '“ (' + w + '×' + h + (f === tonF ? ', mit Ton' : '') + ')');
+  }
+  if (umstellen) log.push(...await pcQuellenTauschen(umstellen));
+  return { ok: true, log };
+}
+// NDI-Quellen ⇄ neue SRT-Quellen in allen Szenen (auch Hochkant-Leinwand und Gruppen). richtung 'srt' oder 'ndi'.
+async function pcQuellenTauschen(richtung) {
+  const log = [], szenen = await obsSzenenAlle(), artCache = {};
+  const ndiFormat = async (quelle) => {
+    if (!(quelle in artCache)) { const r = await obsRequest('GetInputSettings', { inputName: quelle });
+      const n = r.ok && /ndi/i.test(r.data.inputKind || '') ? String((r.data.inputSettings || {}).ndi_source_name || '') : '';
+      artCache[quelle] = Object.keys(RENDER_FORMATE).find(f => n.toLowerCase().includes(ndiName(f).toLowerCase())) || ''; }
+    return artCache[quelle];
+  };
+  const liste = []; // { ref, items }
+  for (const sz of szenen) {
+    const r = await obsRequest('GetSceneItemList', sz.ref); if (!r.ok) continue;
+    liste.push({ ref: sz.ref, name: sz.name, items: r.data.sceneItems || [] });
+    for (const it of r.data.sceneItems || []) if (it.isGroup) {
+      const gref = it.sourceUuid ? { sceneUuid: it.sourceUuid } : { sceneName: it.sourceName };
+      const g = await obsRequest('GetGroupSceneItemList', gref); if (g.ok) liste.push({ ref: gref, name: sz.name + ' / ' + it.sourceName, items: g.data.sceneItems || [], gruppe: true });
+    }
+  }
+  let n = 0;
+  for (const sz of liste) for (const it of sz.items) {
+    const f = await ndiFormat(it.sourceName); if (!f) continue;
+    const neu = 'LS ' + f; let neuItem = sz.items.find(x => x.sourceName === neu);
+    if (richtung === 'srt') {
+      if (!neuItem) {
+        const c = await obsRequest('CreateSceneItem', { ...sz.ref, sourceName: neu, sceneItemEnabled: it.sceneItemEnabled }); if (!c.ok) { log.push('⚠️ ' + sz.name + ': ' + c.fehler); continue; }
+        neuItem = { sceneItemId: c.data.sceneItemId };
+        const tr = await obsRequest('GetSceneItemTransform', { ...sz.ref, sceneItemId: it.sceneItemId });
+        if (tr.ok) { const t = { ...tr.data.sceneItemTransform }; for (const k of ['width', 'height', 'sourceWidth', 'sourceHeight']) delete t[k];
+          if (!t.boundsType || t.boundsType === 'OBS_BOUNDS_NONE') { delete t.boundsWidth; delete t.boundsHeight; }
+          await obsRequest('SetSceneItemTransform', { ...sz.ref, sceneItemId: neuItem.sceneItemId, sceneItemTransform: t }); }
+        const ix = await obsRequest('GetSceneItemIndex', { ...sz.ref, sceneItemId: it.sceneItemId });
+        if (ix.ok) await obsRequest('SetSceneItemIndex', { ...sz.ref, sceneItemId: neuItem.sceneItemId, sceneItemIndex: ix.data.sceneItemIndex + 1 });
+      } else await obsRequest('SetSceneItemEnabled', { ...sz.ref, sceneItemId: neuItem.sceneItemId, sceneItemEnabled: true });
+      await obsRequest('SetSceneItemEnabled', { ...sz.ref, sceneItemId: it.sceneItemId, sceneItemEnabled: false });
+    } else {
+      await obsRequest('SetSceneItemEnabled', { ...sz.ref, sceneItemId: it.sceneItemId, sceneItemEnabled: true });
+      if (neuItem) await obsRequest('SetSceneItemEnabled', { ...sz.ref, sceneItemId: neuItem.sceneItemId, sceneItemEnabled: false });
+    }
+    n++; log.push('✓ ' + sz.name + ': ' + (richtung === 'srt' ? it.sourceName + ' → ' + neu : neu + ' → ' + it.sourceName));
+  }
+  if (!n) log.push('Keine NDI-Quellen von Live-Studio in deinen Szenen gefunden – füge die Quellen „LS …“ selbst hinzu (Rechtsklick → Hinzufügen → Bestehende).');
+  return log;
+}
+// Wächter: SRT-Ausgang im Render-OBS läuft? Sonst neu starten (z. B. nach Neustart des Containers oder wenn der PC später kommt)
+let renderWache = false;
+setInterval(async () => {
+  const R = saved.render; if (R.modus !== 'srt' || !R.host || !R.aktiv || renderWache) return;
+  renderWache = true;
+  try { const s = await obsSitzung(R.host, R.port, secret.renderPasswort); if (s.fehler) return;
+    try { const st = await s.anfrage('GetStreamStatus'); if (st.ok && !st.data.outputActive) await s.anfrage('StartStream'); } finally { s.schliessen(); }
+  } catch {} finally { renderWache = false; }
+}, 30000);
 async function renderNeuLaden() {
   const s = await obsSitzung(saved.render.host, saved.render.port, secret.renderPasswort); if (s.fehler) return { ok: false, fehler: s.fehler };
   try { for (const f of saved.render.formate) await s.anfrage('PressInputPropertiesButton', { inputName: 'LS ' + f, propertyName: 'refreshnocache' }); return { ok: true }; } finally { s.schliessen(); }
@@ -1137,11 +1294,19 @@ const server = http.createServer(async (req, res) => {
       if (typeof b.url === 'string') R.url = /^https?:\/\/[^\s]+$/.test(b.url.trim()) ? b.url.trim().slice(0, 200) : '';
       if (Array.isArray(b.formate)) R.formate = b.formate.filter(f => RENDER_FORMATE[f]);
       if (b.fps !== undefined) R.fps = Number(b.fps) ? Math.max(10, Math.min(60, Number(b.fps))) : 0;
+      if (b.modus === 'ndi' || b.modus === 'srt') R.modus = b.modus;
+      if (typeof b.ziel === 'string') R.ziel = b.ziel.trim().replace(/[^\w.:-]/g, '').slice(0, 100);
+      if (b.srtPort !== undefined) R.srtPort = Math.max(1024, Math.min(65535, Number(b.srtPort) || 9710));
+      if (b.kbps !== undefined) R.kbps = Math.max(5000, Math.min(120000, Number(b.kbps) || 40000));
+      if (b.codec === 'hevc' || b.codec === 'h264') R.codec = b.codec;
       if (typeof b.passwort === 'string' && b.passwort) { secret.renderPasswort = b.passwort; writeJson(SECRET_FILE, secret); }
       if (b.passwortLoeschen) { delete secret.renderPasswort; writeJson(SECRET_FILE, secret); }
       saveSettings(); return json(res, 200, { ok: true });
     }
-    if (p === '/api/render/einrichten' && req.method === 'POST') { const r = await renderEinrichten('http://' + (req.headers.host || '')); remember({ art: r.ok ? 'aktion' : 'fehler', quelle: 'render', text: r.ok ? 'Render-Server eingerichtet' : 'Render-Server: ' + r.fehler }); return json(res, 200, r); }
+    if (p === '/api/render/empfang' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}');
+      const r = b.nurTauschen ? (obs.status === 'verbunden' ? { ok: true, log: await pcQuellenTauschen(b.richtung === 'srt' ? 'srt' : 'ndi') } : { ok: false, fehler: 'OBS am PC nicht verbunden' }) : await pcEmpfang(b.umstellen ? 'srt' : '');
+      remember({ art: r.ok ? 'aktion' : 'fehler', quelle: 'render', text: r.ok ? 'Empfang am PC eingerichtet' : 'Empfang am PC: ' + r.fehler }); return json(res, 200, r); }
+    if (p === '/api/render/einrichten' && req.method === 'POST') { const r = await renderEinrichten('http://' + (req.headers.host || '')); if (r.ok) { saved.render.aktiv = saved.render.modus === 'srt'; saveSettings(); } remember({ art: r.ok ? 'aktion' : 'fehler', quelle: 'render', text: r.ok ? 'Render-Server eingerichtet' : 'Render-Server: ' + r.fehler }); return json(res, 200, r); }
     if (p === '/api/render/neuladen' && req.method === 'POST') return json(res, 200, await renderNeuLaden());
     if (p === '/api/render/neustart' && req.method === 'POST') {
       // Container des Render-Servers neu starten (braucht den Docker-Zugang wie die Stream-Pause)

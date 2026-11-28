@@ -111,25 +111,46 @@ async function renderPage(m) {
   const NAMEN = { 'vorne-hoch': 'Animationen hochkant (TikTok)', 'hinten-hoch': 'Hintergrund hochkant', 'vorne-quer': 'Animationen quer (Twitch)', 'hinten-quer': 'Hintergrund quer' };
   const boxen = Object.keys(NAMEN).map(f => { const c = h('input', { type: 'checkbox', value: f, ...((R.formate || []).includes(f) ? { checked: '' } : {}) }); return [f, c]; });
   const ausgabe = h('div', { class: 'card log', style: 'display:none' });
-  const speichern = () => post('/api/render', { host: host.value, port: port.value, passwort: pw.value, url: url.value, fps: fps.value, formate: boxen.filter(([, c]) => c.checked).map(([f]) => f) });
-  m.append(h('h1', {}, 'Render-Server (NDI)'),
+  const modus = h('select', {}, h('option', { value: 'srt', ...(R.modus === 'srt' ? { selected: '' } : {}) }, 'SRT über die Grafikkarte (empfohlen – entlastet den Server-Prozessor)'),
+    h('option', { value: 'ndi', ...(R.modus !== 'srt' ? { selected: '' } : {}) }, 'NDI (braucht viel Prozessor auf dem Server)'));
+  const ziel = h('input', { type: 'text', value: R.ziel || '', placeholder: 'leer = Adresse des OBS am PC (wie unter „OBS & Fenster-Quellen“)' });
+  const srtPort = h('input', { type: 'number', value: R.srtPort || 9710 });
+  const kbps = h('input', { type: 'number', min: 5000, max: 120000, step: 1000, value: R.kbps || 40000 });
+  const codec = h('select', {}, ...[['hevc', 'HEVC (H.265) – bessere Qualität'], ['h264', 'H.264 – falls HEVC nicht geht']].map(([v, l]) => h('option', { value: v, ...(R.codec === v ? { selected: '' } : {}) }, l)));
+  const srtBox = h('div', {}, field('Stream-PC (Ziel)', ziel), field('SRT-Port (UDP)', srtPort), field('Bitrate (kbit/s)', kbps), field('Codec', codec));
+  const sichtbar = () => { srtBox.style.display = modus.value === 'srt' ? '' : 'none'; };
+  modus.onchange = sichtbar; sichtbar();
+  const zeige = (r, titel) => { ausgabe.style.display = ''; ausgabe.innerHTML = ''; ausgabe.append(h('div', {}, r.ok ? '✓ ' + titel : '⚠️ ' + r.fehler), ...(r.log || []).map(l => h('div', {}, l))); };
+  const speichern = () => post('/api/render', { host: host.value, port: port.value, passwort: pw.value, url: url.value, fps: fps.value, formate: boxen.filter(([, c]) => c.checked).map(([f]) => f),
+    modus: modus.value, ziel: ziel.value, srtPort: srtPort.value, kbps: kbps.value, codec: codec.value });
+  m.append(h('h1', {}, 'Render-Server'),
     h('p', { class: 'hint' }, 'Statt dass OBS auf deinem PC die Animationen und den Hintergrund berechnet, macht das ein unsichtbares OBS auf dem Unraid-Server (Container „live-studio-renderer“). Es schickt das fertige Bild mit Durchsichtigkeit und Ton per NDI an dein OBS. Dein PC zeigt es nur noch an – das entlastet ihn, wenn ein Spiel die Grafikkarte auslastet.'),
     h('div', { class: 'card' },
       field('Adresse des Render-Servers', host), field('OBS-WebSocket-Port', port), field('Passwort', pw),
       field('Adresse von Live-Studio (aus Sicht des Render-Servers)', url),
       field('Bilder pro Sekunde (0 = automatisch wie OBS am PC)', fps),
+      field('Übertragung', modus), srtBox,
       h('div', {}, h('b', {}, 'Welche Bilder?'), ...boxen.map(([f, c]) => h('label', { class: 'row' }, c, ' ' + NAMEN[f] + ' → NDI „Live-Studio ' + f.replace('-', ' ') + '“'))),
-      h('p', { class: 'hint' }, 'Nur anhaken, was du wirklich nutzt – jedes Bild braucht etwa 120–150 Mbit/s im Netzwerk (Kabel, kein WLAN).'),
+      h('p', { class: 'hint' }, 'NDI: nur anhaken, was du wirklich nutzt – jedes Bild braucht etwa 120–150 Mbit/s und viel Prozessor. SRT: alle vier Bilder gehen zusammen in einem Stream, die Grafikkarte verpackt.'),
       h('div', { class: 'row' },
         h('button', { class: 'b', onclick: async () => { await speichern(); pw.value = ''; toast('✓ Gespeichert'); } }, 'Speichern'),
         h('button', { class: 'b p', onclick: async () => { await speichern(); pw.value = ''; ausgabe.style.display = ''; ausgabe.textContent = 'richte ein …';
-          const r = await post('/api/render/einrichten', {}).then(x => x.json()); ausgabe.innerHTML = '';
-          ausgabe.append(h('div', {}, r.ok ? '✓ Eingerichtet' : '⚠️ ' + r.fehler), ...(r.log || []).map(l => h('div', {}, l))); } }, 'Render-Server einrichten'),
+          zeige(await post('/api/render/einrichten', {}).then(x => x.json()), 'Render-Server eingerichtet'); } }, 'Render-Server einrichten'),
         h('button', { class: 'b', onclick: async () => { const r = await post('/api/render/neuladen', {}).then(x => x.json()); toast(r.ok ? 'Quellen im Render-Server neu geladen' : r.fehler, r.ok ? '' : 'warn'); } }, '↻ Quellen neu laden'),
         h('button', { class: 'b', onclick: async () => { if (!confirm('Render-Server (OBS auf Unraid) neu starten? Das NDI-Bild ist dabei ca. 20 Sekunden weg.')) return;
           const r = await post('/api/render/neustart', {}).then(x => x.json()); toast(r.ok ? 'Render-Server startet neu (ca. 20 s)' : r.fehler, r.ok ? '' : 'warn'); } }, '⟳ Render-Server neu starten'))),
     ausgabe,
-    h('h2', {}, 'In deinem OBS (Stream-PC)'),
+    h('h2', {}, 'Empfang am PC bei SRT'),
+    h('div', { class: 'card' },
+      h('p', {}, '1. In deinem OBS am PC zwei kostenlose Plugins installieren (beide von exeldro, obsproject.com → Plugins): „Shaderfilter“ (obs-shaderfilter) und „Source Clone“. Danach OBS neu starten.'),
+      h('p', {}, '2. „Empfang einrichten“ legt in deinem OBS die Szene „Live-Studio Empfang“ an: eine Medienquelle, die den Stream empfängt, und vier Quellen „LS vorne-hoch“, „LS hinten-hoch“, „LS vorne-quer“, „LS hinten-quer“ (gleiche Größe wie bisher, mit Durchsichtigkeit).'),
+      h('p', {}, '3. „NDI-Quellen ersetzen“ setzt in allen Szenen (auch Hochkant) die passende LS-Quelle an die Stelle der NDI-Quelle und blendet NDI nur aus – zurück geht jederzeit mit „Zurück zu NDI“.'),
+      h('p', { class: 'hint' }, 'Windows-Firewall: Beim ersten Empfang fragt Windows evtl. nach – OBS im privaten Netz erlauben (UDP-Port wie oben).'),
+      h('div', { class: 'row' },
+        h('button', { class: 'b p', onclick: async () => { await speichern(); zeige(await post('/api/render/empfang', {}).then(x => x.json()), 'Empfang am PC eingerichtet'); } }, 'Empfang einrichten'),
+        h('button', { class: 'b', onclick: async () => { await speichern(); zeige(await post('/api/render/empfang', { umstellen: true }).then(x => x.json()), 'Empfang eingerichtet und NDI-Quellen ersetzt'); } }, 'Empfang einrichten + NDI-Quellen ersetzen'),
+        h('button', { class: 'b', onclick: async () => zeige(await post('/api/render/empfang', { nurTauschen: true, richtung: 'ndi' }).then(x => x.json()), 'Zurück zu NDI') }, 'Zurück zu NDI'))),
+    h('h2', {}, 'In deinem OBS (Stream-PC) bei NDI'),
     h('div', { class: 'card' }, ...[
       '1. Plugin „DistroAV“ installieren (kostenlos, github.com/DistroAV/DistroAV) – es bringt die NDI-Laufzeit mit.',
       '2. Server und PC sind in verschiedenen Netzen: „NDI Access Manager“ (aus den kostenlosen NDI Tools) öffnen → Remote Sources → die Adresse des Render-Servers eintragen.',

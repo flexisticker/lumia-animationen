@@ -14,12 +14,15 @@ const srv = http.createServer((q, r) => r.end('render-nachbau')); srv.on('upgrad
       if (m.op === 1) send({ op: 2, d: { negotiatedRpcVersion: 1 } });
       if (m.op === 6) { const r = m.d, q = r.requestData || {}; let res = {}, ok = true, code = 100;
         if (r.requestType === 'GetVersion') res = { obsVersion: '32.0.0-nachbau' };
-        else if (r.requestType === 'GetSourceFilterKindList') res = { sourceFilterKinds: ['color_filter', 'ndi_audiofilter', 'ndi_filter'] };
+        else if (r.requestType === 'GetSourceFilterKindList') res = { sourceFilterKinds: ['color_filter', 'ndi_audiofilter', 'ndi_filter', ...(process.env.OHNE_SHADER ? [] : ['shader_filter'])] };
         else if (r.requestType === 'CreateScene') { if (da.has('S' + q.sceneName)) { ok = false; code = 601; } else da.add('S' + q.sceneName); }
         else if (r.requestType === 'CreateInput') { if (da.has('I' + q.inputName)) { ok = false; code = 601; } else da.add('I' + q.inputName); }
         else if (r.requestType === 'CreateSourceFilter') { const k = 'F' + q.sourceName + q.filterName; if (da.has(k)) { ok = false; code = 601; } else da.add(k); }
-        else if (r.requestType === 'GetVideoSettings') res = { fpsNumerator: globalThis.fpsR || 30, fpsDenominator: 1 };
-        else if (r.requestType === 'SetVideoSettings') { globalThis.fpsR = q.fpsNumerator; console.log('SetVideoSettings', q.fpsNumerator); }
+        else if (r.requestType === 'GetVideoSettings') res = { fpsNumerator: globalThis.fpsR || 30, fpsDenominator: 1, baseWidth: globalThis.bw || 1920, baseHeight: globalThis.bh || 1080, outputWidth: globalThis.bw || 1920, outputHeight: globalThis.bh || 1080 };
+        else if (r.requestType === 'GetStreamStatus') res = { outputActive: !!globalThis.live };
+        else if (r.requestType === 'StartStream') globalThis.live = true;
+        else if (r.requestType === 'StopStream') globalThis.live = false;
+        else if (r.requestType === 'SetVideoSettings') { if (q.baseWidth) { globalThis.bw = q.baseWidth; globalThis.bh = q.baseHeight; } if (q.fpsNumerator) globalThis.fpsR = q.fpsNumerator; console.log('SetVideoSettings', q.fpsNumerator); }
         else if (r.requestType === 'GetSceneItemId') res = { sceneItemId: 7 };
         console.log('RENDER', r.requestType, JSON.stringify(q).slice(0, 160));
         send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: ok ? { result: true, code: 100 } : { result: false, code, comment: 'gibt es schon' }, responseData: res } }); } } });

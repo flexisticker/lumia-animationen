@@ -21,6 +21,9 @@ RUN curl -fsSL https://raw.githubusercontent.com/DistroAV/DistroAV/master/CI/lib
     && echo "DistroAV: $URL" && curl -fsSL "$URL" -o /tmp/distroav.deb && apt-get update && apt-get install -y /tmp/distroav.deb \
     && rm -rf /tmp/*.deb /tmp/libndi-get.sh /var/lib/apt/lists/* \
     && echo 'Prüfung:' && (ldconfig -p | grep -i libndi; dpkg -l | grep -i -E 'distroav|obs-ndi'; find / -xdev -name '*distroav*.so' 2>/dev/null | head -3) || true
+# Shaderfilter (exeldro/obs-shaderfilter) für den SRT-Weg: macht aus der Durchsichtigkeit ein Graubild, das die Grafikkarte mitverpacken kann
+COPY shaderfilter-get.sh /tmp/shaderfilter-get.sh
+RUN bash /tmp/shaderfilter-get.sh && rm -f /tmp/shaderfilter-get.sh
 # Benutzer wie bei Unraid üblich (nobody:users = 99:100), OBS läuft nicht als root (Chromium der Browserquellen mag das nicht)
 RUN (getent group users || groupadd -g 100 users) && useradd -u 99 -g 100 -o -d /home/obs -m -s /bin/bash obs || true \
     && mkdir -p /config /home/obs/.config && chown -R 99:100 /config /home/obs
