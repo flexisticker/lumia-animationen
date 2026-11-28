@@ -183,7 +183,7 @@ if (window.MM_MUSIK) {
 
 // Kameras & Fenster: große Kacheln oben rechts, zeigen an, was gerade zu sehen ist
 const fensterBox = document.getElementById('fenster');
-const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Monitor: Unterstützer', '📺'], ['monitor-drucker', 'Monitor: Drucker-Kamera', '🖨️'], ['logo', 'Logo', '🏷️'], ['chat', 'Chat', '💬'], ['streamprint', 'Bondrucker', '🧾'], ['licht', 'Licht (Hue)', '💡']].map(([nr, label, ico]) => {
+const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Schreibtisch', '🖥️'], ['monitor', 'Monitor: Unterstützer', '📺'], ['monitor-drucker', 'Monitor: Drucker-Kamera', '🖨️'], ['logo', 'Logo', '🏷️'], ['chat', 'Chat', '💬'], ['streamprint', 'Bondrucker', '🧾'], ['licht', 'Licht (Hue)', '💡'], ['dienste', 'Server-Dienste (Ollama …)', '🧠']].map(([nr, label, ico]) => {
   const b = document.createElement('button'); b.className = 'btn';
   b.innerHTML = '<span class="ico"></span><span></span><span class="zu"></span>'; b.children[0].textContent = ico; b.children[1].textContent = label;
   b.onclick = () => send({ id: typeof nr === 'string' ? nr : nr === 1 ? 'fenster' : 'fenster' + nr, label: label + ' ein/aus' }, b);
@@ -194,6 +194,7 @@ function fensterZeigen(sicht) {
     if (f.nr === 'licht') f.b.style.display = sicht && sicht.lichtMoeglich ? '' : 'none';
     if (f.nr === 'logo') f.b.style.display = sicht && sicht.logoMoeglich ? '' : 'none';
     if (f.nr === 'streamprint') f.b.style.display = sicht && sicht.streamprintMoeglich ? '' : 'none';
+    if (f.nr === 'dienste') { f.b.style.display = sicht && sicht.diensteMoeglich ? '' : 'none'; const p = !!(sicht && sicht.dienstePause); f.b.classList.toggle('active', p); f.b.children[2].textContent = p ? '● pausiert' : 'laufen'; continue; }
     const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? (f.nr === 'licht' ? '● folgt dem Stream' : String(f.nr).startsWith('monitor') ? '● an' : '● zu sehen') : (String(f.nr).startsWith('monitor') && sicht && !sicht.monitorMoeglich ? 'aus · tippen = Zockerbude' : 'aus'); }
 }
 fensterZeigen(window.MM_FENSTER);

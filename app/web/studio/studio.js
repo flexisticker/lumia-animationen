@@ -14,7 +14,7 @@ async function load() {
 const NAV = [
   ['Live', [['start', '🏠', 'Übersicht'], ['geschenke', '🎁', 'Geschenke'], ['test', '🧪', 'Testen'], ['galerie', '🎬', 'Animationen ansehen']]],
   ['Aussehen', [['vorne', '✨', 'Animationen & Einblendungen'], ['hinten', '🖼️', 'Hintergrund & Kameras'], ['spiele', '🎮', 'Was läuft gerade'], ['aktion', '📱', 'Tablet-Steuerung']]],
-  ['Verbindungen', [['lumia', '🔌', 'Lumia'], ['obs', '🎥', 'OBS & Fenster-Quellen'], ['licht', '💡', 'Licht (Hue)'], ['sprache', '🗣️', 'Sprachausgabe'], ['quellen', '🔗', 'Browserquellen für OBS']]],
+  ['Verbindungen', [['lumia', '🔌', 'Lumia'], ['obs', '🎥', 'OBS & Fenster-Quellen'], ['licht', '💡', 'Licht (Hue)'], ['sprache', '🗣️', 'Sprachausgabe'], ['dienste', '🧠', 'Server-Dienste (Stream-Pause)'], ['quellen', '🔗', 'Browserquellen für OBS']]],
 ];
 // Ampel je Verbindung (für Menü und Übersicht): ok | warn | err | aus
 function ampel(id) {
@@ -24,6 +24,7 @@ function ampel(id) {
   if (id === 'lumia') return S.lumia.an ? m[S.status.status] || 'warn' : 'aus';
   if (id === 'obs') return S.obs.an ? m[(S.obsStatus || {}).status] || 'warn' : 'aus';
   if (id === 'licht') return S.hue && S.hue.an && S.hue.gekoppelt ? (S.hue.status === 'fehler' ? 'err' : S.hue.lampen.length ? 'ok' : 'warn') : 'aus';
+  if (id === 'dienste') return !DIENSTE || !DIENSTE.einstellungen.an ? 'aus' : DIENSTE.status === 'verbunden' ? 'ok' : 'err';
   if (id === 'sprache') return S.tts && S.tts.schluessel ? (S.tts.stimme ? 'ok' : 'warn') : 'aus';
   if (id === 'quellen') return q.some(x => x.rolle === 'vorne') && q.some(x => x.rolle === 'hinten') ? 'ok' : q.length ? 'warn' : 'err';
   return '';
@@ -56,7 +57,7 @@ function render() {
     h('p', {}, 'Der Container hat keinen Daten-Ordner. Bei jedem Update gehen alle Einstellungen verloren. In Unraid beim Container auf „Edit“ → „Add another Path, Port, Variable…“ → Config Type „Path“, Container Path ', h('code', {}, '/data'), ', Host Path ', h('code', {}, '/mnt/user/appdata/live-studio'), ' → Speichern. Danach einmal alles einstellen – ab dann bleibt es erhalten.')));
   ({ start, lumia: lumiaPage, vorne: () => settingsPage('vorne', 'Animationen & Einblendungen', 'Alles, was vor dir im Bild erscheint.'),
     galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik, drei Fenster (Spiel, Drucker-Kamera, Schreibtisch) und der Wand-Monitor, durch die man die OBS-Quelle darunter sieht.'),
-    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, obs: obsPage, licht: lichtPage, geschenke: geschenkePage, sprache: sprachePage }[page.id] || start)(m);
+    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, obs: obsPage, licht: lichtPage, geschenke: geschenkePage, sprache: sprachePage, dienste: dienstePage }[page.id] || start)(m);
 }
 // ---------- Übersicht ----------
 function start(m) {
@@ -89,6 +90,7 @@ function start(m) {
   if (F.logoMoeglich) fk.push(['logo', 'logo', '🏷️ Logo']);
   fk.push(['chat', 'chat', '💬 Chat']); if (F.streamprintMoeglich) fk.push(['streamprint', 'streamprint', '🧾 Bondrucker']);
   if (F.lichtMoeglich) fk.push(['licht', 'licht', '💡 Licht folgt dem Stream']);
+  if (F.diensteMoeglich) fk.push(['dienste', 'dienstePause', '🧠 Server-Dienste pausiert']);
   m.append(h('h2', {}, 'Kameras & Fenster'), h('div', { class: 'row' }, ...fk.map(([id, k, l]) => h('button', { class: 'b schalter' + (F[k] ? ' an' : ''), onclick: async () => {
     const r = await post('/api/aktion', { id, label: l }); const d = await r.json().catch(() => ({})); if (d.label) toast(d.label); } }, l, h('small', {}, F[k] ? 'an' : 'aus')))),
     h('p', { class: 'hint' }, 'Welche OBS-Quelle zu welchem Fenster mitgeschaltet wird, stellst du unter ', h('a', { href: '#obs', onclick: e => { e.preventDefault(); go('obs'); } }, 'OBS & Fenster-Quellen'), ' ein.'));
@@ -97,6 +99,41 @@ function start(m) {
   m.append(h('h2', {}, 'Letzte Ereignisse'), h('div', { class: 'card log', id: 'log' }, ...(S.log || []).map(logLine)));
 }
 const logLine = e => h('div', {}, new Date(e.at).toLocaleTimeString('de-DE') + ' · ' + ({ alert: '🎁', aktion: '👆', modus: '🎮', fehler: '⚠️' }[e.art] || '') + ' ' + (e.alert || '') + ' ' + (e.text || '') + (e.quelle ? ' (' + e.quelle + ')' : ''));
+// ---------- Server-Dienste: während des Streams anhalten ----------
+let DIENSTE = null;
+fetch('/api/dienste').then(r => r.json()).then(d => { DIENSTE = d; if (S) renderNav(); }).catch(() => {});
+function dienstePage(m) {
+  const D = DIENSTE || { einstellungen: {}, liste: [] }, E = D.einstellungen || {};
+  const an = h('input', { type: 'checkbox', ...(E.an ? { checked: '' } : {}) });
+  const docker = h('input', { type: 'text', value: E.docker || '/var/run/docker.sock' });
+  const ausl = h('select', {}, ...[['stream', 'Automatisch, wenn OBS streamt'], ['stream+vcam', 'Automatisch, wenn OBS streamt oder die virtuelle Kamera läuft (TikTok LIVE Studio)'], ['hand', 'Nur per Knopf']]
+    .map(([v, l]) => h('option', { value: v, ...(E.ausloeser === v ? { selected: '' } : {}) }, l)));
+  const auch = h('textarea', { rows: 3 }, (E.auch || []).join('\n'));
+  const nie = h('textarea', { rows: 2 }, (E.nie || []).join('\n'));
+  const zur = h('input', { type: 'number', min: 0, max: 120, value: E.zurueckMin ?? 2 });
+  const speichern = async () => { const r = await post('/api/dienste', { an: an.checked, docker: docker.value, ausloeser: ausl.value, auch: auch.value, nie: nie.value, zurueckMin: zur.value });
+    DIENSTE = await r.json(); toast('✓ Gespeichert'); renderNav(); render(); };
+  m.append(h('h1', {}, 'Server-Dienste (Stream-Pause)'),
+    h('p', { class: 'hint' }, 'Während du streamst, werden Dienste auf dem Server gestoppt, die die Grafikkarte nutzen (z. B. Ollama), und solche, deren Name ein Wort aus der Liste enthält (Mail-Sortierer, Protokoll …). Nach dem Stream startet Live-Studio genau diese wieder. Live-Studio selbst wird nie gestoppt.'),
+    h('div', { class: 'card' },
+      h('label', { class: 'row' }, an, ' Stream-Pause einschalten'),
+      field('Wann anhalten', ausl),
+      field('Nach dem Stream wieder starten nach … Minuten', zur),
+      field('Zusätzlich stoppen: Container, deren Name eines dieser Wörter enthält (je Zeile eins)', auch),
+      field('Nie stoppen (genaue Container-Namen, je Zeile einer)', nie),
+      field('Docker-Zugang', docker),
+      h('p', { class: 'hint' }, 'In Unraid beim Live-Studio-Container einen Pfad hinzufügen: Container-Pfad und Host-Pfad je /var/run/docker.sock. Live-Studio nutzt ihn nur zum Auflisten, Stoppen und Starten.'),
+      h('div', { class: 'row' }, h('button', { class: 'b p', onclick: speichern }, 'Speichern'))),
+    h('h2', {}, 'Status'),
+    h('div', { class: 'card' },
+      h('p', {}, !E.an ? 'Aus.' : D.status === 'verbunden' ? (D.pause ? '⏸️ Dienste sind angehalten' + (D.zurueckUm ? ' – starten wieder um ' + new Date(D.zurueckUm).toLocaleTimeString('de-DE') : '') + '.' : '▶️ Dienste laufen normal.') + (D.obsLive ? ' OBS ist live.' : '') : '⚠️ ' + (D.fehler || 'Docker nicht erreichbar')),
+      h('div', { class: 'row' },
+        h('button', { class: 'b', onclick: async () => { const r = await post('/api/aktion', { id: 'dienste', an: true }); toast((await r.json()).label); } }, '⏸️ Jetzt anhalten'),
+        h('button', { class: 'b', onclick: async () => { const r = await post('/api/aktion', { id: 'dienste', an: false }); toast((await r.json()).label); } }, '▶️ Wieder starten'),
+        h('button', { class: 'b', onclick: async () => { DIENSTE = await fetch('/api/dienste').then(r => r.json()); render(); } }, '↻ Neu einlesen')),
+      ...(D.liste || []).filter(c => c.stoppen || c.vonUns).map(c => h('div', {}, (c.laeuft ? '🟢 ' : '⚪ ') + c.name + ' · ' + [c.gpu && 'nutzt die Grafikkarte', c.wort && 'Name in der Liste', c.vonUns && 'von Live-Studio gestoppt'].filter(Boolean).join(', '))),
+      (D.liste || []).some(c => c.stoppen) || !E.an ? '' : h('p', { class: 'hint' }, 'Kein passender Container gefunden.')));
+}
 // ---------- Sprachausgabe (ElevenLabs) ----------
 function sprachePage(m) {
   const T = S.tts || {};
@@ -593,6 +630,7 @@ es.addEventListener('quellen', e => { if (!S) return; S.quellenListe = JSON.pars
 es.addEventListener('obs', e => { if (!S) return; S.obsStatus = JSON.parse(e.data); renderNav(); if (['obs', 'start'].includes(page.id) && !document.activeElement.matches('input,select')) render(); });
 es.addEventListener('fenster', e => { if (!S) return; S.fensterSicht = JSON.parse(e.data); if (page.id === 'start' || page.id === 'obs') { if (!document.activeElement.matches('input,select,textarea')) render(); } });
 es.addEventListener('hue', e => { if (!S) return; S.hue = JSON.parse(e.data); renderNav(); if (page.id === 'start' || (page.id === 'licht' && !document.activeElement.matches('input,select'))) render(); });
+es.addEventListener('dienste', e => { DIENSTE = JSON.parse(e.data); if (!S) return; renderNav(); if (page.id === 'dienste' && !document.activeElement.matches('input,select,textarea')) render(); });
 es.addEventListener('geschenke', e => { if (!S) return; GESCHENKE = JSON.parse(e.data); if (page.id === 'geschenke' && !document.activeElement.matches('input,select')) render(); });
 es.addEventListener('profil', async () => { if (!S) return; await reload(); renderNav(); });
 es.addEventListener('modus', e => { if (!S) return; S.modus = JSON.parse(e.data).modus; if (page.id === 'start') render(); });

@@ -1,6 +1,7 @@
 import http from 'node:http'; import crypto from 'node:crypto';
-let cur = 'Just Chatting'; const szenen = ['Just Chatting', 'Gaming', 'BRB', 'Vertikal'];
-const alle = []; const srv = http.createServer((req, res) => { const u = new URL(req.url, 'http://x'); if (u.pathname === '/wechsel') { cur = u.searchParams.get('name'); for (const s of alle) s({ op: 5, d: { eventType: 'CurrentProgramSceneChanged', eventData: { sceneName: cur } } }); } res.end(cur); }); srv.on('upgrade', (req, sock) => {
+let cur = 'Just Chatting', live = false; const szenen = ['Just Chatting', 'Gaming', 'BRB', 'Vertikal'];
+const alle = []; const srv = http.createServer((req, res) => { const u = new URL(req.url, 'http://x'); if (u.pathname === '/stream') { live = u.searchParams.get('an') === '1'; for (const s of alle) s({ op: 5, d: { eventType: 'StreamStateChanged', eventData: { outputActive: live, outputState: live ? 'OBS_WEBSOCKET_OUTPUT_STARTED' : 'OBS_WEBSOCKET_OUTPUT_STOPPED' } } }); return res.end('stream ' + live); }
+  if (u.pathname === '/wechsel') { cur = u.searchParams.get('name'); for (const s of alle) s({ op: 5, d: { eventType: 'CurrentProgramSceneChanged', eventData: { sceneName: cur } } }); } res.end(cur); }); srv.on('upgrade', (req, sock) => {
   const key = crypto.createHash('sha1').update(req.headers['sec-websocket-key'] + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
   sock.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ' + key + '\r\n\r\n');
   const send = o => { const b = Buffer.from(JSON.stringify(o)); const h = b.length < 126 ? Buffer.from([0x81, b.length]) : Buffer.from([0x81, 126, b.length >> 8, b.length & 255]); sock.write(Buffer.concat([h, b])); };
@@ -19,6 +20,8 @@ const alle = []; const srv = http.createServer((req, res) => { const u = new URL
           else send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: false, code: 204, comment: 'unknown request' } } }); }
         else if (r.requestType === 'GetSceneList' && (r.requestData || {}).canvasUuid === 'v') ok({ scenes: [{ sceneName: 'V-Gaming', sceneUuid: 'u-vg' }] });
         else if (r.requestType === 'GetSceneItemList' && (r.requestData || {}).sceneUuid === 'u-vg') ok({ sceneItems: [{ sourceName: 'Spiel-Vertikal', sceneItemId: 11 }, { sourceName: 'Drucker-Cam-Vertikal', sceneItemId: 12 }] });
+        else if (r.requestType === 'GetStreamStatus') ok({ outputActive: live });
+        else if (r.requestType === 'GetVirtualCamStatus') ok({ outputActive: false });
         else if (r.requestType === 'GetSceneList') send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: true, code: 100 }, responseData: { currentProgramSceneName: cur, scenes: szenen.map(sceneName => ({ sceneName })) } } });
         else if (r.requestType === 'GetInputList') send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: true, code: 100 }, responseData: { inputs: [{ inputName: 'Drucker-Cam' }, { inputName: 'Schreibtisch-Cam' }, { inputName: 'Spiel-Capture' }, { inputName: 'Spiel-Vertikal' }, { inputName: 'Drucker-Cam-Vertikal' }] } } });
         else if (r.requestType === 'GetSceneItemList') { const items = { 'Just Chatting': [['Drucker-Cam', 1], ['Schreibtisch-Cam', 2]], 'Gaming': [['Spiel-Capture', 3], ['Drucker-Cam', 4], ['Hochkant-Gruppe', 5, true]], 'BRB': [], 'Vertikal': [['Drucker-Cam-Vertikal', 7]] }[r.requestData.sceneName] || [];

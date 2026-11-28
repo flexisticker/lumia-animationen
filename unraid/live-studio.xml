@@ -12,4 +12,5 @@
   <Icon>http://192.168.1.10:8120/live-studio-icon.png</Icon>
   <Config Name="Port" Target="8080" Default="8120" Mode="tcp" Description="Port im Heimnetz" Type="Port" Display="always" Required="true">8120</Config>
   <Config Name="Daten" Target="/data" Default="/mnt/user/appdata/live-studio" Mode="rw" Description="Einstellungen und eigene Videos" Type="Path" Display="always" Required="true">/mnt/user/appdata/live-studio</Config>
+  <Config Name="Docker (für Stream-Pause)" Target="/var/run/docker.sock" Default="/var/run/docker.sock" Mode="rw" Description="Optional: damit Live-Studio während des Streams Ollama &amp; Co. anhalten und danach wieder starten kann (Studio → Server-Dienste). Live-Studio nutzt es nur zum Auflisten, Stoppen und Starten." Type="Path" Display="always" Required="false">/var/run/docker.sock</Config>
 </Container>

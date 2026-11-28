@@ -412,6 +412,8 @@ function fensterSichtbar(nr) {
 // Wand-Monitor nur sinnvoll, wenn kein Spielfenster offen ist und (je nach Einstellung) im Zockmodus → nur dann Kachel am iPad zeigen
 const monitorArt = () => (saved.monitor === true ? 'liste' : saved.monitor || '');
 // Chat und Bondrucker per Knopf erzwingen (true/false), null = wie im Studio eingestellt („… zeigen“)
+saved.dienste ||= { an: false, docker: '/var/run/docker.sock', ausloeser: 'stream', auch: ['ollama', 'mail-sortierer', 'mailsort', 'postwart', 'protokoll'], nie: [], zurueckMin: 2, gestoppt: [] };
+const dienste = { status: 'aus', fehler: '', liste: [], pause: false, obsLive: false, zurueckUm: 0 };
 saved.zwang ||= { chat: null, streamprint: null };
 const artJetztServer = () => { const sp = saved.spiele.find(x => x.id === saved.spiel); return saved.modus === 'party' || (sp && sp.ohneFenster) ? 'party' : 'zocken'; };
 function einblendungSichtbar(id) {
@@ -423,7 +425,7 @@ function einblendungSichtbar(id) {
 }
 const hatBildschirm = sp => !!sp && (sp.wandMonitor === true || (sp.wandMonitor !== false && /zockerbude/i.test((sp.video || '') + ' ' + (sp.videoQuer || '') + ' ' + sp.id)));
 const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || hatBildschirm(saved.spiele.find(x => x.id === saved.spiel)));
-const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste' && monitorMoeglich(), 'monitor-drucker': monitorArt() === 'drucker' && monitorMoeglich(), monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), logo: !saved.logoAus && !!settingsFor('vorne').logoBild, chat: einblendungSichtbar('chat'), streamprint: einblendungSichtbar('streamprint'), streamprintMoeglich: !!settingsFor('vorne').spUrl, logoMoeglich: !!settingsFor('vorne').logoBild, lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length) });
+const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste' && monitorMoeglich(), 'monitor-drucker': monitorArt() === 'drucker' && monitorMoeglich(), monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), logo: !saved.logoAus && !!settingsFor('vorne').logoBild, chat: einblendungSichtbar('chat'), streamprint: einblendungSichtbar('streamprint'), streamprintMoeglich: !!settingsFor('vorne').spUrl, logoMoeglich: !!settingsFor('vorne').logoBild, lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length), dienstePause: dienste.pause, diensteMoeglich: !!(saved.dienste && saved.dienste.an) });
 const fensterMelden = () => { broadcast('fenster', fensterSicht(), ['aktion', 'studio']); obsQuellenSync(); };
 // OBS-Quellen zu den Fenstern mitschalten (in allen Szenen, in denen sie vorkommen). Eine Quelle für mehrere Fenster = sichtbar, wenn eines davon offen ist.
 let quellenStand = {}, quellenLaeuft = false, quellenNochmal = false;
@@ -606,6 +608,8 @@ function obsScene(name) {
   }
   if (saved.obs.szeneParty && name === saved.obs.szeneParty) return setModus('party', undefined, 'obs', true);
 }
+const obsAusgabe = { stream: false, vcam: false };
+const obsLiveMelden = () => diensteObs(obsAusgabe.stream || (saved.dienste.ausloeser === 'stream+vcam' && obsAusgabe.vcam));
 function obsConnect() {
   clearTimeout(oretry);
   if (ows) { try { ows.onclose = null; ows.close(); } catch {} ows = null; }
@@ -617,7 +621,7 @@ function obsConnect() {
   ows.onmessage = (m) => {
     let msg; try { msg = JSON.parse(String(m.data)); } catch { return; }
     if (msg.op === 0) { // Hello
-      const d = { rpcVersion: 1, eventSubscriptions: 4 /* Scenes */ };
+      const d = { rpcVersion: 1, eventSubscriptions: 4 | 8 | 64 /* Scenes, Inputs, Outputs (Stream/virtuelle Kamera) */ };
       const a = msg.d && msg.d.authentication;
       if (a) {
         if (!secret.obsPasswort) { Object.assign(obs, { status: 'fehler', fehler: 'OBS verlangt ein Passwort' }); obsStatus(); return; }
@@ -628,8 +632,13 @@ function obsConnect() {
     } else if (msg.op === 2) { // Identified
       Object.assign(obs, { status: 'verbunden', fehler: '' }); obsStatus();
       obsSend(6, { requestType: 'GetSceneList', requestId: 'szenen' });
+      // Läuft schon ein Stream / die virtuelle Kamera? (für die Stream-Pause der Server-Dienste)
+      setTimeout(async () => { const a = await obsRequest('GetStreamStatus', {}), b = await obsRequest('GetVirtualCamStatus', {});
+        obsAusgabe.stream = !!(a.ok && a.data.outputActive); obsAusgabe.vcam = !!(b.ok && b.data.outputActive); obsLiveMelden(); }, 800);
       // Quellen-Liste fürs Studio + Fenster-Quellen einmal angleichen
       setTimeout(async () => { const r = await obsRequest('GetInputList', {}); if (r.ok) { obs.quellen = (r.data.inputs || []).map(x => x.inputName).sort(); obsStatus(); } quellenStand = {}; obsQuellenSync(); lageStand = ''; obsLageSync(); }, 500);
+    } else if (msg.op === 5 && msg.d && /^(Stream|Virtualcam)StateChanged$/.test(msg.d.eventType)) {
+      obsAusgabe[msg.d.eventType.startsWith('Stream') ? 'stream' : 'vcam'] = !!(msg.d.eventData || {}).outputActive; obsLiveMelden();
     } else if (msg.op === 5 && msg.d && msg.d.eventType === 'CurrentProgramSceneChanged') {
       obsScene(msg.d.eventData.sceneName);
     } else if (msg.op === 5 && msg.d && /^Input(Created|Removed|NameChanged)$/.test(msg.d.eventType)) {
@@ -649,6 +658,85 @@ function obsConnect() {
     obsStatus(); oretry = setTimeout(obsConnect, 5000);
   };
 }
+
+// ---------- Server-Dienste während des Streams anhalten (Ollama, Mail-Sortierer, Protokoll … – alles, was die Grafikkarte nutzt) ----------
+// Docker-Zugriff über den Socket (/var/run/docker.sock, in Unraid als Pfad zuordnen) oder eine Adresse (http://host:port).
+// Live-Studio ruft NUR auf: Container auflisten/ansehen, stoppen, starten. Gestoppt werden die erkannten Grafikkarten-Container
+// (Nvidia-Runtime, NVIDIA_VISIBLE_DEVICES, GPU-Geräteanfrage) und Container, deren Name ein Wort aus „auch“ enthält – außer „nie“ und Live-Studio selbst.
+let diensteTimer = null;
+function dockerApi(method, pfad) {
+  const ziel = String(saved.dienste.docker || '/var/run/docker.sock').trim();
+  return new Promise((resolve) => {
+    const opt = { method, path: '/v1.41' + pfad, headers: { host: 'docker' }, timeout: 30000 };
+    if (/^https?:\/\//.test(ziel)) { const u = new URL(ziel); opt.hostname = u.hostname; opt.port = u.port || 2375; } else opt.socketPath = ziel;
+    const r = http.request(opt, res => { let d = ''; res.on('data', c => (d += c)); res.on('end', () => { let j = null; try { j = d ? JSON.parse(d) : null; } catch {} resolve({ ok: res.statusCode < 300 || res.statusCode === 304, code: res.statusCode, data: j, text: d }); }); });
+    r.on('timeout', () => r.destroy(new Error('Zeitüberschreitung')));
+    r.on('error', e => resolve({ ok: false, code: 0, fehler: e.code === 'ENOENT' ? 'Docker-Socket nicht gefunden – in Unraid den Pfad /var/run/docker.sock zuordnen' : e.code === 'EACCES' ? 'Kein Zugriff auf den Docker-Socket' : String(e.message || e) }));
+    r.end();
+  });
+}
+const nutztGpu = i => { const h = i.HostConfig || {}, env = (i.Config && i.Config.Env) || [];
+  const nv = env.find(e => e.startsWith('NVIDIA_VISIBLE_DEVICES='));
+  return h.Runtime === 'nvidia' || (nv && !/=(void|none|)$/.test(nv)) || (h.DeviceRequests || []).some(d => (d.Capabilities || []).flat().includes('gpu') || d.Driver === 'nvidia'); };
+const eigeneId = () => { try { return fs.readFileSync('/etc/hostname', 'utf8').trim(); } catch { return ''; } };
+async function diensteLesen() {
+  if (!saved.dienste.an) { Object.assign(dienste, { status: 'aus', fehler: '', liste: [] }); return diensteStatus(); }
+  const r = await dockerApi('GET', '/containers/json?all=1');
+  if (!r.ok) { Object.assign(dienste, { status: 'fehler', fehler: r.fehler || ('Docker antwortet mit ' + r.code), liste: [] }); return diensteStatus(); }
+  const ich = eigeneId(), auch = (saved.dienste.auch || []).map(x => String(x).toLowerCase()).filter(Boolean), nie = (saved.dienste.nie || []).map(x => String(x).toLowerCase());
+  const liste = [];
+  for (const c of r.data || []) {
+    const name = String((c.Names || [])[0] || '').replace(/^\//, ''), n = name.toLowerCase();
+    if (ich && String(c.Id).startsWith(ich)) continue;
+    const ins = await dockerApi('GET', '/containers/' + c.Id + '/json');
+    const gpu = ins.ok && nutztGpu(ins.data), wort = auch.some(w => n.includes(w));
+    liste.push({ id: c.Id.slice(0, 12), name, laeuft: c.State === 'running', gpu, wort, nie: nie.includes(n), stoppen: (gpu || wort) && !nie.includes(n), vonUns: saved.dienste.gestoppt.includes(name) });
+  }
+  liste.sort((a, b) => (b.stoppen - a.stoppen) || a.name.localeCompare(b.name));
+  Object.assign(dienste, { status: 'verbunden', fehler: '', liste }); diensteStatus();
+}
+const diensteStatus = () => broadcast('dienste', { ...dienste, einstellungen: saved.dienste }, ['studio', 'aktion']);
+async function diensteAnhalten(quelle) {
+  clearTimeout(diensteTimer); dienste.zurueckUm = 0;
+  await diensteLesen(); if (dienste.status !== 'verbunden') return dienste.fehler || 'Docker nicht erreichbar';
+  const ziel = dienste.liste.filter(c => c.stoppen && c.laeuft), fertig = [];
+  for (const c of ziel) {
+    const r = await dockerApi('POST', '/containers/' + c.id + '/stop?t=20');
+    if (r.ok) { fertig.push(c.name); if (!saved.dienste.gestoppt.includes(c.name)) saved.dienste.gestoppt.push(c.name); }
+    else remember({ art: 'fehler', quelle: 'dienste', text: c.name + ' ließ sich nicht stoppen (' + (r.fehler || r.code) + ')' });
+  }
+  dienste.pause = true; saved.dienste.grund = quelle; saveSettings();
+  remember({ art: 'aktion', quelle, text: 'Server-Dienste angehalten: ' + (fertig.join(', ') || 'keine liefen') });
+  await diensteLesen(); fensterMelden();
+  return 'Angehalten: ' + (fertig.join(', ') || 'keiner lief');
+}
+async function diensteFortsetzen(quelle) {
+  clearTimeout(diensteTimer); dienste.zurueckUm = 0;
+  const namen = [...saved.dienste.gestoppt], fertig = [];
+  for (const name of namen) {
+    const r = await dockerApi('POST', '/containers/' + encodeURIComponent(name) + '/start');
+    if (r.ok || r.code === 404) { fertig.push(name); saved.dienste.gestoppt = saved.dienste.gestoppt.filter(x => x !== name); }
+    else remember({ art: 'fehler', quelle: 'dienste', text: name + ' ließ sich nicht starten (' + (r.fehler || r.code) + ')' });
+  }
+  dienste.pause = false; saveSettings();
+  remember({ art: 'aktion', quelle, text: 'Server-Dienste wieder gestartet: ' + (fertig.join(', ') || 'keine') });
+  await diensteLesen(); fensterMelden();
+  return 'Wieder gestartet: ' + (fertig.join(', ') || 'keiner');
+}
+// OBS meldet Stream (und optional virtuelle Kamera für TikTok LIVE Studio) → anhalten; Ende → nach „zurueckMin“ Minuten wieder starten
+function diensteObs(live) {
+  dienste.obsLive = live;
+  if (!saved.dienste.an || saved.dienste.ausloeser === 'hand') return diensteStatus();
+  if (live) { if (!dienste.pause || dienste.zurueckUm) diensteAnhalten('obs'); else saved.dienste.grund = 'obs'; }
+  else if (dienste.pause && saved.dienste.grund === 'obs') {   // von Hand angehalten → bleibt angehalten
+    clearTimeout(diensteTimer); const ms = Math.max(0, Number(saved.dienste.zurueckMin) || 0) * 60000;
+    dienste.zurueckUm = Date.now() + ms; diensteStatus();
+    diensteTimer = setTimeout(() => { if (!dienste.obsLive) diensteFortsetzen('obs'); }, ms);
+  }
+}
+// Beim Start: waren Dienste von uns gestoppt, bleibt die Pause bestehen (wird nach dem Stream fortgesetzt bzw. von Hand)
+if (saved.dienste.gestoppt.length) dienste.pause = true;
+setTimeout(diensteLesen, 3000);
 
 // ---------- Philips Hue (lokale Bridge, API v1, nichts über die Cloud) ----------
 // Licht passend zur laufenden Animation (Farbverlauf aus medien/animationen/farben.json), Grundlicht je Kanal/Modus,
@@ -961,6 +1049,18 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/chat' && req.method === 'GET') return json(res, 200, { chat: chatLog });
     if (p === '/api/diag' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); remember({ art: 'fehler', quelle: 'animation ' + String(b.format || '').slice(0, 5), text: String(b.text || '').slice(0, 200) + (b.anim ? ' [' + String(b.anim).slice(0, 40) + ']' : '') }); return json(res, 200, { ok: true }); }
     if (p === '/api/test' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); fireAlert(b, 'test'); return json(res, 200, { ok: true }); }
+    if (p === '/api/dienste' && req.method === 'GET') { await diensteLesen(); return json(res, 200, { ...dienste, einstellungen: saved.dienste }); }
+    if (p === '/api/dienste' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}'), d = saved.dienste;
+      if (typeof b.an === 'boolean') d.an = b.an;
+      if (typeof b.docker === 'string') d.docker = b.docker.trim().slice(0, 200) || '/var/run/docker.sock';
+      if (['stream', 'stream+vcam', 'hand'].includes(b.ausloeser)) d.ausloeser = b.ausloeser;
+      const liste = v => (Array.isArray(v) ? v : String(v || '').split(/[\n,]/)).map(x => String(x).trim().toLowerCase()).filter(Boolean).slice(0, 40);
+      if (b.auch !== undefined) d.auch = liste(b.auch);
+      if (b.nie !== undefined) d.nie = liste(b.nie);
+      if (b.zurueckMin !== undefined) d.zurueckMin = Math.max(0, Math.min(120, Number(b.zurueckMin) || 0));
+      saveSettings(); await diensteLesen(); fensterMelden(); return json(res, 200, { ...dienste, einstellungen: d });
+    }
     if (p === '/api/aktion' && req.method === 'POST') {
       const raw = (await body(req, 4000)).toString();
       let a; try { a = JSON.parse(raw); } catch { return json(res, 400, { fehler: 'ungültig' }); }
@@ -983,6 +1083,12 @@ const server = http.createServer(async (req, res) => {
         }
         a.id = 'monitor'; a.art = saved.monitor || ''; a.an = !!saved.monitor; saveSettings();
         a.label = 'Wand-Monitor ' + (saved.monitor === 'drucker' ? 'zeigt die Drucker-Kamera' : saved.monitor ? 'zeigt die Unterstützer' : 'aus') + hinweis; fensterMelden();
+      }
+      if (a.id === 'dienste') {
+        if (!saved.dienste.an) return json(res, 200, { ok: true, label: 'Stream-Pause für Server-Dienste ist aus (Studio → Server-Dienste)' });
+        const an = a.an === undefined || a.an === null ? !dienste.pause : !!a.an;
+        const label = an ? await diensteAnhalten('knopf') : await diensteFortsetzen('knopf');
+        return json(res, 200, { ok: true, label: 'Server-Dienste · ' + label, an: dienste.pause });
       }
       if (typeof a.id === 'string' && a.id.startsWith('szene:')) hueAnsage(a.id.slice(6));
       if (a.id === 'licht') {
