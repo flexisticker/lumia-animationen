@@ -30,6 +30,8 @@ done
 cat > /config/obs-studio/plugin_config/obs-websocket/config.json <<J
 {"alerts_enabled":false,"auth_required":$([ -n "$PW" ] && echo true || echo false),"first_load":false,"server_enabled":true,"server_password":"$PW","server_port":4455}
 J
+# Chromium-Sperrdateien eines früheren Containers entfernen (sonst „CEF failed to initialize. Exit code: 21“ = Profil in Benutzung → keine Browserquellen, kein Bild, kein Ton)
+find /config/obs-studio -name 'Singleton*' -delete 2>/dev/null || true
 chown -R 99:100 /config /home/obs
 rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
 # -extension MIT-SHM: Mesa kann im Container keinen gemeinsamen X-Speicher nutzen („Failed to attach to x11 shm“ → schwarzes Bild)

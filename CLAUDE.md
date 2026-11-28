@@ -312,3 +312,5 @@
   ServerPassword), nicht mehr aus config.json → `start.sh` setzt das jetzt per `setze()` (awk) bei jedem Start. Ursache Browserquelle offen, OBS-Log von Michael angefragt.
 - 28.11.2026: **Ursache schwarzes Bild gefunden:** Container-Log voller „MESA: error: Failed to attach to x11 shm“ (Mesa/llvmpipe kann MIT-SHM zwischen Xvfb (root) und OBS (uid 99) im Container nicht nutzen).
   Fix `Xvfb … -extension MIT-SHM` in `start.sh`. Im Nachbau (Xvfb ohne MIT-SHM + OBS 30) zeigt die Vorschau danach Inhalt (xwd-Screenshot geprüft). VNC überträgt keinen Ton – Ton nur über die Pegel bzw. NDI prüfen.
+- 28.11.2026: OBS-Log bei Michael: **„[obs-browser]: CEF failed to initialize. Exit code: 21“** (Chromium RESULT_CODE_PROFILE_IN_USE) → `SingletonLock` des vorigen Containers (anderer Hostname) im CEF-Profil unter /config.
+  `start.sh` löscht jetzt `Singleton*` unter /config/obs-studio vor dem Start. Außerdem lief bei ihm noch das alte Image (Update holte es nicht) → immer `docker pull` + neu anlegen.
