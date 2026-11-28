@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>live-studio-renderer</Name>
+  <Repository>ghcr.io/flexisticker/live-studio-renderer:latest</Repository>
+  <Registry>https://github.com/flexisticker/lumia-animationen/pkgs/container/live-studio-renderer</Registry>
+  <Network>br0</Network>
+  <MyIP></MyIP>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Overview>Live-Studio Render-Server: unsichtbares OBS auf dem Server rechnet die Animationen und den Hintergrund und schickt sie per NDI (mit Durchsichtigkeit und Ton) an OBS auf dem Stream-PC. Netzwerk br0 mit eigener IP (sonst findet der PC das NDI-Bild nicht). Einrichtung: Live-Studio → Render-Server.</Overview>
+  <Category>Tools:</Category>
+  <WebUI>http://[IP]:6080/vnc.html</WebUI>
+  <Icon>http://192.168.1.10:8120/live-studio-icon.png</Icon>
+  <ExtraParams>--shm-size=2g --runtime=nvidia</ExtraParams>
+  <Config Name="Einstellungen" Target="/config" Default="/mnt/user/appdata/live-studio-renderer" Mode="rw" Description="OBS-Einstellungen des Render-Servers" Type="Path" Display="always" Required="true">/mnt/user/appdata/live-studio-renderer</Config>
+  <Config Name="OBS-WebSocket-Passwort" Target="OBS_WS_PASSWORT" Default="" Mode="" Description="Passwort, mit dem Live-Studio dieses OBS einrichtet (in Live-Studio → Render-Server dasselbe eintragen)" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Web-Oberfläche: Passwort" Target="VNC_PASSWORT" Default="" Mode="" Description="Optional: Passwort für die Web-Oberfläche (Port 6080)" Type="Variable" Display="always" Required="false" Mask="true"></Config>
+  <Config Name="Grafikkarte" Target="NVIDIA_VISIBLE_DEVICES" Default="all" Mode="" Description="Nvidia-Karte (GPU-UUID aus dem Nvidia-Driver-Plugin oder all). Ohne Karte: Feld leeren und --runtime=nvidia unter Extra Parameters entfernen." Type="Variable" Display="always" Required="false">all</Config>
+</Container>

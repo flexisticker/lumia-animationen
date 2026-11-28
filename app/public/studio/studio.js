@@ -14,7 +14,7 @@ async function load() {
 const NAV = [
   ['Live', [['start', '🏠', 'Übersicht'], ['geschenke', '🎁', 'Geschenke'], ['test', '🧪', 'Testen'], ['galerie', '🎬', 'Animationen ansehen']]],
   ['Aussehen', [['vorne', '✨', 'Animationen & Einblendungen'], ['hinten', '🖼️', 'Hintergrund & Kameras'], ['spiele', '🎮', 'Was läuft gerade'], ['aktion', '📱', 'Tablet-Steuerung']]],
-  ['Verbindungen', [['lumia', '🔌', 'Lumia'], ['obs', '🎥', 'OBS & Fenster-Quellen'], ['licht', '💡', 'Licht (Hue)'], ['sprache', '🗣️', 'Sprachausgabe'], ['dienste', '🧠', 'Server-Dienste (Stream-Pause)'], ['quellen', '🔗', 'Browserquellen für OBS']]],
+  ['Verbindungen', [['lumia', '🔌', 'Lumia'], ['obs', '🎥', 'OBS & Fenster-Quellen'], ['licht', '💡', 'Licht (Hue)'], ['sprache', '🗣️', 'Sprachausgabe'], ['dienste', '🧠', 'Server-Dienste (Stream-Pause)'], ['render', '🖥️', 'Render-Server (NDI)'], ['quellen', '🔗', 'Browserquellen für OBS']]],
 ];
 // Ampel je Verbindung (für Menü und Übersicht): ok | warn | err | aus
 function ampel(id) {
@@ -57,7 +57,7 @@ function render() {
     h('p', {}, 'Der Container hat keinen Daten-Ordner. Bei jedem Update gehen alle Einstellungen verloren. In Unraid beim Container auf „Edit“ → „Add another Path, Port, Variable…“ → Config Type „Path“, Container Path ', h('code', {}, '/data'), ', Host Path ', h('code', {}, '/mnt/user/appdata/live-studio'), ' → Speichern. Danach einmal alles einstellen – ab dann bleibt es erhalten.')));
   ({ start, lumia: lumiaPage, vorne: () => settingsPage('vorne', 'Animationen & Einblendungen', 'Alles, was vor dir im Bild erscheint.'),
     galerie, hinten: () => settingsPage('hinten', 'Hintergrund, Modi & Kamera-Fenster', 'Alles hinter dir – Hintergründe für beide Modi, Musik, drei Fenster (Spiel, Drucker-Kamera, Schreibtisch) und der Wand-Monitor, durch die man die OBS-Quelle darunter sieht.'),
-    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, obs: obsPage, licht: lichtPage, geschenke: geschenkePage, sprache: sprachePage, dienste: dienstePage }[page.id] || start)(m);
+    aktion: () => settingsPage('aktion', 'Tablet-Steuerung', 'Was auf dem Tablet zu sehen ist.'), test, quellen, spiele: spielePage, obs: obsPage, licht: lichtPage, geschenke: geschenkePage, sprache: sprachePage, dienste: dienstePage, render: renderPage }[page.id] || start)(m);
 }
 // ---------- Übersicht ----------
 function start(m) {
@@ -99,6 +99,41 @@ function start(m) {
   m.append(h('h2', {}, 'Letzte Ereignisse'), h('div', { class: 'card log', id: 'log' }, ...(S.log || []).map(logLine)));
 }
 const logLine = e => h('div', {}, new Date(e.at).toLocaleTimeString('de-DE') + ' · ' + ({ alert: '🎁', aktion: '👆', modus: '🎮', fehler: '⚠️' }[e.art] || '') + ' ' + (e.alert || '') + ' ' + (e.text || '') + (e.quelle ? ' (' + e.quelle + ')' : ''));
+// ---------- Render-Server (OBS auf Unraid rechnet die Browserquellen, NDI zum Stream-PC) ----------
+async function renderPage(m) {
+  const R = await fetch('/api/render').then(r => r.json()).catch(() => ({ formate: [] }));
+  const host = h('input', { type: 'text', value: R.host || '', placeholder: 'z. B. 192.168.1.20 (eigene IP des Containers bei br0)' });
+  const port = h('input', { type: 'number', value: R.port || 4455 });
+  const pw = h('input', { type: 'password', placeholder: R.passwort ? '•••••••• (gespeichert – nur zum Ändern ausfüllen)' : 'wie in der Unraid-Vorlage „OBS-WebSocket-Passwort“' });
+  const url = h('input', { type: 'text', value: R.url || '', placeholder: R.basis + ' (leer = diese Adresse)' });
+  const fps = h('input', { type: 'number', min: 10, max: 60, value: R.fps || 30 });
+  const NAMEN = { 'vorne-hoch': 'Animationen hochkant (TikTok)', 'hinten-hoch': 'Hintergrund hochkant', 'vorne-quer': 'Animationen quer (Twitch)', 'hinten-quer': 'Hintergrund quer' };
+  const boxen = Object.keys(NAMEN).map(f => { const c = h('input', { type: 'checkbox', value: f, ...((R.formate || []).includes(f) ? { checked: '' } : {}) }); return [f, c]; });
+  const ausgabe = h('div', { class: 'card log', style: 'display:none' });
+  const speichern = () => post('/api/render', { host: host.value, port: port.value, passwort: pw.value, url: url.value, fps: fps.value, formate: boxen.filter(([, c]) => c.checked).map(([f]) => f) });
+  m.append(h('h1', {}, 'Render-Server (NDI)'),
+    h('p', { class: 'hint' }, 'Statt dass OBS auf deinem PC die Animationen und den Hintergrund berechnet, macht das ein unsichtbares OBS auf dem Unraid-Server (Container „live-studio-renderer“). Es schickt das fertige Bild mit Durchsichtigkeit und Ton per NDI an dein OBS. Dein PC zeigt es nur noch an – das entlastet ihn, wenn ein Spiel die Grafikkarte auslastet.'),
+    h('div', { class: 'card' },
+      field('Adresse des Render-Servers', host), field('OBS-WebSocket-Port', port), field('Passwort', pw),
+      field('Adresse von Live-Studio (aus Sicht des Render-Servers)', url),
+      field('Bilder pro Sekunde', fps),
+      h('div', {}, h('b', {}, 'Welche Bilder?'), ...boxen.map(([f, c]) => h('label', { class: 'row' }, c, ' ' + NAMEN[f] + ' → NDI „Live-Studio ' + f.replace('-', ' ') + '“'))),
+      h('p', { class: 'hint' }, 'Nur anhaken, was du wirklich nutzt – jedes Bild braucht etwa 120–150 Mbit/s im Netzwerk (Kabel, kein WLAN).'),
+      h('div', { class: 'row' },
+        h('button', { class: 'b', onclick: async () => { await speichern(); pw.value = ''; toast('✓ Gespeichert'); } }, 'Speichern'),
+        h('button', { class: 'b p', onclick: async () => { await speichern(); pw.value = ''; ausgabe.style.display = ''; ausgabe.textContent = 'richte ein …';
+          const r = await post('/api/render/einrichten', {}).then(x => x.json()); ausgabe.innerHTML = '';
+          ausgabe.append(h('div', {}, r.ok ? '✓ Eingerichtet' : '⚠️ ' + r.fehler), ...(r.log || []).map(l => h('div', {}, l))); } }, 'Render-Server einrichten'),
+        h('button', { class: 'b', onclick: async () => { const r = await post('/api/render/neuladen', {}).then(x => x.json()); toast(r.ok ? 'Quellen im Render-Server neu geladen' : r.fehler, r.ok ? '' : 'warn'); } }, '↻ Quellen neu laden'))),
+    ausgabe,
+    h('h2', {}, 'In deinem OBS (Stream-PC)'),
+    h('div', { class: 'card' }, ...[
+      '1. Plugin „DistroAV“ installieren (kostenlos, github.com/DistroAV/DistroAV) – es bringt die NDI-Laufzeit mit.',
+      '2. Server und PC sind in verschiedenen Netzen: „NDI Access Manager“ (aus den kostenlosen NDI Tools) öffnen → Remote Sources → die Adresse des Render-Servers eintragen.',
+      '3. In jeder Szene die Live-Studio-Browserquelle ausblenden und an derselben Stelle eine Quelle „NDI™ Source“ mit dem passenden Namen „… (Live-Studio vorne hoch)“ usw. hinzufügen (gleiche Größe, gleiche Ebene).',
+      '4. Ton: Die NDI-Quelle bringt den Ton mit – die alten Browserquellen ausgeblendet lassen, sonst kommt er doppelt.',
+      '5. Zurück jederzeit: NDI-Quelle aus-, Browserquelle einblenden.'].map(t => h('p', {}, t))));
+}
 // ---------- Server-Dienste: während des Streams anhalten ----------
 let DIENSTE = null;
 fetch('/api/dienste').then(r => r.json()).then(d => { DIENSTE = d; if (S) renderNav(); }).catch(() => {});

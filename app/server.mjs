@@ -688,6 +688,7 @@ async function diensteLesen() {
   for (const c of r.data || []) {
     const name = String((c.Names || [])[0] || '').replace(/^\//, ''), n = name.toLowerCase();
     if (ich && String(c.Id).startsWith(ich)) continue;
+    if (n.includes('live-studio')) continue;   // Live-Studio und sein Render-Server laufen beim Stream natürlich weiter
     const ins = await dockerApi('GET', '/containers/' + c.Id + '/json');
     const gpu = ins.ok && nutztGpu(ins.data), wort = auch.some(w => n.includes(w));
     liste.push({ id: c.Id.slice(0, 12), name, laeuft: c.State === 'running', gpu, wort, nie: nie.includes(n), stoppen: (gpu || wort) && !nie.includes(n), vonUns: saved.dienste.gestoppt.includes(name) });
@@ -737,6 +738,74 @@ function diensteObs(live) {
 // Beim Start: waren Dienste von uns gestoppt, bleibt die Pause bestehen (wird nach dem Stream fortgesetzt bzw. von Hand)
 if (saved.dienste.gestoppt.length) dienste.pause = true;
 setTimeout(diensteLesen, 3000);
+
+// ---------- Render-Server: unsichtbares OBS auf Unraid (Image live-studio-renderer) rechnet die Browserquellen und schickt sie per NDI an den Stream-PC ----------
+// Live-Studio richtet es über dessen OBS-WebSocket ein: je Format eine Browserquelle + DistroAV-Filter „NDI-Ausgang“ (Bild mit Durchsichtigkeit + Ton).
+saved.render ||= { host: '', port: 4455, url: '', formate: ['vorne-hoch', 'hinten-hoch', 'vorne-quer', 'hinten-quer'], fps: 30, stand: '' };
+const RENDER_FORMATE = { 'vorne-hoch': [1080, 1920], 'vorne-quer': [1920, 1080], 'hinten-hoch': [1080, 1920], 'hinten-quer': [1920, 1080] };
+const ndiName = f => 'Live-Studio ' + f.replace('-', ' ');
+// Kurze eigene OBS-Sitzung (getrennt von der Verbindung zum Stream-OBS)
+function obsSitzung(host, port, passwort) {
+  return new Promise((resolve) => {
+    let ws, id = 0; const warte = new Map();
+    const fertig = (x) => { clearTimeout(t); resolve(x); };
+    const t = setTimeout(() => { try { ws.close(); } catch {} fertig({ fehler: 'Render-Server antwortet nicht (Adresse/Port prüfen, läuft der Container?)' }); }, 8000);
+    try { ws = new WebSocket(`ws://${host}:${Number(port) || 4455}`); } catch (e) { return fertig({ fehler: String(e.message || e) }); }
+    const send = (op, d) => ws.send(JSON.stringify({ op, d }));
+    const anfrage = (requestType, requestData = {}) => new Promise(res => {
+      const requestId = 'r' + (++id); const tt = setTimeout(() => { warte.delete(requestId); res({ ok: false, fehler: 'keine Antwort' }); }, 10000);
+      warte.set(requestId, d => { clearTimeout(tt); warte.delete(requestId); const st = d.requestStatus || {}; res(st.result ? { ok: true, data: d.responseData || {} } : { ok: false, code: st.code, fehler: st.comment || 'Code ' + st.code }); });
+      send(6, { requestType, requestId, requestData });
+    });
+    ws.onmessage = m => { let msg; try { msg = JSON.parse(String(m.data)); } catch { return; }
+      if (msg.op === 0) { const d = { rpcVersion: 1, eventSubscriptions: 0 }; const a = msg.d && msg.d.authentication;
+        if (a) { if (!passwort) { ws.close(); return fertig({ fehler: 'Der Render-Server verlangt ein Passwort' }); }
+          const sec = crypto.createHash('sha256').update(passwort + a.salt).digest('base64'); d.authentication = crypto.createHash('sha256').update(sec + a.challenge).digest('base64'); }
+        send(1, d); }
+      else if (msg.op === 2) fertig({ anfrage, schliessen: () => { try { ws.close(); } catch {} } });
+      else if (msg.op === 7 && warte.has(msg.d.requestId)) warte.get(msg.d.requestId)(msg.d); };
+    ws.onclose = ev => fertig({ fehler: ev.code === 4009 ? 'Falsches Passwort für den Render-Server' : 'Verbindung zum Render-Server getrennt' + (ev.code === 1006 ? ' (nicht erreichbar)' : '') });
+    ws.onerror = () => {};
+  });
+}
+async function renderEinrichten(basisUrl) {
+  const R = saved.render;
+  if (!R.host) return { ok: false, fehler: 'Adresse des Render-Servers fehlt' };
+  const s = await obsSitzung(R.host, R.port, secret.renderPasswort); if (s.fehler) return { ok: false, fehler: s.fehler };
+  const log = [];
+  try {
+    const v = await s.anfrage('GetVersion'); log.push('OBS ' + ((v.data || {}).obsVersion || '?'));
+    const fk = await s.anfrage('GetSourceFilterKindList');
+    const kinds = (fk.data && fk.data.sourceFilterKinds) || [];
+    const ndiKind = kinds.find(k => k === 'ndi_filter') || kinds.find(k => /ndi/i.test(k) && !/audio/i.test(k));
+    if (fk.ok && !ndiKind) return { ok: false, fehler: 'Im Render-OBS fehlt das NDI-Plugin (DistroAV)', log };
+    const szene = 'Live-Studio Render';
+    const sc = await s.anfrage('CreateScene', { sceneName: szene }); if (!sc.ok && sc.code !== 601) log.push('Szene: ' + sc.fehler);
+    await s.anfrage('SetCurrentProgramScene', { sceneName: szene });
+    const url = String(R.url || basisUrl).replace(/\/+$/, '');
+    for (const f of Object.keys(RENDER_FORMATE)) {
+      const name = 'LS ' + f, [w, h] = RENDER_FORMATE[f], an = R.formate.includes(f);
+      const settings = { url: url + '/quelle/' + f, width: w, height: h, fps_custom: true, fps: Number(R.fps) || 30, reroute_audio: true, shutdown: false, restart_when_active: false, css: '' };
+      const neu = await s.anfrage('CreateInput', { sceneName: szene, inputName: name, inputKind: 'browser_source', inputSettings: settings, sceneItemEnabled: an });
+      if (!neu.ok) { const u = await s.anfrage('SetInputSettings', { inputName: name, inputSettings: settings, overlay: true }); if (!u.ok) { log.push(name + ': ' + u.fehler); continue; } }
+      const item = await s.anfrage('GetSceneItemId', { sceneName: szene, sourceName: name });
+      if (item.ok) await s.anfrage('SetSceneItemEnabled', { sceneName: szene, sceneItemId: item.data.sceneItemId, sceneItemEnabled: an });
+      if (ndiKind) {
+        const fs2 = { ndi_filter_ndiname: ndiName(f) };
+        const nf = await s.anfrage('CreateSourceFilter', { sourceName: name, filterName: 'NDI-Ausgang', filterKind: ndiKind, filterSettings: fs2 });
+        if (!nf.ok) await s.anfrage('SetSourceFilterSettings', { sourceName: name, filterName: 'NDI-Ausgang', filterSettings: fs2, overlay: true });
+        await s.anfrage('SetSourceFilterEnabled', { sourceName: name, filterName: 'NDI-Ausgang', filterEnabled: an });
+      }
+      if (an) log.push('✓ ' + f + ' → NDI „' + ndiName(f) + '“');
+    }
+    R.stand = new Date().toISOString(); saveSettings();
+    return { ok: true, log, ndi: R.formate.map(ndiName) };
+  } finally { s.schliessen(); }
+}
+async function renderNeuLaden() {
+  const s = await obsSitzung(saved.render.host, saved.render.port, secret.renderPasswort); if (s.fehler) return { ok: false, fehler: s.fehler };
+  try { for (const f of saved.render.formate) await s.anfrage('PressInputPropertiesButton', { inputName: 'LS ' + f, propertyName: 'refreshnocache' }); return { ok: true }; } finally { s.schliessen(); }
+}
 
 // ---------- Philips Hue (lokale Bridge, API v1, nichts über die Cloud) ----------
 // Licht passend zur laufenden Animation (Farbverlauf aus medien/animationen/farben.json), Grundlicht je Kanal/Modus,
@@ -1049,6 +1118,20 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/chat' && req.method === 'GET') return json(res, 200, { chat: chatLog });
     if (p === '/api/diag' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); remember({ art: 'fehler', quelle: 'animation ' + String(b.format || '').slice(0, 5), text: String(b.text || '').slice(0, 200) + (b.anim ? ' [' + String(b.anim).slice(0, 40) + ']' : '') }); return json(res, 200, { ok: true }); }
     if (p === '/api/test' && req.method === 'POST') { const b = JSON.parse((await body(req)).toString() || '{}'); fireAlert(b, 'test'); return json(res, 200, { ok: true }); }
+    if (p === '/api/render' && req.method === 'GET') return json(res, 200, { ...saved.render, passwort: !!secret.renderPasswort, basis: 'http://' + (req.headers.host || '') });
+    if (p === '/api/render' && req.method === 'POST') {
+      const b = JSON.parse((await body(req)).toString() || '{}'), R = saved.render;
+      if (typeof b.host === 'string') R.host = b.host.trim().replace(/^wss?:\/\//, '').slice(0, 100);
+      if (b.port !== undefined) R.port = Number(b.port) || 4455;
+      if (typeof b.url === 'string') R.url = /^https?:\/\/[^\s]+$/.test(b.url.trim()) ? b.url.trim().slice(0, 200) : '';
+      if (Array.isArray(b.formate)) R.formate = b.formate.filter(f => RENDER_FORMATE[f]);
+      if (b.fps !== undefined) R.fps = Math.max(10, Math.min(60, Number(b.fps) || 30));
+      if (typeof b.passwort === 'string' && b.passwort) { secret.renderPasswort = b.passwort; writeJson(SECRET_FILE, secret); }
+      if (b.passwortLoeschen) { delete secret.renderPasswort; writeJson(SECRET_FILE, secret); }
+      saveSettings(); return json(res, 200, { ok: true });
+    }
+    if (p === '/api/render/einrichten' && req.method === 'POST') { const r = await renderEinrichten('http://' + (req.headers.host || '')); remember({ art: r.ok ? 'aktion' : 'fehler', quelle: 'render', text: r.ok ? 'Render-Server eingerichtet' : 'Render-Server: ' + r.fehler }); return json(res, 200, r); }
+    if (p === '/api/render/neuladen' && req.method === 'POST') return json(res, 200, await renderNeuLaden());
     if (p === '/api/dienste' && req.method === 'GET') { await diensteLesen(); return json(res, 200, { ...dienste, einstellungen: saved.dienste }); }
     if (p === '/api/dienste' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}'), d = saved.dienste;
