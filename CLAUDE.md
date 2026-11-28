@@ -320,3 +320,8 @@
 - 28.11.2026: Render-Server läuft bei Michael (CEF startet, Ton/Bild). NDI-Name = „<HOSTNAME> (Live-Studio …)“ – ohne festen Hostnamen wechselt er bei jedem Neuanlegen (Container-ID) → `--hostname live-studio-renderer`
   in Vorlage und `docker run`. Michael tippte die IP in „Quellname“ der NDI-Quelle → muss den Eintrag aus der Liste wählen.
 - 28.11.2026: Michael: keine VNC-Verbindung mehr (nach Xvfb ohne MIT-SHM). `x11vnc … -noshm`, Log nach /tmp/x11vnc.log im Container. Lokal geprüft: Xvfb ohne MIT-SHM + x11vnc -noshm antwortet (RFB 003.008). Eigentliche Ursache offen (Container-Log angefragt).
+- 28.11.2026: **Render-Server auf der GTX 1050 Ti** (Michael: NDI klappt, aber „Diashow“ – Software-Grafik auf der Server-CPU zu langsam): `start.sh` `nvidia_start()` (Standard `GRAFIK=auto`, `GRAFIK=software` erzwingt Xvfb):
+  Treiberversion + Bus-ID per `nvidia-smi`, lädt einmalig `NVIDIA-Linux-x86_64-<ver>.run` von download.nvidia.com nach `/config/nvidia/`, packt aus (`-x`) und kopiert nur fehlende `*.so.<ver>` + `nvidia_drv.so` + `libglxserver_nvidia.so`
+  + `10_nvidia.json` (die vom Docker-Toolkit eingebundenen Dateien bleiben), startet `Xorg :1` mit eigener xorg.conf (Treiber nvidia, BusID dezimal, `AllowEmptyInitialConfiguration`, `UseDisplayDevice None`, Virtual WxH; erst `vt7`, sonst `-keeptty`),
+  prüft per `glxinfo` auf „nvidia“, sonst Rückfall auf Xvfb + Mesa (mit Grund im Log). Mit Nvidia `BrowserHWAccel=true` (Chromium auf der Karte), sonst false. Image: `xserver-xorg-core kmod pkg-config libglvnd-dev procps`.
+  **Ungetestet** (keine Grafikkarte in der Sandbox) – Diagnose über `docker logs` (Zeilen „Grafik: …“) und `/tmp/Xorg.1.log` im Container.

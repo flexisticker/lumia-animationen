@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       xvfb x11vnc novnc websockify openbox dbus-x11 xauth fonts-dejavu fonts-noto-color-emoji \
       avahi-daemon libnss3 libxss1 libasound2t64 pulseaudio \
       libgl1 libegl1 libgl1-mesa-dri libegl-mesa0 libglx-mesa0 mesa-utils \
+      xserver-xorg-core kmod pkg-config libglvnd-dev procps \
     && add-apt-repository -y ppa:obsproject/obs-studio && apt-get update \
     && apt-get install -y --no-install-recommends obs-studio \
     && rm -rf /var/lib/apt/lists/*
