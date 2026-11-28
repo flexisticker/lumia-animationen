@@ -40,6 +40,7 @@ body.leicht .frame-glow { --a: 0deg; }
 .mon-pf { font-size: .55em; font-weight: 800; letter-spacing: .06em; padding: .15em .5em; border-radius: 99em; }
 .mon-pf.tiktok { background: #111; box-shadow: 0 0 0 1px #25f4ee, 0 0 0 2px #fe2c55; }
 .mon-pf.twitch { background: #9146ff; }
+.mon-pf.youtube { background: #ff0033; }
 .mon-txt { overflow: hidden; text-overflow: ellipsis; }
 .mon-txt b { font-weight: 800; }
 .mon-txt span { opacity: .8; font-weight: 600; }

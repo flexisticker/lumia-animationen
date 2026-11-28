@@ -36,7 +36,7 @@ const cfg = {};
 const add = (key, f) => { cfg[key] = { order: ++order, ...f }; };
 add('bereich', { type: 'dropdown', label: 'Einstellungen für', value: 'allgemein', options: {
   allgemein: 'Allgemein & Ton', banner: 'Banner & Slogans', name: 'Namens-Einblendung', likes: 'Like-Fontäne', szenen: 'Ansagen (Pause, Weiter …)', geschenk: 'Geschenke',
-  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', weihnachten: 'Weihnachts-Alerts', twitch: 'Twitch', streamprint: 'StreamPrint – hochkant (TikTok)', streamprintq: 'StreamPrint – quer (Twitch)', sprache: 'Sprachausgabe (Danke)', chat: 'Chat-Einblendung', knopf: 'Aktionsknöpfe' } });
+  stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', weihnachten: 'Weihnachts-Alerts', twitch: 'Twitch', youtube: 'YouTube', streamprint: 'StreamPrint – hochkant (TikTok)', streamprintq: 'StreamPrint – quer (Twitch)', sprache: 'Sprachausgabe (Danke)', chat: 'Chat-Einblendung', knopf: 'Aktionsknöpfe' } });
 const vis = b => ({ visibleIf: { key: 'bereich', equals: [b] } });
 add('lautstaerke', { type: 'slider', label: 'Lautstärke gesamt', value: 80, options: { min: 0, max: 100, step: 5, suffix: '%' }, ...vis('allgemein') });
 add('medienAdresse', { type: 'input', label: 'Adresse der Videos (Ordner, endet mit /)', value: '', placeholder: 'leer = nur hochgeladene Videos', ...vis('allgemein') });
@@ -87,6 +87,10 @@ add('ttsResub', { type: 'input', label: 'Twitch Resub', value: 'Danke {NAME}, sc
 add('ttsGiftsub', { type: 'input', label: 'Twitch Gift-Subs', value: 'Wahnsinn, {NAME} verschenkt {ANZAHL} Subs – danke!', ...vis('sprache') });
 add('ttsBits', { type: 'input', label: 'Twitch Bits', value: 'Danke {NAME} für {ANZAHL} Bits!', ...vis('sprache') });
 add('ttsRaid', { type: 'input', label: 'Twitch Raid', value: 'Danke für den Raid, {NAME}! Willkommen an alle {ZUSCHAUER} Raider!', ...vis('sprache') });
+add('ttsYtAbo', { type: 'input', label: 'YouTube Abo', value: 'Danke fürs Abonnieren, {NAME}!', ...vis('sprache') });
+add('ttsYtMitglied', { type: 'input', label: 'YouTube Mitglied', value: 'Willkommen als Mitglied, {NAME} – danke!', ...vis('sprache') });
+add('ttsYtGeschenk', { type: 'input', label: 'YouTube verschenkte Mitgliedschaften', value: 'Wahnsinn, {NAME} verschenkt {ANZAHL} Mitgliedschaften – danke!', ...vis('sprache') });
+add('ttsYtSuperchat', { type: 'input', label: 'YouTube Super Chat ({BETRAG})', value: 'Danke {NAME} für den Super Chat!', ...vis('sprache') });
 add('ttsSonst', { type: 'input', label: 'Andere Ereignisse (leer = nichts sagen)', value: '', ...vis('sprache') });
 add('geschenkText', { type: 'input', label: 'Text unter dem Namen', value: 'schickt {GESCHENK}', ...vis('name') });
 add('namePosition', { type: 'slider', label: 'Höhe der Einblendung', value: 62, options: { min: 20, max: 85, step: 1, suffix: ' %' }, ...vis('name') });
@@ -122,11 +126,12 @@ for (const [k, l, v] of [['szeneStart', 'Live startet gleich', "Live startet gle
   add(k, { type: 'input', label: `${l} (Titel | Unterzeile)`, value: v, ...vis('szenen') });
 // Chat-Einblendung (gemischt TikTok/Twitch/…, mit Plattform-Schild vorne)
 add('chatWann', { type: 'dropdown', label: 'Chat zeigen', value: 'party', options: { aus: 'aus', immer: 'immer', party: 'nur ohne Spielfenster (Talk, Party, Specials)', zocken: 'nur mit Spielfenster (Spiele, Werkstatt)', knopf: 'per Knopf (Steuerung)' }, ...vis('chat') });
-add('chatX', { type: 'slider', label: 'Abstand links', value: 4, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('chat') });
+add('chatAusrichtung', { type: 'dropdown', label: 'Chat ausrichten', value: 'links', options: { links: 'linksbündig (am linken Rand)', rechts: 'rechtsbündig (am rechten Rand)', mitte: 'mittig' }, ...vis('chat') });
+add('chatX', { type: 'slider', label: 'Abstand zum Rand (links bzw. rechts, bei mittig ohne Wirkung)', value: 4, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('chat') });
 add('chatY', { type: 'slider', label: 'Abstand oben', value: 52, options: { min: 0, max: 95, step: 0.5, suffix: ' %' }, ...vis('chat') });
 add('chatBreite', { type: 'slider', label: 'Breite', value: 60, options: { min: 10, max: 100, step: 0.5, suffix: ' %' }, ...vis('chat') });
 add('chatHoehe', { type: 'slider', label: 'Höhe', value: 30, options: { min: 5, max: 90, step: 0.5, suffix: ' %' }, ...vis('chat') });
-add('chatGroesse', { type: 'slider', label: 'Schriftgröße', value: 2.2, options: { min: 1, max: 5, step: 0.1, suffix: ' vh' }, ...vis('chat') });
+add('chatGroesse', { type: 'slider', label: 'Textgröße', value: 2.2, options: { min: 1, max: 8, step: 0.1, suffix: ' vh' }, ...vis('chat') });
 add('chatMax', { type: 'number', label: 'Höchstens … Nachrichten', value: 8, ...vis('chat') });
 add('chatAusblenden', { type: 'number', label: 'Nachricht ausblenden nach … s (0 = nie)', value: 45, ...vis('chat') });
 add('chatBefehleWeg', { type: 'checkbox', label: 'Befehle mit ! nicht zeigen', value: true, ...vis('chat') });
@@ -156,6 +161,20 @@ add('twTextGift', { type: 'input', label: 'Twitch-Text Geschenk-Subs', value: 'v
 add('twBitsMittel', { type: 'number', label: 'Bits: Stufe mittel ab', value: 100, ...vis('twitch') });
 add('twBitsGross', { type: 'number', label: 'Bits: Stufe groß ab', value: 1000, ...vis('twitch') });
 add('twBitsEpisch', { type: 'number', label: 'Bits: Stufe episch ab', value: 5000, ...vis('twitch') });
+// YouTube (über Lumia): Abo, Mitgliedschaft, verschenkte Mitgliedschaften, Super Chat / Super Sticker
+const ytAnimOpt = Object.fromEntries(items.filter(a => a.gruppe !== 'knopf').map(a => [a.id, a.label]));
+add('ytAn', { type: 'checkbox', label: 'YouTube-Ereignisse zeigen', value: true, ...vis('youtube') });
+add('ytAnimAbo', { type: 'dropdown', label: 'Animation: neues Abo', value: 'folgen', options: ytAnimOpt, ...vis('youtube') });
+add('ytTextAbo', { type: 'input', label: 'Text: neues Abo', value: 'hat abonniert!', ...vis('youtube') });
+add('ytAnimMitglied', { type: 'dropdown', label: 'Animation: neues Mitglied', value: 'superfan', options: ytAnimOpt, ...vis('youtube') });
+add('ytTextMitglied', { type: 'input', label: 'Text: neues Mitglied ({MONATE} bei Verlängerung)', value: 'ist jetzt Mitglied! 💎', ...vis('youtube') });
+add('ytAnimGeschenk', { type: 'dropdown', label: 'Animation: verschenkte Mitgliedschaften', value: 'schatzkiste', options: ytAnimOpt, ...vis('youtube') });
+add('ytTextGeschenk', { type: 'input', label: 'Text: verschenkte Mitgliedschaften', value: 'verschenkt {ANZAHL} Mitgliedschaften!', ...vis('youtube') });
+add('ytTextSuperchat', { type: 'input', label: 'Text: Super Chat / Super Sticker', value: 'schickt einen Super Chat ({BETRAG})', ...vis('youtube') });
+add('ytScMittel', { type: 'number', label: 'Super Chat: Stufe mittel ab … €', value: 5, ...vis('youtube') });
+add('ytScGross', { type: 'number', label: 'Super Chat: Stufe groß ab … €', value: 20, ...vis('youtube') });
+add('ytScEpisch', { type: 'number', label: 'Super Chat: Stufe episch ab … €', value: 100, ...vis('youtube') });
+add('ytNachricht', { type: 'checkbox', label: 'Super-Chat-Nachricht unter dem Namen zeigen', value: true, ...vis('youtube') });
 add('knopfModus', { type: 'dropdown', label: 'Knopf drücken, während etwas läuft', value: 'knopf', options: {
   knopf: 'Knopf-Animation abbrechen und neu starten (Geschenke laufen zu Ende)', alles: 'Alles sofort abbrechen und neu starten', anstellen: 'Hinten anstellen (wie früher)' }, ...vis('knopf') });
 add('weihnachtAlerts', { type: 'dropdown', label: 'Weihnachts-Alerts verwenden (ersetzt Neuer Follower – auch Twitch –, Live geteilt, Superfan, Like-Ziel und kleine Geschenke; Geschenke mit eigener Animation bleiben)', value: 'thema', options: {

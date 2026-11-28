@@ -555,6 +555,11 @@ function test(m) {
       ['twitch-bits', '50 Bits', { amount: 50 }], ['twitch-bits', '500 Bits', { amount: 500 }], ['twitch-bits', '2000 Bits', { amount: 2000 }], ['twitch-bits', '10000 Bits', { amount: 10000 }],
       ['twitch-hypetrainStarted', 'Hype Train Start', {}], ['twitch-hypetrainLevelProgressed', 'Hype Train Level 3', { level: 3 }], ['twitch-hypetrainEnded', 'Hype Train Ende', { level: 4 }], ['twitch-raid', 'Raid 42', { viewers: 42 }]]
       .map(([a, l, x]) => h('button', { class: 'b', onclick: () => send(a, x) }, l))),
+    h('h2', {}, 'YouTube'), h('div', { class: 'row' }, ...[['youtube-subscriber', 'Abo', {}], ['youtube-member', 'Mitglied', {}], ['youtube-member', 'Mitglied 6 Monate', { months: 6 }],
+      ['youtube-giftMembership', '5 Mitgliedschaften verschenkt', { giftAmount: 5 }], ['youtube-superchat', 'Super Chat 2 €', { amount: 2, currency: 'EUR', message: 'Grüße aus dem Chat!' }],
+      ['youtube-superchat', 'Super Chat 10 €', { amount: 10, currency: 'EUR', message: 'Weiter so!' }], ['youtube-superchat', 'Super Chat 50 €', { amount: 50, currency: 'EUR' }],
+      ['youtube-superchat', 'Super Chat 100 €', { amount: 100, currency: 'EUR' }], ['youtube-supersticker', 'Super Sticker 5 €', { amount: 5, currency: 'EUR' }]]
+      .map(([a, l, x]) => h('button', { class: 'b', onclick: () => send(a, x) }, l))),
     h('h2', {}, 'Likes'), h('div', { class: 'row' }, ...[10, 50, 200, 1000].map(n => h('button', { class: 'b', onclick: () => send('tiktok-like', { amount: n }) }, n + ' Likes'))));
 }
 // ---------- Browserquellen ----------

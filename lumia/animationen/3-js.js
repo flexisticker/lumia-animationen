@@ -243,12 +243,13 @@ function ttsText(item) {
     'twitch-giftSubscription': D.ttsGiftsub, 'twitch-bits': D.ttsBits, 'twitch-raid': D.ttsRaid }[a];
   let t = tpl;
   if (a === 'twitch-subscriber') t = item.anim.id === 'tw-primesub' ? D.ttsPrime : item.anim.id === 'tw-resub' ? D.ttsResub : item.anim.id === 'tw-giftsub' ? D.ttsGiftsub : D.ttsSub;
+  if (a.startsWith('youtube-')) t = { abo: D.ttsYtAbo, mitglied: D.ttsYtMitglied, geschenk: D.ttsYtGeschenk, superchat: D.ttsYtSuperchat }[r.art];
   if (t === undefined) t = /hypetrain|totalLikes|battle/.test(a) ? '' : D.ttsSonst;
   if (!t) return '';
   if (a === 'tiktok-gift' && (r.muenzen || 0) < num(D.ttsMinMuenzen, 1)) return '';
   return String(t).replace(/\{NAME\}/g, sprechName(item.user)).replace(/\{ANZAHL\}/g, a === 'twitch-bits' ? (r.bits || item.amount) : item.amount)
     .replace(/\{GESCHENK\}/g, r.geschenk || '').replace(/\{MONATE\}/g, r.monate || '').replace(/\{ZUSCHAUER\}/g, r.zuschauer || '')
-    .replace(/\{PLATTFORM\}/g, item.plattform === 'twitch' ? 'Twitch' : 'TikTok');
+    .replace(/\{BETRAG\}/g, r.betrag || '').replace(/\{PLATTFORM\}/g, PF_NAME[item.plattform] || 'TikTok');
 }
 async function sayThanks(item) {
   if (D.ttsAn !== true || item.spoken) return;
@@ -314,7 +315,7 @@ function showCard(item) {
   item.card = card;
 }
 // Plattform-Schild (TikTok / Twitch) – nur Schriftzug und Farben, keine Logos
-function pfBadge(p) { const b = el('div', 'pf pf-' + p, p === 'twitch' ? 'Twitch' : 'TikTok'); return b; }
+function pfBadge(p) { const b = el('div', 'pf pf-' + p, PF_NAME[p] || 'TikTok'); return b; }
 // Kleines Schild an der Like-Fontäne: „TikTok · Name +12“
 let likeTagEl = null, likeTagT = null;
 function likeTag(user, n) {
@@ -392,8 +393,45 @@ function twitchAlert(data, s) {
   }
   return null;
 }
+// YouTube über Lumia – Schlüssel tolerant erkennen (genaue Lumia-Namen noch ungeprüft)
+function ytArt(a) {
+  const k = String(a || '').toLowerCase().replace(/^youtube-/, '');
+  if (/gift/.test(k) && /member|sponsor|mitglied/.test(k)) return 'geschenk';
+  if (/member|sponsor|mitglied/.test(k)) return 'mitglied';
+  if (/superchat|super-chat|superch/.test(k)) return 'superchat';
+  if (/supersticker|sticker/.test(k)) return 'superchat';
+  if (/subscri|abo/.test(k)) return 'abo';
+  return '';
+}
+function ytBetrag(s, dyn) {
+  let n = Number(s.amount) || Number(dyn.value) || 0;
+  if (!n && s.amountMicros) n = Number(s.amountMicros) / 1e6;
+  const anz = String(s.amountDisplayString || s.displayAmount || s.amountDisplay || '');
+  if (!n && anz) n = Number(anz.replace(/[^0-9,.]/g, '').replace(',', '.')) || 0;
+  const cur = String(s.currency || s.currencySymbol || '€');
+  return { n, text: anz || (n ? n.toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' ' + (cur === 'EUR' ? '€' : cur) : '') };
+}
+function youtubeAlert(data, s) {
+  if (D.ytAn === false) return null;
+  const dyn = data.dynamic || {}, art = ytArt(data.alert); if (!art) return null;
+  const user = s.displayname || s.username || s.name || '';
+  const base = { user, avatar: s.avatar, amount: 1, plattform: 'youtube', alert: data.alert, roh: { art } };
+  const anim = (k, v) => entryById(D[k] || v) || entryById(v);
+  if (art === 'abo') return { ...base, anim: anim('ytAnimAbo', 'folgen'), text: D.ytTextAbo || 'hat abonniert!' };
+  if (art === 'mitglied') { const mo = Number(s.months || s.memberMonths || dyn.months || 0); base.roh.monate = mo;
+    return { ...base, anim: anim('ytAnimMitglied', 'superfan'), text: mo > 1 ? 'ist seit ' + mo + ' Monaten Mitglied! 💎' : (D.ytTextMitglied || 'ist jetzt Mitglied! 💎').replace('{MONATE}', mo || '') }; }
+  if (art === 'geschenk') { const n = Number(s.giftAmount || s.amount || dyn.value || 1) || 1;
+    return { ...base, amount: n, key: user + '|ytgift', anim: anim('ytAnimGeschenk', 'schatzkiste'), text: (D.ytTextGeschenk || 'verschenkt {ANZAHL} Mitgliedschaften!').replace('{ANZAHL}', n) }; }
+  const b = ytBetrag(s, dyn); base.roh.betrag = b.text; base.roh.euro = b.n;
+  const t = b.n >= num(D.ytScEpisch, 100) ? 'stufe-episch' : b.n >= num(D.ytScGross, 20) ? 'stufe-gross' : b.n >= num(D.ytScMittel, 5) ? 'stufe-mittel' : 'stufe-klein';
+  const msg = String(s.message || '').trim();
+  let text = (D.ytTextSuperchat || 'schickt einen Super Chat ({BETRAG})').replace('{BETRAG}', b.text || '♥').replace(' ()', '');
+  if (msg && D.ytNachricht !== false) text += ' – „' + msg.slice(0, 80) + '“';
+  return { ...base, anim: entryById(t), text };
+}
 function handleAlert(data) {
   const s = data.extraSettings || {};
+  if (String(data.alert || '').startsWith('youtube-')) { const it = youtubeAlert(data, s); if (it && it.anim) { it.anim = festlich(it.anim); enqueue(it); } return; }
   if (String(data.alert || '').startsWith('twitch-')) { const it = twitchAlert(data, s); if (it && it.anim) { it.anim = festlich(it.anim); enqueue(it); } return; }
   if (data.alert === 'tiktok-like') { const n = Number(s.amount || s.userLikeCount || (data.dynamic && data.dynamic.value)) || 5; likeBurst(n, true); likeTag(s.username, n); return; }
   if (data.alert === 'tiktok-gift') {
@@ -544,7 +582,9 @@ const PF_NAME = { tiktok: 'TikTok', twitch: 'Twitch', youtube: 'YouTube', kick: 
 function chatUpdate() {
   const wann = D.chatWann || 'party';
   const show = chatZwang === true || chatZwang === false ? chatZwang : wann === 'immer' || (wann === 'knopf' ? chatManual : wann === artJetzt());
-  Object.assign(chatBox.style, { left: num(D.chatX, 4) + 'vw', top: num(D.chatY, 52) + 'vh', width: num(D.chatBreite, 60) + 'vw', height: num(D.chatHoehe, 30) + 'vh', fontSize: num(D.chatGroesse, 2.2) + 'vh' });
+  const aus = D.chatAusrichtung || 'links', br = num(D.chatBreite, 60), rand = num(D.chatX, 4);
+  chatBox.classList.toggle('r', aus === 'rechts'); chatBox.classList.toggle('m', aus === 'mitte');
+  Object.assign(chatBox.style, { left: (aus === 'rechts' ? Math.max(0, 100 - rand - br) : aus === 'mitte' ? (100 - br) / 2 : rand) + 'vw', top: num(D.chatY, 52) + 'vh', width: num(D.chatBreite, 60) + 'vw', height: num(D.chatHoehe, 30) + 'vh', fontSize: num(D.chatGroesse, 2.2) + 'vh' });
   chatBox.classList.toggle('blasen', D.chatHintergrund !== false);
   chatBox.classList.toggle('show', show);
 }
@@ -561,7 +601,8 @@ function chatAdd(m) {
   // Plattform nur als Logo (rundes Abzeichen in Plattformfarbe), ohne Schriftzug; unbekannte Plattform → kurzer Name
   const pf = PF_ICON[m.plattform] ? pfIcon(m.plattform) : el('span', 'pf pf-' + (PF_NAME[m.plattform] ? m.plattform : 'chat'), PF_NAME[m.plattform] || m.plattform || 'Chat');
   const name = el('b', 'chat-name', m.name); if (m.farbe) name.style.color = m.farbe;
-  row.append(pf, name, el('span', 'chat-text', m.text));
+  const kopf = el('span', 'chat-kopf'); kopf.append(pf, name);   // Logo und Name bleiben zusammen in einer Zeile
+  row.append(kopf, ' ', el('span', 'chat-text', m.text));
   chatBox.append(row);
   while (chatBox.children.length > Math.max(1, num(D.chatMax, 8))) chatBox.firstChild.remove();
   const s = num(D.chatAusblenden, 45);

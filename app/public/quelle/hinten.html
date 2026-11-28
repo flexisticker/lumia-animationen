@@ -42,6 +42,7 @@ body.leicht .frame-glow { --a: 0deg; }
 .mon-pf { font-size: .55em; font-weight: 800; letter-spacing: .06em; padding: .15em .5em; border-radius: 99em; }
 .mon-pf.tiktok { background: #111; box-shadow: 0 0 0 1px #25f4ee, 0 0 0 2px #fe2c55; }
 .mon-pf.twitch { background: #9146ff; }
+.mon-pf.youtube { background: #ff0033; }
 .mon-txt { overflow: hidden; text-overflow: ellipsis; }
 .mon-txt b { font-weight: 800; }
 .mon-txt span { opacity: .8; font-weight: 600; }
@@ -226,8 +227,8 @@ function monZeichnen() {
   for (const e of liste) {
     const z = document.createElement('div'); z.className = 'mon-zeile' + (monGesehen && !monGesehen.has(e.id) ? ' neu' : '');
     const i = document.createElement('span'); i.className = 'mon-ico'; i.textContent = e.icon;
-    const pf = document.createElement('span'); pf.className = 'mon-pf ' + e.plattform; pf.textContent = e.plattform === 'twitch' ? 'TWITCH' : 'TIKTOK';
-    const t = document.createElement('span'); t.className = 'mon-txt'; const b = document.createElement('b'); b.textContent = e.name + ' '; const sp = document.createElement('span'); sp.textContent = e.text; sp.dataset.pf = e.plattform === 'twitch' ? 'Twitch' : 'TikTok'; t.append(b, sp);
+    const pf = document.createElement('span'); pf.className = 'mon-pf ' + e.plattform; pf.textContent = ({ twitch: 'TWITCH', youtube: 'YOUTUBE' })[e.plattform] || 'TIKTOK';
+    const t = document.createElement('span'); t.className = 'mon-txt'; const b = document.createElement('b'); b.textContent = e.name + ' '; const sp = document.createElement('span'); sp.textContent = e.text; sp.dataset.pf = ({ twitch: 'Twitch', youtube: 'YouTube' })[e.plattform] || 'TikTok'; t.append(b, sp);
     z.append(i, pf, t); monListe.append(z);
   }
   monGesehen = new Set(monDaten.map(e => e.id)); // beim ersten Zeichnen nichts animieren, danach nur neue Einträge

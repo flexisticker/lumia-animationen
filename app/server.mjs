@@ -224,6 +224,17 @@ setInterval(() => { for (const c of clients) c.res.write(': ping\n\n'); }, 20000
 const log = [];
 function remember(entry) { log.unshift({ at: new Date().toISOString(), ...entry }); log.length = Math.min(log.length, 50); broadcast('log', log[0], ['studio']); }
 
+// YouTube über Lumia: Art aus dem Alert-Schlüssel (tolerant, genaue Lumia-Namen noch ungeprüft) – gleiche Regel wie im Overlay
+function ytArt(a) {
+  const k = String(a || '').toLowerCase(); if (!k.startsWith('youtube-')) return '';
+  const r = k.slice(8);
+  if (/gift/.test(r) && /member|sponsor|mitglied/.test(r)) return 'geschenk';
+  if (/member|sponsor|mitglied/.test(r)) return 'mitglied';
+  if (/superchat|super-chat|supersticker|sticker/.test(r)) return 'superchat';
+  if (/subscri|abo/.test(r)) return 'abo';
+  return '';
+}
+const ytBetrag = (s, d) => Number(s.amount) || Number(d.value) || (s.amountMicros ? Number(s.amountMicros) / 1e6 : 0) || Number(String(s.amountDisplayString || s.displayAmount || '').replace(/[^0-9,.]/g, '').replace(',', '.')) || 0;
 // StreamPrint: Lumia-Ereignis in dessen /event-Format übersetzen
 function toStreamPrint(a) {
   const s = a.extraSettings || {}, d = a.dynamic || {}, n = (x, y = 0) => Number(x) || y;
@@ -238,6 +249,9 @@ function toStreamPrint(a) {
     'twitch-giftSubscription': () => ({ event: 'subgift', platform: 'twitch', gifts: n(s.giftAmount, n(s.amount, 1)) }),
     'twitch-raid': () => ({ event: 'raid', platform: 'twitch', viewers: n(s.viewers, n(s.amount)) }),
   };
+  const yt = ytArt(a.alert);
+  if (yt) return { ...base, platform: 'youtube', ...(yt === 'abo' ? { event: 'follow' } : yt === 'mitglied' ? { event: 'sub', months: n(s.months, 1) } : yt === 'geschenk' ? { event: 'subgift', gifts: n(s.giftAmount, n(s.amount, 1)) }
+    : { event: 'tip', amount: ytBetrag(s, d), currency: String(s.currency || 'EUR'), hide_amount: false }) };
   return map[a.alert] ? { ...base, ...map[a.alert]() } : null;
 }
 function forwardStreamPrint(a, source) {
@@ -270,7 +284,7 @@ const streamPause = () => (Number(settingsFor('hinten').monPauseStd) || 6) * 360
 function monitorEintrag(a, source) {
   const s = a.extraSettings || {}, d = a.dynamic || {}, n = x => Number(x) || 0;
   const name = String(s.displayname || s.username || '').slice(0, 40), al = a.alert;
-  const tw = al.startsWith('twitch-'), plan = String(s.subPlan || s.tier || '');
+  const tw = al.startsWith('twitch-'), yt = ytArt(al), plan = String(s.subPlan || s.tier || '');
   let icon = '', text = '';
   if (al === 'tiktok-gift') { const m = n(s.giftAmount) || 1; icon = /rose/i.test(s.giftName || '') ? '🌹' : '🎁'; text = (m > 1 ? m + '× ' : '') + (s.giftName || 'Geschenk'); }
   else if (al === 'tiktok-follower' || al === 'twitch-follower') { icon = '➕'; text = 'folgt jetzt'; }
@@ -282,10 +296,14 @@ function monitorEintrag(a, source) {
   else if (al === 'twitch-bits') { icon = '💎'; text = (n(s.amount || d.value) || 1) + ' Bits'; }
   else if (al === 'twitch-raid') { icon = '🚀'; text = 'Raid mit ' + (n(s.viewers || s.amount || d.value) || 1); }
   else if (al === 'twitch-hypetrainStarted') { icon = '🚂'; text = 'Hype Train gestartet'; }
+  else if (yt === 'abo') { icon = '🔔'; text = 'hat abonniert'; }
+  else if (yt === 'mitglied') { icon = '💎'; text = 'ist jetzt Mitglied'; }
+  else if (yt === 'geschenk') { icon = '🎁'; text = 'verschenkt ' + (n(s.giftAmount || s.amount || d.value) || 1) + ' Mitgliedschaft(en)'; }
+  else if (yt === 'superchat') { icon = '💬'; const b = ytBetrag(s, d); text = 'Super Chat' + (b ? ' ' + b.toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' ' + (String(s.currency || 'EUR') === 'EUR' ? '€' : s.currency) : ''); }
   else return;
   if (!name && !al.startsWith('twitch-hypetrain')) return;
   if (letzte.length && Date.now() - letzte[0].at > streamPause()) letzte.length = 0; // neuer Stream → neue Liste
-  letzte.unshift({ id: crypto.randomBytes(4).toString('hex'), at: Date.now(), plattform: tw ? 'twitch' : 'tiktok', icon, name: name || 'Hype Train', text: String(text).slice(0, 60), test: source === 'test' });
+  letzte.unshift({ id: crypto.randomBytes(4).toString('hex'), at: Date.now(), plattform: tw ? 'twitch' : yt ? 'youtube' : 'tiktok', icon, name: name || 'Hype Train', text: String(text).slice(0, 60), test: source === 'test' });
   letzte.length = Math.min(letzte.length, 50);
   saved.letzte = letzte; saveSettings();
   broadcast('letzte', letzte, ['hinten']);
@@ -673,6 +691,9 @@ const HUE_KAT = [
   ['tw-bits', 'Bits', 'Twitch', { effekt: 'ambilight' }],
   ['tw-hype', 'Hype Train', 'Twitch', { effekt: 'feuer', dauer: 8 }],
   ['tw-raid', 'Raid', 'Twitch', { effekt: 'wechsel', farbe1: '#9146ff', farbe2: '#ff3d7f', dauer: 6, blitz: true }],
+  ['yt-abo', 'Neues Abo', 'YouTube', { effekt: 'pulsieren', farbe1: '#ff0033', farbe2: '#ffffff', dauer: 3 }],
+  ['yt-mitglied', 'Mitglied / verschenkte Mitgliedschaften', 'YouTube', { effekt: 'funkeln', farbe1: '#ff0033', farbe2: '#ffd54f', dauer: 5 }],
+  ['yt-superchat', 'Super Chat / Super Sticker', 'YouTube', { effekt: 'ambilight', blitz: true }],
   ['knopf', 'Aktionsknöpfe (Tablet)', 'Sonstiges', { effekt: 'ambilight' }],
   ['a-start', 'Ansage „Startet gleich“ / „Weiter“', 'Ansagen', { effekt: 'atmen', farbe1: '#ff3d7f', farbe2: '#ffd54f' }],
   ['a-pause', 'Ansage Pause / Gleich weiter', 'Ansagen', { effekt: 'atmen', farbe1: '#7c4dff', farbe2: '#00c2ff', hell: 30 }],
@@ -768,6 +789,7 @@ hueTaktStarten();
 function hueRuhe() { hueGrundStart = Date.now(); hueGesendet = {}; hueTick(); }   // Grundlicht/Ansage neu ansetzen (Modus-, Kanal-, Einstellungswechsel)
 function hueKat(id, info = {}) {
   const a = String(info.alert || ''), g = String(info.gruppe || ''), m = Number(info.muenzen) || 0;
+  const yt = ytArt(a); if (yt) return yt === 'abo' ? 'yt-abo' : yt === 'superchat' ? 'yt-superchat' : 'yt-mitglied';
   if (id.startsWith('tw-')) return id === 'tw-follow' ? 'follow' : id.startsWith('tw-bits') ? 'tw-bits' : id.startsWith('tw-hypetrain') ? 'tw-hype' : id === 'tw-raid' ? 'tw-raid' : 'tw-sub';
   const ev = { folgen: 'follow', teilen: 'teilen', superfan: 'superfan', schatzkiste: 'schatzkiste', likeziel: 'likeziel', 'battle-sieg': 'battle' }[id]; if (ev && a) return ev;
   if (a === 'tiktok-gift' || ((g === 'geschenk' || g === 'stufe') && a)) return m >= 10000 ? 'g-episch' : m >= 1000 ? 'g-gross' : m >= 100 ? 'g-mittel' : 'g-klein';
@@ -1051,7 +1073,7 @@ const server = http.createServer(async (req, res) => {
         hueAlert = { def, start: Date.now(), bis: Date.now() + 6000, spur: null, blitz: false, kat: 'test' }; hueGesendet = {}; hueTick(); return json(res, 200, { ok: true }); }
       if (b.kat && HUE_KAT.some(x => x[0] === b.kat)) {
         if (b.kat.startsWith('a-')) { hueSzene = b.kat.slice(2); hueRuhe(); setTimeout(() => { if (hueSzene === b.kat.slice(2)) { hueSzene = null; hueRuhe(); } }, 6000); }   // Ansage 6 s vorführen
-        else hueStarteEffekt(b.kat, String(b.anim || { 'g-klein': 'rose', 'g-mittel': 'handherzen', 'g-gross': 'galaxie', 'g-episch': 'loewe', 'tw-sub': 'tw-sub', 'tw-bits': 'tw-bits-mittel', 'tw-hype': 'tw-hypetrain-start', 'tw-raid': 'tw-raid', knopf: 'konfetti' }[b.kat] || ''));
+        else hueStarteEffekt(b.kat, String(b.anim || { 'g-klein': 'rose', 'g-mittel': 'handherzen', 'g-gross': 'galaxie', 'g-episch': 'loewe', 'tw-sub': 'tw-sub', 'tw-bits': 'tw-bits-mittel', 'tw-hype': 'tw-hypetrain-start', 'tw-raid': 'tw-raid', 'yt-abo': 'folgen', 'yt-mitglied': 'superfan', 'yt-superchat': 'stufe-mittel', knopf: 'konfetti' }[b.kat] || ''));
       } else if (b.anim) { hueLetzteAnim = { id: '', at: 0 }; hueAnimation(String(b.anim), { alert: 'tiktok-gift', muenzen: 1000 }); }
       else if (b.farbe && /^#[0-9a-f]{6}$/i.test(b.farbe)) hueStarteEffekt('likes', null, 2500);
       return json(res, 200, { ok: true });

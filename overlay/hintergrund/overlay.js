@@ -97,8 +97,8 @@ function monZeichnen() {
   for (const e of liste) {
     const z = document.createElement('div'); z.className = 'mon-zeile' + (monGesehen && !monGesehen.has(e.id) ? ' neu' : '');
     const i = document.createElement('span'); i.className = 'mon-ico'; i.textContent = e.icon;
-    const pf = document.createElement('span'); pf.className = 'mon-pf ' + e.plattform; pf.textContent = e.plattform === 'twitch' ? 'TWITCH' : 'TIKTOK';
-    const t = document.createElement('span'); t.className = 'mon-txt'; const b = document.createElement('b'); b.textContent = e.name + ' '; const sp = document.createElement('span'); sp.textContent = e.text; sp.dataset.pf = e.plattform === 'twitch' ? 'Twitch' : 'TikTok'; t.append(b, sp);
+    const pf = document.createElement('span'); pf.className = 'mon-pf ' + e.plattform; pf.textContent = ({ twitch: 'TWITCH', youtube: 'YOUTUBE' })[e.plattform] || 'TIKTOK';
+    const t = document.createElement('span'); t.className = 'mon-txt'; const b = document.createElement('b'); b.textContent = e.name + ' '; const sp = document.createElement('span'); sp.textContent = e.text; sp.dataset.pf = ({ twitch: 'Twitch', youtube: 'YouTube' })[e.plattform] || 'TikTok'; t.append(b, sp);
     z.append(i, pf, t); monListe.append(z);
   }
   monGesehen = new Set(monDaten.map(e => e.id)); // beim ersten Zeichnen nichts animieren, danach nur neue Einträge
