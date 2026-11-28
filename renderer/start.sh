@@ -8,6 +8,14 @@ mkdir -p /config/obs-studio/plugin_config/obs-websocket
 ln -sfn /config/obs-studio /home/obs/.config/obs-studio
 # Erststart: Assistent aus, WebSocket an (Passwort aus der Unraid-Vorlage)
 for f in global.ini user.ini; do [ -f "/config/obs-studio/$f" ] || printf '[General]\nFirstRun=false\nEnableAutoUpdates=false\n' > "/config/obs-studio/$f"; done
+# Browserquellen im Container über den Prozessor zeichnen (Chromium bekommt hier keinen Grafikkarten-Bildschirm → sonst schwarzes Bild, nur Ton).
+# BROWSER_GPU=1 schaltet die Hardwarebeschleunigung wieder ein.
+HW=$([ "${BROWSER_GPU:-0}" = "1" ] && echo true || echo false)
+for f in global.ini user.ini; do p="/config/obs-studio/$f"
+  if grep -q '^BrowserHWAccel=' "$p"; then sed -i "s/^BrowserHWAccel=.*/BrowserHWAccel=$HW/" "$p"
+  elif grep -q '^\[General\]' "$p"; then sed -i "/^\[General\]/a BrowserHWAccel=$HW" "$p"
+  else printf '[General]\nBrowserHWAccel=%s\n' "$HW" >> "$p"; fi
+done
 cat > /config/obs-studio/plugin_config/obs-websocket/config.json <<J
 {"alerts_enabled":false,"auth_required":$([ -n "$PW" ] && echo true || echo false),"first_load":false,"server_enabled":true,"server_password":"$PW","server_port":4455}
 J

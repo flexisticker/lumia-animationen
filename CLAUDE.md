@@ -300,3 +300,5 @@
   („NDI-Ausgang“, `ndi_filter_ndiname` = „Live-Studio vorne hoch“ …), nicht gewählte Formate aus; wiederholbar. `/api/render/neuladen`. Stream-Pause stoppt nie Container mit „live-studio“ im Namen.
   PC-Seite von Hand: DistroAV, NDI Access Manager (andere Subnetze!), NDI-Quellen statt Browserquellen. **Ehrlich offen:** ob OBS/Chromium im Container wirklich die 1050 Ti nutzt (wahrscheinlich Software-Rendering auf der Server-CPU),
   Filter-ID `ndi_filter` nur aus dem DistroAV-Quellcode-Wissen, nichts davon mit echtem Unraid/NDI getestet (Test: `werkzeuge/test/render-nachbau.mjs`).
+- 28.11.2026: Render-Server bei Michael läuft (OBS 32.2.0, DistroAV 6.2.2, NDI 6.4, Einrichtung aus Live-Studio klappt, Ton der 4 Quellen kommt an), aber **Vorschau schwarz** → `start.sh` setzt jetzt bei jedem Start `BrowserHWAccel=false`
+  in global.ini/user.ini (Chromium bekommt im Container keine GPU-Anzeige), `BROWSER_GPU=1` schaltet zurück. Ob das die Ursache war: offen (Rückmeldung Michael).
