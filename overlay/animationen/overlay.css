@@ -138,3 +138,13 @@ body.leicht .banner span { animation: none; }
 body.leicht .banner.hype span { animation: hype .5s ease-out 3; }
 body.leicht .sp-glow { animation: none; }
 body.leicht .scene-title, body.leicht .scene-sub { animation-duration: 0s !important; }
+
+/* Chat: Plattform nur als Logo */
+.pf-icon { display: inline-flex; align-items: center; justify-content: center; width: 1.35em; height: 1.35em; border-radius: 50%; margin-right: .45em; vertical-align: -.25em; flex: none; }
+.pf-icon svg { width: 62%; height: 62%; fill: #fff; }
+.pf-icon.pf-tiktok { background: #010101; box-shadow: -2px 0 0 #25f4ee, 2px 0 0 #fe2c55; }
+.pf-icon.pf-twitch { background: #9146ff; }
+.pf-icon.pf-youtube { background: #ff0033; }
+.pf-icon.pf-kick { background: #1fcf4a; } .pf-icon.pf-kick svg { fill: #000; }
+.pf-icon.pf-facebook { background: #1877f2; }
+.pf-icon.pf-trovo { background: #19d65c; } .pf-icon.pf-trovo svg { fill: #000; }
