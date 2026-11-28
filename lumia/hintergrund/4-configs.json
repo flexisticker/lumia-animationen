@@ -1806,5 +1806,17 @@
    ]
   },
   "order": 11.9
+ },
+ "zockStandbild": {
+  "type": "checkbox",
+  "label": "Hintergrund als Standbild, solange das Spielfenster offen ist (entlastet Grafikkarte/Prozessor beim Zocken)",
+  "value": true,
+  "visibleIf": {
+   "key": "bereich",
+   "equals": [
+    "bild"
+   ]
+  },
+  "order": 6
  }
 }

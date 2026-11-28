@@ -282,3 +282,5 @@
 - 28.11.2026: **Browserquellen hängen, sobald WoW läuft** (Grafikkarte voll ausgelastet). StreamModus: `$BrowserUeberProzessor = $true` setzt vor dem OBS-Start `BrowserHWAccel=false` in `[General]` von
   `%APPDATA%\obs-studio\user.ini` (OBS 31+) bzw. `global.ini` (Sicherung `*.streammodus-sicherung`) → Browserquellen über den Prozessor; nur wenn OBS zu ist. `$ObsAlsAdmin = $true` startet OBS per `-Verb RunAs`
   (Verknüpfung wird aufgelöst; OBS bekommt Vorrang bei der GPU). Folge: Stream-Stop kann ein Admin-OBS nicht schließen (Hinweis in der Anleitung). ZIP neu gepackt. **Nicht getestet** (kein Windows/PowerShell in der Sandbox).
+- 28.11.2026: **Hintergrund entlastet:** unsichtbares Video wird pausiert (`spielen(v, an)` in `draw`), beim Zocken (Spielfenster offen, `WIN[0].t > 0.97`) Standbild statt laufendem Film (`zockStandbild`, Standard an, Bereich Bild).
+  Geprüft (Headless): WoW/Star Citizen → beide Videos pausiert, Talk/Party-Bühne → läuft. Frage Michael: Rendern auf dem Unraid-Server (GPU) – Plan erklärt (zweites OBS im Container + NDI mit Alpha), nicht gebaut.

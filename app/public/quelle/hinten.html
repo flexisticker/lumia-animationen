@@ -249,6 +249,11 @@ let last = performance.now();
 
 const rr = (x, y, w, h, r) => { r = Math.max(0, Math.min(r, w / 2, h / 2)); const f = v => v.toFixed(1);
   return `M${f(x + r)} ${f(y)}H${f(x + w - r)}A${r} ${r} 0 0 1 ${f(x + w)} ${f(y + r)}V${f(y + h - r)}A${r} ${r} 0 0 1 ${f(x + w - r)} ${f(y + h)}H${f(x + r)}A${r} ${r} 0 0 1 ${f(x)} ${f(y + h - r)}V${f(y + r)}A${r} ${r} 0 0 1 ${f(x + r)} ${f(y)}Z`; };
+function spielen(v, an) {
+  if (!v.getAttribute('src')) return;
+  if (an && v.paused) v.play().catch(() => {});
+  else if (!an && !v.paused) v.pause();
+}
 function draw(now) {
   requestAnimationFrame(draw);
   const dt = Math.min(100, now - last); last = now;
@@ -261,6 +266,11 @@ function draw(now) {
   const e = ease(t), hatZ = !!vZ.getAttribute('src');
   vP.style.opacity = e < 1 || !hatZ ? 1 : 0;
   vZ.style.opacity = hatZ ? e : 0;
+  // Entlastung: unsichtbares Video nicht weiter abspielen; beim Zocken (Spielfenster offen) Hintergrund als Standbild –
+  // er ist dann fast ganz verdeckt, spart aber pro Quelle ein laufendes Full-HD-Video (wichtig, wenn das Spiel die Grafikkarte auslastet)
+  const standbild = D.zockStandbild !== false && WIN[0].t > 0.97;
+  spielen(vP, !(e >= 1 && hatZ) && !(standbild && !hatZ));
+  spielen(vZ, hatZ && e > 0 && !standbild);
   dimZ.style.opacity = hatZ ? 0 : e;                       // ohne Zock-Video: Party-Video abgedunkelt
   dimEl.style.opacity = num(D.abdunkeln, 0) / 100;
   let loch = '';

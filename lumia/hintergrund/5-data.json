@@ -109,5 +109,6 @@
   "atmoAn": true,
   "atmoLautstaerke": 30,
   "atmoParty": "",
-  "atmoZocken": ""
+  "atmoZocken": "",
+  "zockStandbild": true
 }
