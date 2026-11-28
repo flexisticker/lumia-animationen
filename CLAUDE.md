@@ -317,3 +317,5 @@
 - 28.11.2026: **Kachel „🎮 Ruhe beim Zocken“** (Tablet + Studio-Übersicht): ein Schalter für Hintergrund-Standbild + `zockruhe` vorne. Server `saved.ruheAus` (Standard aus = Ruhe an), `/api/aktion {id:'ruhe'}`,
   `fensterSicht().ruhe`, `hallo.ruheAus` → Shim → `{id:'ruhe', an}` an vorne (`ruheAn` in `chatUpdate`) und hinten (`ruheAn` in `draw`). Die Einzelschalter `zockStandbild`/`zockRuhe` bleiben zusätzlich.
   Gedacht: mit NDI vom Render-Server Ruhe aus (alles läuft weiter), ohne NDI an. Geprüft (Headless): an/aus, nach Neuladen, Tablet-Kachel.
+- 28.11.2026: Render-Server läuft bei Michael (CEF startet, Ton/Bild). NDI-Name = „<HOSTNAME> (Live-Studio …)“ – ohne festen Hostnamen wechselt er bei jedem Neuanlegen (Container-ID) → `--hostname live-studio-renderer`
+  in Vorlage und `docker run`. Michael tippte die IP in „Quellname“ der NDI-Quelle → muss den Eintrag aus der Liste wählen.
