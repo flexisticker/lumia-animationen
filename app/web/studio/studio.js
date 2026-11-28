@@ -107,7 +107,7 @@ async function renderPage(m) {
   const port = h('input', { type: 'number', value: R.port || 4455 });
   const pw = h('input', { type: 'password', placeholder: R.passwort ? '•••••••• (gespeichert – nur zum Ändern ausfüllen)' : 'wie in der Unraid-Vorlage „OBS-WebSocket-Passwort“' });
   const url = h('input', { type: 'text', value: R.url || '', placeholder: R.basis + ' (leer = diese Adresse)' });
-  const fps = h('input', { type: 'number', min: 10, max: 60, value: R.fps || 30 });
+  const fps = h('input', { type: 'number', min: 0, max: 60, value: R.fps || 0 });
   const NAMEN = { 'vorne-hoch': 'Animationen hochkant (TikTok)', 'hinten-hoch': 'Hintergrund hochkant', 'vorne-quer': 'Animationen quer (Twitch)', 'hinten-quer': 'Hintergrund quer' };
   const boxen = Object.keys(NAMEN).map(f => { const c = h('input', { type: 'checkbox', value: f, ...((R.formate || []).includes(f) ? { checked: '' } : {}) }); return [f, c]; });
   const ausgabe = h('div', { class: 'card log', style: 'display:none' });
@@ -117,7 +117,7 @@ async function renderPage(m) {
     h('div', { class: 'card' },
       field('Adresse des Render-Servers', host), field('OBS-WebSocket-Port', port), field('Passwort', pw),
       field('Adresse von Live-Studio (aus Sicht des Render-Servers)', url),
-      field('Bilder pro Sekunde', fps),
+      field('Bilder pro Sekunde (0 = automatisch wie OBS am PC)', fps),
       h('div', {}, h('b', {}, 'Welche Bilder?'), ...boxen.map(([f, c]) => h('label', { class: 'row' }, c, ' ' + NAMEN[f] + ' → NDI „Live-Studio ' + f.replace('-', ' ') + '“'))),
       h('p', { class: 'hint' }, 'Nur anhaken, was du wirklich nutzt – jedes Bild braucht etwa 120–150 Mbit/s im Netzwerk (Kabel, kein WLAN).'),
       h('div', { class: 'row' },

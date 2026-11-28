@@ -18,6 +18,8 @@ const srv = http.createServer((q, r) => r.end('render-nachbau')); srv.on('upgrad
         else if (r.requestType === 'CreateScene') { if (da.has('S' + q.sceneName)) { ok = false; code = 601; } else da.add('S' + q.sceneName); }
         else if (r.requestType === 'CreateInput') { if (da.has('I' + q.inputName)) { ok = false; code = 601; } else da.add('I' + q.inputName); }
         else if (r.requestType === 'CreateSourceFilter') { const k = 'F' + q.sourceName + q.filterName; if (da.has(k)) { ok = false; code = 601; } else da.add(k); }
+        else if (r.requestType === 'GetVideoSettings') res = { fpsNumerator: globalThis.fpsR || 30, fpsDenominator: 1 };
+        else if (r.requestType === 'SetVideoSettings') { globalThis.fpsR = q.fpsNumerator; console.log('SetVideoSettings', q.fpsNumerator); }
         else if (r.requestType === 'GetSceneItemId') res = { sceneItemId: 7 };
         console.log('RENDER', r.requestType, JSON.stringify(q).slice(0, 160));
         send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: ok ? { result: true, code: 100 } : { result: false, code, comment: 'gibt es schon' }, responseData: res } }); } } });

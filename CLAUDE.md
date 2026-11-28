@@ -327,3 +327,6 @@
   **Ungetestet** (keine Grafikkarte in der Sandbox) – Diagnose über `docker logs` (Zeilen „Grafik: …“) und `/tmp/Xorg.1.log` im Container.
 - 28.11.2026: **Render-Server läuft auf der GTX 1050 Ti** (Michael bestätigt, NDI flüssig). **Vorrang:** `start.sh` setzt alle 15 s für alle Prozesse von `obs` (OBS + CEF-Browserquellen) und Xorg/Xvfb `renice $PRIO` (Variable `PRIO`, Standard −10) + `ionice -c2 -n0`;
   braucht `--cap-add=SYS_NICE` (Vorlage Extra Parameters, dazu `--cpu-shares=4096` = Vorrang bei CPU-Knappheit gegenüber anderen Containern, Standard 1024). Log „Vorrang: …“ meldet, ob es geklappt hat.
+- 28.11.2026: **NDI stockt am PC alle ~10 s (Bild + Ton), Render-Server selbst flüssig** (VNC ok, GPU 16 %, 114 Mbit/s, IPS aus half nicht). Empfehlungen am PC: NDI-Quelle „Quell-Timing“, Framesync, Hardwarebeschleunigung, Keep running.
+  Code: Render-Bildrate `saved.render.fps` 0 = automatisch wie das PC-OBS (`GetVideoSettings` über die bestehende OBS-Verbindung), `renderEinrichten` setzt `SetVideoSettings` im Render-OBS + Browserquellen-fps; alte feste 30 → 0 (`fpsAuto1`).
+  Nachbauten: obs-nachbau liefert `OBS_FPS` (60), render-nachbau kennt Get/SetVideoSettings. Ursache des Stockens noch offen (Netz/UDM-Routing zwischen 192.168.1.x und 192.168.175.x?).

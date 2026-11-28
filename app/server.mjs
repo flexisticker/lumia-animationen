@@ -741,7 +741,8 @@ setTimeout(diensteLesen, 3000);
 
 // ---------- Render-Server: unsichtbares OBS auf Unraid (Image live-studio-renderer) rechnet die Browserquellen und schickt sie per NDI an den Stream-PC ----------
 // Live-Studio richtet es über dessen OBS-WebSocket ein: je Format eine Browserquelle + DistroAV-Filter „NDI-Ausgang“ (Bild mit Durchsichtigkeit + Ton).
-saved.render ||= { host: '', port: 4455, url: '', formate: ['vorne-hoch', 'hinten-hoch', 'vorne-quer', 'hinten-quer'], fps: 30, stand: '' };
+saved.render ||= { host: '', port: 4455, url: '', formate: ['vorne-hoch', 'hinten-hoch', 'vorne-quer', 'hinten-quer'], fps: 0, stand: '' };
+if (!saved.render.fpsAuto1) { if (Number(saved.render.fps) === 30) saved.render.fps = 0; saved.render.fpsAuto1 = true; } // alte feste 30 → automatisch wie PC
 const RENDER_FORMATE = { 'vorne-hoch': [1080, 1920], 'vorne-quer': [1920, 1080], 'hinten-hoch': [1080, 1920], 'hinten-quer': [1920, 1080] };
 const ndiName = f => 'Live-Studio ' + f.replace('-', ' ');
 // Kurze eigene OBS-Sitzung (getrennt von der Verbindung zum Stream-OBS)
@@ -779,13 +780,23 @@ async function renderEinrichten(basisUrl) {
     const kinds = (fk.data && fk.data.sourceFilterKinds) || [];
     const ndiKind = kinds.find(k => k === 'ndi_filter') || kinds.find(k => /ndi/i.test(k) && !/audio/i.test(k));
     if (fk.ok && !ndiKind) return { ok: false, fehler: 'Im Render-OBS fehlt das NDI-Plugin (DistroAV)', log };
+    // Bildrate: 0 = wie das OBS am PC (gleicher Takt verhindert regelmäßiges Stocken beim NDI-Empfang)
+    let fps = Number(R.fps) || 0;
+    if (!fps) { const pc = await obsRequest('GetVideoSettings', {}).catch(() => null);
+      const d = pc && pc.ok && pc.data; fps = d && d.fpsNumerator ? Math.round(d.fpsNumerator / (d.fpsDenominator || 1)) : 30;
+      log.push('Bildrate wie OBS am PC: ' + fps + (d ? '' : ' (PC-OBS nicht verbunden – Standard)')); }
+    fps = Math.max(10, Math.min(60, fps));
+    const vs = await s.anfrage('GetVideoSettings');
+    if (vs.ok && Math.round(vs.data.fpsNumerator / (vs.data.fpsDenominator || 1)) !== fps) {
+      const sv = await s.anfrage('SetVideoSettings', { fpsNumerator: fps, fpsDenominator: 1 });
+      log.push(sv.ok ? 'Render-OBS auf ' + fps + ' Bilder/s gestellt' : 'Bildrate im Render-OBS nicht änderbar: ' + sv.fehler); }
     const szene = 'Live-Studio Render';
     const sc = await s.anfrage('CreateScene', { sceneName: szene }); if (!sc.ok && sc.code !== 601) log.push('Szene: ' + sc.fehler);
     await s.anfrage('SetCurrentProgramScene', { sceneName: szene });
     const url = String(R.url || basisUrl).replace(/\/+$/, '');
     for (const f of Object.keys(RENDER_FORMATE)) {
       const name = 'LS ' + f, [w, h] = RENDER_FORMATE[f], an = R.formate.includes(f);
-      const settings = { url: url + '/quelle/' + f, width: w, height: h, fps_custom: true, fps: Number(R.fps) || 30, reroute_audio: true, shutdown: false, restart_when_active: false, css: '' };
+      const settings = { url: url + '/quelle/' + f, width: w, height: h, fps_custom: true, fps, reroute_audio: true, shutdown: false, restart_when_active: false, css: '' };
       const neu = await s.anfrage('CreateInput', { sceneName: szene, inputName: name, inputKind: 'browser_source', inputSettings: settings, sceneItemEnabled: an });
       if (!neu.ok) { const u = await s.anfrage('SetInputSettings', { inputName: name, inputSettings: settings, overlay: true }); if (!u.ok) { log.push(name + ': ' + u.fehler); continue; } }
       const item = await s.anfrage('GetSceneItemId', { sceneName: szene, sourceName: name });
@@ -1125,7 +1136,7 @@ const server = http.createServer(async (req, res) => {
       if (b.port !== undefined) R.port = Number(b.port) || 4455;
       if (typeof b.url === 'string') R.url = /^https?:\/\/[^\s]+$/.test(b.url.trim()) ? b.url.trim().slice(0, 200) : '';
       if (Array.isArray(b.formate)) R.formate = b.formate.filter(f => RENDER_FORMATE[f]);
-      if (b.fps !== undefined) R.fps = Math.max(10, Math.min(60, Number(b.fps) || 30));
+      if (b.fps !== undefined) R.fps = Number(b.fps) ? Math.max(10, Math.min(60, Number(b.fps))) : 0;
       if (typeof b.passwort === 'string' && b.passwort) { secret.renderPasswort = b.passwort; writeJson(SECRET_FILE, secret); }
       if (b.passwortLoeschen) { delete secret.renderPasswort; writeJson(SECRET_FILE, secret); }
       saveSettings(); return json(res, 200, { ok: true });
