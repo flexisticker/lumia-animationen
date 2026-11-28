@@ -235,7 +235,8 @@ function wechselVideo(src) {
     vNeu.style.transition = 'opacity .8s ease'; vNeu.style.opacity = 1;
     setTimeout(() => {
       if (nr !== wechselNr) return;
-      vZ.onplaying = () => { vZ.onplaying = null; if (nr !== wechselNr) return; try { vZ.currentTime = vNeu.currentTime; } catch (e) {}
+      // „canplay“ zusätzlich: beim Standbild (Zocken) hält draw() das Video an, „playing“ käme dann nie
+      vZ.onplaying = vZ.oncanplay = () => { vZ.onplaying = vZ.oncanplay = null; if (nr !== wechselNr) return; try { vZ.currentTime = vNeu.currentTime; } catch (e) {}
         setTimeout(() => { if (nr !== wechselNr) return; vNeu.style.transition = 'none'; vNeu.style.opacity = 0; vNeu.pause(); vNeu.removeAttribute('src'); vNeu.load(); }, 120); };
       vZ.src = src; vZ.play().catch(() => {}); letzterStand = '';
     }, 850);
