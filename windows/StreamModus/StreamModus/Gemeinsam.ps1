@@ -78,3 +78,29 @@ function System-Anpassung([string]$Modus) {
         if ($p.ExitCode -eq 0) { Schreib "System-Anpassung ($Modus) erledigt." 'Green' } else { Schreib "System-Anpassung ($Modus) meldet Fehler (Code $($p.ExitCode)), siehe Protokoll." 'Red' }
     } catch { Schreib "System-Anpassung ($Modus) abgebrochen (keine Administratorrechte?)." 'Red' }
 }
+
+# OBS-Einstellung „Hardwarebeschleunigung für Browserquellen“ (BrowserHWAccel im Abschnitt [General]) setzen.
+# OBS 31+ speichert sie in user.ini, ältere Versionen in global.ini – beide werden angepasst, wenn vorhanden. Nur wenn OBS zu ist.
+function Setze-BrowserBeschleunigung([bool]$An) {
+    $ordner = Join-Path $env:APPDATA 'obs-studio'
+    $wert = $(if ($An) { 'true' } else { 'false' })
+    $geaendert = $false
+    foreach ($datei in @('user.ini', 'global.ini')) {
+        $p = Join-Path $ordner $datei
+        if (-not (Test-Path $p)) { continue }
+        $zeilen = [System.Collections.Generic.List[string]]([System.IO.File]::ReadAllLines($p))
+        $gen = -1; $ende = $zeilen.Count; $treffer = -1
+        for ($i = 0; $i -lt $zeilen.Count; $i++) {
+            $z = $zeilen[$i].Trim()
+            if ($z -match '^\[(.+)\]$') { if ($gen -ge 0 -and $ende -eq $zeilen.Count) { $ende = $i }; if ($Matches[1] -eq 'General') { $gen = $i; $ende = $zeilen.Count } }
+            elseif ($gen -ge 0 -and $i -lt $ende -and $z -like 'BrowserHWAccel=*') { $treffer = $i }
+        }
+        if ($treffer -ge 0) { if ($zeilen[$treffer].Trim() -eq "BrowserHWAccel=$wert") { continue }; $zeilen[$treffer] = "BrowserHWAccel=$wert" }
+        elseif ($gen -ge 0) { $zeilen.Insert($gen + 1, "BrowserHWAccel=$wert") }
+        else { $zeilen.Add('[General]'); $zeilen.Add("BrowserHWAccel=$wert") }
+        Copy-Item $p "$p.streammodus-sicherung" -Force -ErrorAction SilentlyContinue
+        [System.IO.File]::WriteAllLines($p, $zeilen, (New-Object System.Text.UTF8Encoding($false)))
+        $geaendert = $true
+    }
+    return $geaendert
+}

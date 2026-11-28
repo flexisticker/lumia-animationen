@@ -279,3 +279,6 @@
   mit den Werten des Leinwand-Formats (hoch/quer). Aitum-Vendor-API kann keine Szenenelemente schalten (geprüft im Quellcode) – geht nur über die Canvas-Unterstützung von obs-websocket.
   OBS-Nachbau: `OBS_CANVAS=1` = zusätzliche Hochkant-Leinwand mit Szene „V-Gaming“ (Spiel-Vertikal, Drucker-Cam-Vertikal). Nicht mit echtem OBS 32 getestet.
 - 28.11.2026: **Alert-Namenskarte: Plattform-Logo direkt vor dem Namen** (`.namezeile` mit `pfIcon(p, 'i')`, schrumpft mit dem Namen), Like-Schild mit TikTok-Logo; unbekannte Plattform weiter als Schriftzug-Schild.
+- 28.11.2026: **Browserquellen hängen, sobald WoW läuft** (Grafikkarte voll ausgelastet). StreamModus: `$BrowserUeberProzessor = $true` setzt vor dem OBS-Start `BrowserHWAccel=false` in `[General]` von
+  `%APPDATA%\obs-studio\user.ini` (OBS 31+) bzw. `global.ini` (Sicherung `*.streammodus-sicherung`) → Browserquellen über den Prozessor; nur wenn OBS zu ist. `$ObsAlsAdmin = $true` startet OBS per `-Verb RunAs`
+  (Verknüpfung wird aufgelöst; OBS bekommt Vorrang bei der GPU). Folge: Stream-Stop kann ein Admin-OBS nicht schließen (Hinweis in der Anleitung). ZIP neu gepackt. **Nicht getestet** (kein Windows/PowerShell in der Sandbox).

@@ -39,6 +39,12 @@ $stand | ConvertTo-Json -Depth 5 | Set-Content -Path $Zustand -Encoding UTF8
 # 2) System für Streaming einstellen (Windows-Abfrage bestätigen)
 System-Anpassung 'Start'
 
+# 2b) Browserquellen über den Prozessor (nur möglich, solange OBS zu ist)
+if ($null -ne $BrowserUeberProzessor) {
+    if (Laeuft $Hauptprogramm) { Schreib 'OBS läuft schon – Browserquellen-Einstellung gilt erst nach einem OBS-Neustart.' 'Yellow' }
+    elseif (Setze-BrowserBeschleunigung (-not $BrowserUeberProzessor)) { Schreib ($(if ($BrowserUeberProzessor) { 'Browserquellen laufen über den Prozessor.' } else { 'Browserquellen laufen über die Grafikkarte.' })) 'DarkGray' }
+}
+
 # 3) Programme der Reihe nach starten
 foreach ($a in $Programme) {
     if (Laeuft $a.Prozesse) { Schreib "$($a.Name) läuft schon." 'DarkGray'; continue }
@@ -46,7 +52,10 @@ foreach ($a in $Programme) {
     if (-not $start) { Schreib "$($a.Name) nicht gefunden – in Einstellungen.ps1 den Pfad eintragen." 'Red'; continue }
     Schreib "Starte $($a.Name) ..." 'White'
     try {
-        if ($start -like '*.lnk') { Start-Process -FilePath $start }
+        $admin = $ObsAlsAdmin -and ($a.Prozesse -contains 'obs64')
+        if ($admin -and $start -like '*.lnk') { $ziel = Verknuepfung-Ziel $start; if ($ziel) { $start = $ziel } else { $admin = $false } }
+        if ($admin) { Start-Process -FilePath $start -WorkingDirectory (Split-Path $start) -Verb RunAs }   # OBS als Administrator: Vorrang bei der Grafikkarte
+        elseif ($start -like '*.lnk') { Start-Process -FilePath $start }
         else { Start-Process -FilePath $start -WorkingDirectory (Split-Path $start) }   # OBS braucht seinen Programmordner
     } catch { Schreib "$($a.Name) ließ sich nicht starten: $_" 'Red'; continue }
     $bis = (Get-Date).AddSeconds(45)

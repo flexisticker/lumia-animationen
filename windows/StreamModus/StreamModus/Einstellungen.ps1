@@ -37,3 +37,13 @@ $SystemOptimieren = $true
 
 # Programme beim Ende automatisch schließen, wenn OBS geschlossen wird
 $AllesSchliessenNachObs = $true
+
+# Browserquellen in OBS über den Prozessor statt über die Grafikkarte berechnen
+# (hilft, wenn Spiele wie WoW die Grafikkarte voll auslasten und die Browserquellen dann hängen).
+# Setzt in OBS „Einstellungen → Erweitert → Hardwarebeschleunigung für Browserquellen“ = aus, bevor OBS startet.
+# $false = Grafikkarte (OBS-Standard). Wirkt erst beim nächsten OBS-Start.
+$BrowserUeberProzessor = $true
+
+# OBS als Administrator starten (OBS bekommt dann Vorrang bei der Grafikkarte, wenn ein Spiel sie auslastet).
+# Es kommt eine zusätzliche Windows-Abfrage.
+$ObsAlsAdmin = $true

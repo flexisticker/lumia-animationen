@@ -21,6 +21,14 @@ STREAM STARTEN – Doppelklick auf Stream-Start.bat
  - Dann starten nacheinander: Discord, OBS, Lumia Stream, TikTok LIVE Studio,
    Streamer.bot.
  - Ein kleines Fenster „StreamModus“ bleibt minimiert in der Taskleiste – offen lassen.
+ - OBS startet als Administrator (eine zweite Windows-Abfrage mit JA bestätigen) und
+   die Browserquellen laufen über den Prozessor statt über die Grafikkarte. So bleiben
+   Animationen/Hintergrund nicht hängen, wenn ein Spiel (z. B. WoW) die Grafikkarte
+   voll auslastet. Abschalten in StreamModus\Einstellungen.ps1:
+   $BrowserUeberProzessor = $false bzw. $ObsAlsAdmin = $false.
+   Ist OBS beim Start schon offen, gilt die Browserquellen-Einstellung erst nach
+   einem OBS-Neustart. Läuft OBS als Administrator, kann Stream-Stop.bat es nicht
+   schließen – OBS dann selbst schließen.
 
 STREAM BEENDEN
  - Einfach OBS schließen. Nach ein paar Sekunden schließt StreamModus die anderen
