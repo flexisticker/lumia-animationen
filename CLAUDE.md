@@ -310,3 +310,5 @@
 - 28.11.2026: Nachbau hier (Ubuntu-OBS 30 ohne obs-browser, Xvfb + Mesa llvmpipe): OBS zeichnet im virtuellen Bildschirm einwandfrei (Farbquelle per GetSourceScreenshot geprüft) → Problem liegt bei der Browserquelle (CEF).
   Michael danach: auch **kein Ton** mehr → Browserquellen laden vermutlich gar nicht. Außerdem: obs-websocket ≥ 5.3 liest seine Einstellungen aus `[OBSWebSocket]` in global.ini/user.ini (FirstLoad, ServerEnabled, ServerPort, AuthRequired,
   ServerPassword), nicht mehr aus config.json → `start.sh` setzt das jetzt per `setze()` (awk) bei jedem Start. Ursache Browserquelle offen, OBS-Log von Michael angefragt.
+- 28.11.2026: **Ursache schwarzes Bild gefunden:** Container-Log voller „MESA: error: Failed to attach to x11 shm“ (Mesa/llvmpipe kann MIT-SHM zwischen Xvfb (root) und OBS (uid 99) im Container nicht nutzen).
+  Fix `Xvfb … -extension MIT-SHM` in `start.sh`. Im Nachbau (Xvfb ohne MIT-SHM + OBS 30) zeigt die Vorschau danach Inhalt (xwd-Screenshot geprüft). VNC überträgt keinen Ton – Ton nur über die Pegel bzw. NDI prüfen.

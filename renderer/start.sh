@@ -32,7 +32,8 @@ cat > /config/obs-studio/plugin_config/obs-websocket/config.json <<J
 J
 chown -R 99:100 /config /home/obs
 rm -f /tmp/.X1-lock /tmp/.X11-unix/X1
-Xvfb :1 -screen 0 "${AUFL}x24" -nolisten tcp &
+# -extension MIT-SHM: Mesa kann im Container keinen gemeinsamen X-Speicher nutzen („Failed to attach to x11 shm“ → schwarzes Bild)
+Xvfb :1 -screen 0 "${AUFL}x24" -nolisten tcp -extension MIT-SHM &
 sleep 1
 su obs -s /bin/bash -c 'openbox' >/dev/null 2>&1 &
 if [ -n "$VNCPW" ]; then x11vnc -storepasswd "$VNCPW" /tmp/vncpw >/dev/null; VNCOPT="-rfbauth /tmp/vncpw"; else VNCOPT="-nopw"; fi
