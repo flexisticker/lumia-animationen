@@ -124,7 +124,9 @@ async function renderPage(m) {
         h('button', { class: 'b p', onclick: async () => { await speichern(); pw.value = ''; ausgabe.style.display = ''; ausgabe.textContent = 'richte ein …';
           const r = await post('/api/render/einrichten', {}).then(x => x.json()); ausgabe.innerHTML = '';
           ausgabe.append(h('div', {}, r.ok ? '✓ Eingerichtet' : '⚠️ ' + r.fehler), ...(r.log || []).map(l => h('div', {}, l))); } }, 'Render-Server einrichten'),
-        h('button', { class: 'b', onclick: async () => { const r = await post('/api/render/neuladen', {}).then(x => x.json()); toast(r.ok ? 'Quellen im Render-Server neu geladen' : r.fehler, r.ok ? '' : 'warn'); } }, '↻ Quellen neu laden'))),
+        h('button', { class: 'b', onclick: async () => { const r = await post('/api/render/neuladen', {}).then(x => x.json()); toast(r.ok ? 'Quellen im Render-Server neu geladen' : r.fehler, r.ok ? '' : 'warn'); } }, '↻ Quellen neu laden'),
+        h('button', { class: 'b', onclick: async () => { if (!confirm('Render-Server (OBS auf Unraid) neu starten? Das NDI-Bild ist dabei ca. 20 Sekunden weg.')) return;
+          const r = await post('/api/render/neustart', {}).then(x => x.json()); toast(r.ok ? 'Render-Server startet neu (ca. 20 s)' : r.fehler, r.ok ? '' : 'warn'); } }, '⟳ Render-Server neu starten'))),
     ausgabe,
     h('h2', {}, 'In deinem OBS (Stream-PC)'),
     h('div', { class: 'card' }, ...[

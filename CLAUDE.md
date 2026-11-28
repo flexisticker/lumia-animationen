@@ -302,3 +302,5 @@
   Filter-ID `ndi_filter` nur aus dem DistroAV-Quellcode-Wissen, nichts davon mit echtem Unraid/NDI getestet (Test: `werkzeuge/test/render-nachbau.mjs`).
 - 28.11.2026: Render-Server bei Michael läuft (OBS 32.2.0, DistroAV 6.2.2, NDI 6.4, Einrichtung aus Live-Studio klappt, Ton der 4 Quellen kommt an), aber **Vorschau schwarz** → `start.sh` setzt jetzt bei jedem Start `BrowserHWAccel=false`
   in global.ini/user.ini (Chromium bekommt im Container keine GPU-Anzeige), `BROWSER_GPU=1` schaltet zurück. Ob das die Ursache war: offen (Rückmeldung Michael).
+- 28.11.2026: Render-Server per `docker run` angelegt → in Unraid ohne Vorlage (kein Edit/Update). Lösung: Vorlage nach `/boot/config/plugins/dockerMan/templates-user/my-live-studio-renderer.xml` schreiben (Inhalt = `unraid/live-studio-renderer.xml`),
+  Container über „Add Container“ mit dieser Vorlage neu anlegen. Zusätzlich Studio-Knopf „⟳ Render-Server neu starten“ (`POST /api/render/neustart`, Docker-API restart des Containers mit „live-studio-renderer“ im Namen, braucht den Docker-Socket).

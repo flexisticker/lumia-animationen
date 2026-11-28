@@ -1132,6 +1132,16 @@ const server = http.createServer(async (req, res) => {
     }
     if (p === '/api/render/einrichten' && req.method === 'POST') { const r = await renderEinrichten('http://' + (req.headers.host || '')); remember({ art: r.ok ? 'aktion' : 'fehler', quelle: 'render', text: r.ok ? 'Render-Server eingerichtet' : 'Render-Server: ' + r.fehler }); return json(res, 200, r); }
     if (p === '/api/render/neuladen' && req.method === 'POST') return json(res, 200, await renderNeuLaden());
+    if (p === '/api/render/neustart' && req.method === 'POST') {
+      // Container des Render-Servers neu starten (braucht den Docker-Zugang wie die Stream-Pause)
+      const liste = await dockerApi('GET', '/containers/json?all=1');
+      if (!liste.ok) return json(res, 200, { ok: false, fehler: (liste.fehler || 'Docker nicht erreichbar') + ' – Docker-Zugang unter „Server-Dienste“ einrichten' });
+      const c = (liste.data || []).find(x => (x.Names || []).some(n => /live-studio-renderer/i.test(n)));
+      if (!c) return json(res, 200, { ok: false, fehler: 'Kein Container „live-studio-renderer“ gefunden' });
+      const r = await dockerApi('POST', '/containers/' + c.Id + '/restart?t=10');
+      remember({ art: r.ok ? 'aktion' : 'fehler', quelle: 'render', text: r.ok ? 'Render-Server neu gestartet' : 'Render-Server Neustart: ' + (r.fehler || r.code) });
+      return json(res, 200, r.ok ? { ok: true } : { ok: false, fehler: r.fehler || 'Docker antwortet mit ' + r.code });
+    }
     if (p === '/api/dienste' && req.method === 'GET') { await diensteLesen(); return json(res, 200, { ...dienste, einstellungen: saved.dienste }); }
     if (p === '/api/dienste' && req.method === 'POST') {
       const b = JSON.parse((await body(req)).toString() || '{}'), d = saved.dienste;

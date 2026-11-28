@@ -7,6 +7,7 @@ const C = [
   { Id: 'bbb222mailsort', name: 'mail-sortierer', State: 'running', HostConfig: {}, Env: [] },
   { Id: 'ccc333protokol', name: 'Protokoll', State: 'running', HostConfig: {}, Env: ['NVIDIA_VISIBLE_DEVICES=GPU-1234'] },
   { Id: 'ddd444plex0000', name: 'plex', State: 'running', HostConfig: { DeviceRequests: [{ Driver: 'nvidia', Capabilities: [['gpu']] }] }, Env: [] },
+  { Id: 'fff666renderer', name: 'live-studio-renderer', State: 'running', HostConfig: { Runtime: 'nvidia' }, Env: ['NVIDIA_VISIBLE_DEVICES=all'] },
   { Id: 'eee555nextclou', name: 'nextcloud', State: 'running', HostConfig: {}, Env: ['NVIDIA_VISIBLE_DEVICES=void'] },
 ];
 http.createServer((req, res) => {
@@ -15,7 +16,7 @@ http.createServer((req, res) => {
   let m;
   if (req.method === 'GET' && u.startsWith('/containers/json')) return j(200, C.map(c => ({ Id: c.Id, Names: ['/' + c.name], State: c.State })));
   if (req.method === 'GET' && (m = u.match(/^\/containers\/([^/]+)\/json/))) { const c = finde(m[1]); return c ? j(200, { HostConfig: c.HostConfig, Config: { Env: c.Env } }) : j(404, { message: 'no such container' }); }
-  if (req.method === 'POST' && (m = u.match(/^\/containers\/([^/]+)\/(stop|start)/))) { const c = finde(m[1]); if (!c) return j(404, { message: 'no such container' });
-    const ziel = m[2] === 'stop' ? 'exited' : 'running'; if (c.State === ziel) return j(304); c.State = ziel; console.log('DOCKER', m[2], c.name); return j(204); }
+  if (req.method === 'POST' && (m = u.match(/^\/containers\/([^/]+)\/(stop|start|restart)/))) { const c = finde(m[1]); if (!c) return j(404, { message: 'no such container' });
+    if (m[2] === 'restart') { console.log('DOCKER restart', c.name); return j(204); } const ziel = m[2] === 'stop' ? 'exited' : 'running'; if (c.State === ziel) return j(304); c.State = ziel; console.log('DOCKER', m[2], c.name); return j(204); }
   j(404, { message: 'unbekannt' });
 }).listen(sock, () => console.log('docker-nachbau auf', sock));
