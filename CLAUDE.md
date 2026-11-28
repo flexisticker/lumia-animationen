@@ -260,3 +260,6 @@
   alle werden ein-/ausgeschaltet; `quellVorkommen(name)` sucht in allen Szenen **und Gruppen** (`GetGroupSceneItemList`, Gruppe als sceneName). Lage & Größe (`obsLageSync`) nur für die erste = Hauptquelle.
   Studio OBS-Seite: je Fenster Liste mit ✕ + Eingabe „weitere Quelle“ (Enter/Auswahl), Fenster-Reiter zeigt „A + B“. OBS-Nachbau: Szene „Vertikal“, Gruppe „Hochkant-Gruppe“ mit „Spiel-Vertikal“.
   Grenze: Szenen eines eigenen Vertikal-Plugins (z. B. Aitum Vertical) liegen nicht in der normalen OBS-Szenenliste → dort nicht erreichbar (Protokoll „in keiner Szene gefunden“).
+- 28.11.2026: **Unterstützer-Monitor nicht auffindbar** (Kacheln waren nur bei Zockerbude + Spielfenster aus sichtbar): Kacheln „Monitor: Unterstützer/Drucker-Kamera“ jetzt immer sichtbar (Tablet + Studio),
+  Unterzeile „aus · tippen = Zockerbude“, wenn gerade nicht möglich. Tipp (`/api/aktion monitor`): war an und sichtbar → aus; sonst ggf. Wechsel zum Hintergrund mit Wand-Bildschirm (Zockerbude, außer `monWann = immer`),
+  Spielfenster aus, Monitor an, SSE `fensterstand` mit Monitor; Label nennt, was geändert wurde. `fensterSicht().monitor` = an **und** möglich. Geprüft (Headless) + Gesamttest ALLES OK.

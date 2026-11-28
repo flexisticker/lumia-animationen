@@ -177,11 +177,11 @@ const FENSTER = [[1, 'Spielfenster', '🪟'], [2, 'Drucker', '🖨️'], [3, 'Sc
   fensterBox.append(b); return { nr, b };
 });
 function fensterZeigen(sicht) {
-  for (const f of FENSTER) { if (String(f.nr).startsWith('monitor')) f.b.style.display = sicht && sicht.monitorMoeglich ? '' : 'none';
+  for (const f of FENSTER) {
     if (f.nr === 'licht') f.b.style.display = sicht && sicht.lichtMoeglich ? '' : 'none';
     if (f.nr === 'logo') f.b.style.display = sicht && sicht.logoMoeglich ? '' : 'none';
     if (f.nr === 'streamprint') f.b.style.display = sicht && sicht.streamprintMoeglich ? '' : 'none';
-    const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? (f.nr === 'licht' ? '● folgt dem Stream' : String(f.nr).startsWith('monitor') ? '● an' : '● zu sehen') : 'aus'; }
+    const an = !!(sicht && sicht[f.nr]); f.b.classList.toggle('active', an); f.b.children[2].textContent = an ? (f.nr === 'licht' ? '● folgt dem Stream' : String(f.nr).startsWith('monitor') ? '● an' : '● zu sehen') : (String(f.nr).startsWith('monitor') && sicht && !sicht.monitorMoeglich ? 'aus · tippen = Zockerbude' : 'aus'); }
 }
 fensterZeigen(window.MM_FENSTER);
 if (window.Overlay && Overlay.on) Overlay.on('fenster', fensterZeigen);

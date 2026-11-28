@@ -85,7 +85,7 @@ function start(m) {
   // Fenster & Kameras wie am Tablet
   const F = S.fensterSicht || {};
   const fk = [['fenster', 1, '🪟 Spielfenster'], ['fenster2', 2, '🖨️ Drucker'], ['fenster3', 3, '🖥️ Schreibtisch']];
-  if (F.monitorMoeglich) fk.push(['monitor', 'monitor', '📺 Monitor: Unterstützer'], ['monitor-drucker', 'monitor-drucker', '📺 Monitor: Drucker']);
+  fk.push(['monitor', 'monitor', '📺 Monitor: Unterstützer'], ['monitor-drucker', 'monitor-drucker', '📺 Monitor: Drucker']);
   if (F.logoMoeglich) fk.push(['logo', 'logo', '🏷️ Logo']);
   fk.push(['chat', 'chat', '💬 Chat']); if (F.streamprintMoeglich) fk.push(['streamprint', 'streamprint', '🧾 Bondrucker']);
   if (F.lichtMoeglich) fk.push(['licht', 'licht', '💡 Licht folgt dem Stream']);

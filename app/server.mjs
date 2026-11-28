@@ -404,7 +404,7 @@ function einblendungSichtbar(id) {
 }
 const hatBildschirm = sp => !!sp && (sp.wandMonitor === true || (sp.wandMonitor !== false && /zockerbude/i.test((sp.video || '') + ' ' + (sp.videoQuer || '') + ' ' + sp.id)));
 const monitorMoeglich = () => !fensterSichtbar(1) && ((settingsFor('hinten').monWann || 'zocken') === 'immer' || hatBildschirm(saved.spiele.find(x => x.id === saved.spiel)));
-const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste', 'monitor-drucker': monitorArt() === 'drucker', monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), logo: !saved.logoAus && !!settingsFor('vorne').logoBild, chat: einblendungSichtbar('chat'), streamprint: einblendungSichtbar('streamprint'), streamprintMoeglich: !!settingsFor('vorne').spUrl, logoMoeglich: !!settingsFor('vorne').logoBild, lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length) });
+const fensterSicht = () => ({ 1: fensterSichtbar(1), 2: fensterSichtbar(2), 3: fensterSichtbar(3), monitor: monitorArt() === 'liste' && monitorMoeglich(), 'monitor-drucker': monitorArt() === 'drucker' && monitorMoeglich(), monitorMoeglich: monitorMoeglich(), licht: !!(saved.hue && saved.hue.live), logo: !saved.logoAus && !!settingsFor('vorne').logoBild, chat: einblendungSichtbar('chat'), streamprint: einblendungSichtbar('streamprint'), streamprintMoeglich: !!settingsFor('vorne').spUrl, logoMoeglich: !!settingsFor('vorne').logoBild, lichtMoeglich: !!(saved.hue && saved.hue.an && secret.hueUser && saved.hue.lampen.length) });
 const fensterMelden = () => { broadcast('fenster', fensterSicht(), ['aktion', 'studio']); obsQuellenSync(); };
 // OBS-Quellen zu den Fenstern mitschalten (in allen Szenen, in denen sie vorkommen). Eine Quelle für mehrere Fenster = sichtbar, wenn eines davon offen ist.
 let quellenStand = {}, quellenLaeuft = false, quellenNochmal = false;
@@ -916,8 +916,21 @@ const server = http.createServer(async (req, res) => {
       // Wand-Monitor: aus | 'liste' (letzte Unterstützer) | 'drucker' (Loch für die Drucker-Kamera); Kachel erneut = aus
       if (a.id === 'monitor' || a.id === 'monitor-drucker') {
         const ziel = a.id === 'monitor' ? 'liste' : 'drucker';
-        saved.monitor = monitorArt() === ziel ? false : ziel; a.id = 'monitor'; a.art = saved.monitor || ''; a.an = !!saved.monitor; saveSettings();
-        a.label = 'Wand-Monitor ' + (saved.monitor === 'drucker' ? 'zeigt die Drucker-Kamera' : saved.monitor ? 'zeigt die Unterstützer' : 'aus'); fensterMelden();
+        let hinweis = '';
+        if (monitorArt() === ziel && monitorMoeglich()) saved.monitor = false;   // war an und zu sehen → aus
+        else {
+          // Einschalten: der Monitor sitzt im Wand-Bildschirm (Zockerbude) – fehlt der, dorthin wechseln; das Spielfenster würde ihn verdecken → aus
+          const jetzt = saved.spiele.find(x => x.id === saved.spiel);
+          if (!hatBildschirm(jetzt) && (settingsFor('hinten').monWann || 'zocken') !== 'immer') {
+            const z = saved.spiele.find(x => x.id === 'zockerbude' && hatBildschirm(x)) || saved.spiele.find(x => hatBildschirm(x));
+            if (z) { setModus('zocken', z.id, 'knopf'); hinweis = ' · Hintergrund: ' + z.name; }
+          }
+          if (fensterSichtbar(1)) { saved.fenster[1] = false; hinweis += ' · Spielfenster aus'; }
+          saved.monitor = ziel;
+          broadcast('fensterstand', { fenster: fensterStand(), monitor: saved.monitor }, ['hinten']);
+        }
+        a.id = 'monitor'; a.art = saved.monitor || ''; a.an = !!saved.monitor; saveSettings();
+        a.label = 'Wand-Monitor ' + (saved.monitor === 'drucker' ? 'zeigt die Drucker-Kamera' : saved.monitor ? 'zeigt die Unterstützer' : 'aus') + hinweis; fensterMelden();
       }
       if (typeof a.id === 'string' && a.id.startsWith('szene:')) hueAnsage(a.id.slice(6));
       if (a.id === 'licht') {
