@@ -307,3 +307,6 @@
 - 28.11.2026: Render-Server zeigt **kein Bild** (auch die Eigenschaften-Vorschau schwarz, Ton läuft) → OBS zeichnet im Container nichts. Image: Mesa-Treiber (`libgl1-mesa-dri`, `libegl-mesa0`, `libglx-mesa0`, `mesa-utils`) fehlten
   wegen `--no-install-recommends`; dazu `__GLX_VENDOR_LIBRARY_NAME=mesa` + `__EGL_VENDOR_LIBRARY_FILENAMES` auf Mesa und `NVIDIA_DRIVER_CAPABILITIES=compute,video,utility` (ohne graphics – der Nvidia-GL-Treiber
   passt nicht zu Xvfb). Folge: gezeichnet wird mit llvmpipe auf der Server-CPU, nicht mit der 1050 Ti. `start.sh` schreibt `glxinfo -B` ins Container-Log. Ergebnis offen.
+- 28.11.2026: Nachbau hier (Ubuntu-OBS 30 ohne obs-browser, Xvfb + Mesa llvmpipe): OBS zeichnet im virtuellen Bildschirm einwandfrei (Farbquelle per GetSourceScreenshot geprüft) → Problem liegt bei der Browserquelle (CEF).
+  Michael danach: auch **kein Ton** mehr → Browserquellen laden vermutlich gar nicht. Außerdem: obs-websocket ≥ 5.3 liest seine Einstellungen aus `[OBSWebSocket]` in global.ini/user.ini (FirstLoad, ServerEnabled, ServerPort, AuthRequired,
+  ServerPassword), nicht mehr aus config.json → `start.sh` setzt das jetzt per `setze()` (awk) bei jedem Start. Ursache Browserquelle offen, OBS-Log von Michael angefragt.

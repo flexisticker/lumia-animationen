@@ -8,13 +8,24 @@ mkdir -p /config/obs-studio/plugin_config/obs-websocket
 ln -sfn /config/obs-studio /home/obs/.config/obs-studio
 # Erststart: Assistent aus, WebSocket an (Passwort aus der Unraid-Vorlage)
 for f in global.ini user.ini; do [ -f "/config/obs-studio/$f" ] || printf '[General]\nFirstRun=false\nEnableAutoUpdates=false\n' > "/config/obs-studio/$f"; done
-# Browserquellen im Container über den Prozessor zeichnen (Chromium bekommt hier keinen Grafikkarten-Bildschirm → sonst schwarzes Bild, nur Ton).
-# BROWSER_GPU=1 schaltet die Hardwarebeschleunigung wieder ein.
+# Schlüssel in einer OBS-ini-Datei setzen (Abschnitt anlegen, falls er fehlt)
+setze() { # datei abschnitt schluessel wert
+  awk -v S="[$2]" -v K="$3" -v V="$4" '
+    BEGIN { inS = 0; done = 0 }
+    /^\[/ { if (inS && !done) { print K "=" V; done = 1 } inS = ($0 == S) }
+    { if (inS && index($0, K "=") == 1) { if (!done) { print K "=" V; done = 1 } next } print }
+    END { if (!done) { if (!inS) print S; print K "=" V } }' "$1" > "$1.neu" && mv "$1.neu" "$1"
+}
+# Browserquellen über den Prozessor (BROWSER_GPU=1 = Grafikkarte) und WebSocket-Server (OBS ≥ 30 liest ihn aus der ini, nicht mehr aus config.json)
 HW=$([ "${BROWSER_GPU:-0}" = "1" ] && echo true || echo false)
 for f in global.ini user.ini; do p="/config/obs-studio/$f"
-  if grep -q '^BrowserHWAccel=' "$p"; then sed -i "s/^BrowserHWAccel=.*/BrowserHWAccel=$HW/" "$p"
-  elif grep -q '^\[General\]' "$p"; then sed -i "/^\[General\]/a BrowserHWAccel=$HW" "$p"
-  else printf '[General]\nBrowserHWAccel=%s\n' "$HW" >> "$p"; fi
+  setze "$p" General BrowserHWAccel "$HW"
+  setze "$p" OBSWebSocket FirstLoad false
+  setze "$p" OBSWebSocket ServerEnabled true
+  setze "$p" OBSWebSocket ServerPort 4455
+  setze "$p" OBSWebSocket AlertsEnabled false
+  setze "$p" OBSWebSocket AuthRequired "$([ -n "$PW" ] && echo true || echo false)"
+  setze "$p" OBSWebSocket ServerPassword "$PW"
 done
 cat > /config/obs-studio/plugin_config/obs-websocket/config.json <<J
 {"alerts_enabled":false,"auth_required":$([ -n "$PW" ] && echo true || echo false),"first_load":false,"server_enabled":true,"server_password":"$PW","server_port":4455}
