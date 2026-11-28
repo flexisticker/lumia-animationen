@@ -144,6 +144,8 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
 body.leicht .banner span { animation: none; }
 body.leicht .banner.hype span { animation: hype .5s ease-out 3; }
 body.leicht .sp-glow { animation: none; }
+body.zockruhe .banner span, body.zockruhe .logo-bild, body.zockruhe .logo-bild::after, body.zockruhe .sp-glow { animation: none !important; }
+body.zockruhe .banner.hype span { animation: hype .5s ease-out 3 !important; }
 body.leicht .scene-title, body.leicht .scene-sub { animation-duration: 0s !important; }
 
 /* Chat: Plattform nur als Logo */

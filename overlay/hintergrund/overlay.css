@@ -9,6 +9,8 @@ html, body { margin: 0; width: 100%; height: 100%; background: transparent; over
 #dim { position: absolute; inset: 0; background: #000; opacity: 0; }
 /* Leistungsmodus: Leuchtschein steht still (sich drehender Weichzeichner wurde jedes Bild neu berechnet) */
 body.leicht .frame-glow { --a: 0deg; }
+/* Leistungsmodus: Rahmen um die Fenster dreht sich nicht (sonst zeichnet OBS die ganze Quelle in jedem Bild neu) */
+body.leicht .frame, body.leicht .frame-glow { animation: none; }
 /* Leuchtrahmen um die Spiel-Öffnung */
 .frame { position: fixed; pointer-events: none; opacity: 0; border-radius: var(--r, 24px);
   transition: opacity .6s; --w: 6px; padding: var(--w);
