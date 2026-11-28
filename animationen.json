@@ -1,798 +1,861 @@
 {
- "hinweis": "Je Eintrag eine 5-Sekunden-Animation (9:16, mit Ton) von fal.ai (minimax/h3-max/text-to-video). key = Hintergrund, der im Overlay herausgerechnet wird.",
- "liste": [
-  {
-   "id": "rose",
-   "gruppe": "geschenk",
-   "match": [
-    "Rose",
-    "Rosa"
-   ],
-   "key": "black",
-   "bild": "a single glowing red rose bursts open in the center and explodes into hundreds of swirling red and pink rose petals, golden sparkles and confetti flying towards the camera"
-  },
-  {
-   "id": "gg",
-   "gruppe": "geschenk",
-   "match": [
-    "GG"
-   ],
-   "key": "black",
-   "bild": "huge shiny chrome letters 'GG' slam into the center with a shockwave, neon blue and pink lightning, sparks and confetti burst outwards"
-  },
-  {
-   "id": "tiktok",
-   "gruppe": "geschenk",
-   "match": [
-    "TikTok"
-   ],
-   "key": "black",
-   "bild": "a glowing neon music note in cyan and hot pink pulses to a beat, then explodes into equalizer bars, light rays and sparkling confetti (no logos)"
-  },
-  {
-   "id": "fingerherz",
-   "gruppe": "geschenk",
-   "match": [
-    "Finger Heart",
-    "Fingerherz"
-   ],
-   "key": "black",
-   "bild": "a small glowing pink heart pops up, multiplies into dozens of cute bouncing pink and red hearts that float up and burst into sparkles"
-  },
-  {
-   "id": "teamherz",
-   "gruppe": "geschenk",
-   "match": [
-    "Team Heart",
-    "Teamherz",
-    "Heart Me"
-   ],
-   "key": "black",
-   "bild": "a big glossy golden-pink heart with a crown forms from swirling light, beats twice with a shockwave, then showers golden glitter and hearts across the whole frame"
-  },
-  {
-   "id": "donut",
-   "gruppe": "geschenk",
-   "match": [
-    "Doughnut",
-    "Donut"
-   ],
-   "key": "black",
-   "bild": "a giant glazed pink donut with colorful sprinkles bounces into the center, spins, and bursts into flying sprinkles and mini donuts"
-  },
-  {
-   "id": "parfuem",
-   "gruppe": "geschenk",
-   "match": [
-    "Perfume",
-    "Parfüm"
-   ],
-   "key": "black",
-   "bild": "an elegant crystal perfume bottle sprays a shimmering cloud of violet and gold glitter mist that swirls through the frame with floating flower petals"
-  },
-  {
-   "id": "handherzen",
-   "gruppe": "geschenk",
-   "match": [
-    "Hand Hearts",
-    "Hand-Herzen"
-   ],
-   "key": "black",
-   "bild": "a rain of glowing red, pink and purple hearts of all sizes pours across the frame, hearts pulse and pop into sparkles"
-  },
-  {
-   "id": "sonnenbrille",
-   "gruppe": "geschenk",
-   "match": [
-    "Sunglasses",
-    "Sonnenbrille"
-   ],
-   "key": "black",
-   "bild": "cool black sunglasses with neon reflections fly in and land in the center with a lens flare, 'deal with it' style, neon pink and cyan light beams and stars"
-  },
-  {
-   "id": "kanone",
-   "gruppe": "geschenk",
-   "match": [
-    "Money Gun",
-    "Confetti",
-    "Kanone",
-    "Konfetti"
-   ],
-   "key": "black",
-   "bild": "two big confetti cannons fire from the bottom corners, massive explosion of colorful confetti, streamers and gold coins filling the whole frame"
-  },
-  {
-   "id": "corgi",
-   "gruppe": "geschenk",
-   "match": [
-    "Corgi"
-   ],
-   "key": "black",
-   "bild": "a cute happy cartoon corgi dog jumps into the frame wearing a party hat, wags its tail, surrounded by bouncing bones, stars and confetti"
-  },
-  {
-   "id": "kueken",
-   "gruppe": "geschenk",
-   "match": [
-    "Baby Chicks",
-    "Küken"
-   ],
-   "key": "black",
-   "bild": "a group of fluffy cute yellow cartoon chicks hatch from glowing eggs and hop around happily, surrounded by small hearts and sparkles"
-  },
-  {
-   "id": "galaxie",
-   "gruppe": "geschenk",
-   "match": [
-    "Galaxy",
-    "Galaxie"
-   ],
-   "key": "black",
-   "bild": "a swirling purple and blue spiral galaxy forms in the center, stars stream towards the camera at warp speed, nebula clouds and glowing planets orbit"
-  },
-  {
-   "id": "loewe",
-   "gruppe": "geschenk",
-   "match": [
-    "Lion",
-    "Löwe"
-   ],
-   "key": "black",
-   "bild": "a majestic golden lion made of fire and light leaps out of the darkness and roars towards the camera, golden flames, crown and sparks explode around it"
-  },
-  {
-   "id": "universum",
-   "gruppe": "geschenk",
-   "match": [
-    "Universe",
-    "Universum"
-   ],
-   "key": "black",
-   "bild": "an epic cosmic explosion: planets align, a supernova blasts rainbow light across the frame, a golden crown and shooting stars, ultimate grand finale"
-  },
-  {
-   "id": "daumenhoch",
-   "gruppe": "geschenk",
-   "label": "Daumen hoch",
-   "match": [
-    "Thumbs Up",
-    "Daumen hoch",
-    "Like"
-   ],
-   "key": "black",
-   "bild": "a giant glossy golden 3D thumbs-up hand pops into the center with a bounce and a shockwave ring, then dozens of small colorful thumbs-up icons and stars burst outwards"
-  },
-  {
-   "id": "lebkuchenherz",
-   "gruppe": "geschenk",
-   "label": "Lebkuchenherz",
-   "match": [
-    "Gingerbread Heart",
-    "Lebkuchenherz",
-    "Gingerbread",
-    "Lebkuchen"
-   ],
-   "key": "black",
-   "bild": "a big shiny gingerbread heart with white icing swirls and colorful sugar decorations swings in like on a ribbon, glows warmly, then bursts into cinnamon sparkles, small cookie hearts and golden fairground lights"
-  },
-  {
-   "id": "herz",
-   "gruppe": "geschenk",
-   "label": "Herz",
-   "match": [
-    "Heart",
-    "Herz"
-   ],
-   "key": "black",
-   "bild": "a single glowing red heart beats twice in the center with pulsing light waves, then splits into a fountain of smaller red and pink hearts that rise and pop into sparkles"
-  },
-  {
-   "id": "eiswaffel",
-   "gruppe": "geschenk",
-   "label": "Eiswaffel",
-   "match": [
-    "Ice Cream Cone",
-    "Ice Cream",
-    "Eiswaffel",
-    "Eistüte",
-    "Eis"
-   ],
-   "key": "black",
-   "bild": "a cute ice cream cone with three colorful scoops (strawberry, mint, vanilla) and rainbow sprinkles drops in, wobbles happily, then sprinkles and tiny ice cream scoops shower across the frame"
-  },
-  {
-   "id": "freundschaftskette",
-   "gruppe": "geschenk",
-   "label": "Freundschaftskette",
-   "match": [
-    "Friendship Necklace",
-    "Freundschaftskette",
-    "Freundschaftsband"
-   ],
-   "key": "black",
-   "bild": "two halves of a shiny golden heart pendant on delicate chains float in from both sides, click together in the center with a bright flash, then golden sparkles and small friendship hearts spiral outwards"
-  },
-  {
-   "id": "kappe",
-   "gruppe": "geschenk",
-   "label": "Kappe",
-   "match": [
-    "Cap",
-    "Kappe",
-    "Basecap"
-   ],
-   "key": "black",
-   "bild": "a cool colorful baseball cap spins into the center, flips with style and lands, then neon graffiti spray splashes, stars and confetti burst around it"
-  },
-  {
-   "id": "hut",
-   "gruppe": "geschenk",
-   "label": "Hut & Schnurrbart",
-   "match": [
-    "Hat and Mustache",
-    "Hut und Schnurrbart",
-    "Hut & Schnurrbart",
-    "Hat & Mustache"
-   ],
-   "key": "black",
-   "bild": "a classy black top hat and a curly gentleman mustache bounce in together, the hat tips politely and a monocle sparkles, then golden confetti and tiny bow ties burst out"
-  },
-  {
-   "id": "schwan",
-   "gruppe": "geschenk",
-   "label": "Schwan",
-   "match": [
-    "Swan",
-    "Schwan"
-   ],
-   "key": "black",
-   "bild": "an elegant glowing white swan made of light glides in, spreads its wings wide with a shimmer, then white and pink feathers, pearls and sparkles drift beautifully across the frame"
-  },
-  {
-   "id": "kranich",
-   "gruppe": "geschenk",
-   "label": "Papierkranich",
-   "match": [
-    "Paper Crane",
-    "Papierkranich",
-    "Kranich"
-   ],
-   "key": "black",
-   "bild": "a colorful origami paper crane folds itself out of a glowing sheet of paper, flaps its wings and flies a loop, leaving a trail of many small paper cranes and light petals"
-  },
-  {
-   "id": "liebdich",
-   "gruppe": "geschenk",
-   "label": "Ich liebe dich",
-   "match": [
-    "Love you",
-    "I love you",
-    "Ich liebe dich",
-    "Hab dich lieb",
-    "Love You"
-   ],
-   "key": "black",
-   "bild": "glowing pink neon heart shapes and floating lipstick kisses swirl together, form one big radiant heart in the center, which bursts into a cloud of tiny hearts and rose sparkles"
-  },
-  {
-   "id": "mikrofon",
-   "gruppe": "geschenk",
-   "label": "Mikrofon",
-   "match": [
-    "Mic",
-    "Microphone",
-    "Mikrofon",
-    "Mikro"
-   ],
-   "key": "black",
-   "bild": "a shiny golden stage microphone rises into a spotlight, sound waves ripple out as rainbow equalizer bars, then golden music notes and confetti explode across the frame"
-  },
-  {
-   "id": "zug",
-   "gruppe": "geschenk",
-   "label": "Zug",
-   "match": [
-    "Train",
-    "Zug"
-   ],
-   "key": "black",
-   "bild": "a colorful cartoon steam train with glowing windows rushes in, puffs big clouds of sparkly rainbow steam, whistles and races across the frame, wagons full of gifts and confetti"
-  },
-  {
-   "id": "feuerwerk",
-   "gruppe": "geschenk",
-   "label": "Feuerwerk",
-   "match": [
-    "Fireworks",
-    "Feuerwerk",
-    "Firework"
-   ],
-   "key": "black",
-   "bild": "Several colorful fireworks rockets shoot up from the bottom with glowing trails and explode into huge gold, pink, blue and green firework bursts and glittering willow sparks"
-  },
-  {
-   "id": "wal",
-   "gruppe": "geschenk",
-   "label": "Wal",
-   "match": [
-    "Whale diving",
-    "Whale Diving",
-    "Whale",
-    "Wal",
-    "Walsprung"
-   ],
-   "key": "black",
-   "bild": "A majestic glowing blue whale made of light swims up from below, leaps through sparkling water splashes and shimmering bubbles, then dives back down leaving a burst of luminous droplets and tiny glowing fish"
-  },
-  {
-   "id": "motorrad",
-   "gruppe": "geschenk",
-   "label": "Motorrad",
-   "match": [
-    "Motorcycle",
-    "Motorrad"
-   ],
-   "key": "black",
-   "bild": "A shiny chrome and neon-red sport motorcycle roars in with glowing headlights, does a wheelie with a trail of fire and sparks, then races through a burst of neon light streaks and smoke"
-  },
-  {
-   "id": "privatjet",
-   "gruppe": "geschenk",
-   "label": "Privatjet",
-   "match": [
-    "Private Jet",
-    "Privatjet",
-    "Jet"
-   ],
-   "key": "black",
-   "bild": "A sleek white and gold private jet flies in through golden clouds, banks elegantly with glowing contrails, then showers golden coins, champagne bubbles and sparkles across the frame"
-  },
-  {
-   "id": "sportwagen",
-   "gruppe": "geschenk",
-   "label": "Sportwagen",
-   "match": [
-    "Sports Car",
-    "Sportwagen",
-    "Sports car",
-    "Auto"
-   ],
-   "key": "black",
-   "bild": "A glossy red generic supercar without any badges drifts into the center with glowing tail lights, tire smoke and sparks, revs, then speeds off leaving neon light trails and confetti"
-  },
-  {
-   "id": "einhorn",
-   "gruppe": "geschenk",
-   "label": "Einhorn",
-   "match": [
-    "Unicorn Fantasy",
-    "Einhorn-Fantasie",
-    "Unicorn",
-    "Einhorn"
-   ],
-   "key": "black",
-   "bild": "A magical white unicorn with a glowing golden horn and flowing rainbow mane gallops in on a rainbow, rears up, then rainbow stars, glitter and pastel clouds swirl across the frame"
-  },
-  {
-   "id": "interstellar",
-   "gruppe": "geschenk",
-   "label": "Interstellar",
-   "match": [
-    "Interstellar"
-   ],
-   "key": "black",
-   "bild": "A futuristic glowing spaceship flies out of a swirling cosmic wormhole, passes colorful planets and asteroids, then a supernova of purple, blue and gold light explodes across the frame"
-  },
-  {
-   "id": "rosanebel",
-   "gruppe": "geschenk",
-   "label": "Rosa Nebel",
-   "match": [
-    "Rosa Nebula",
-    "Rosa Nebel",
-    "Rose Nebula",
-    "Nebula"
-   ],
-   "key": "black",
-   "bild": "A giant glowing rose made of pink cosmic nebula clouds and stars blooms in space, petals unfold slowly with sparkling stardust, then rose petals and stars drift across the frame"
-  },
-  {
-   "id": "falke",
-   "gruppe": "geschenk",
-   "label": "Falke",
-   "match": [
-    "Falcon",
-    "Falke"
-   ],
-   "key": "black",
-   "bild": "A majestic golden falcon with glowing wings swoops down from above, spreads its huge wings wide with a flash of light, then golden feathers and sparks swirl across the frame"
-  },
-  {
-   "id": "shuttle",
-   "gruppe": "geschenk",
-   "label": "Weltraum-Shuttle",
-   "match": [
-    "TikTok Shuttle",
-    "Shuttle",
-    "Space Shuttle",
-    "Weltraum-Shuttle",
-    "Rakete",
-    "Rocket"
-   ],
-   "key": "black",
-   "bild": "A glowing white space shuttle without any logos launches from the bottom with a huge bright exhaust flame and smoke clouds, rockets upward through stars and colorful light rings, then explodes into a galaxy of confetti and stars"
-  },
-  {
-   "id": "stufe-klein",
-   "gruppe": "stufe",
-   "ab": 1,
-   "key": "black",
-   "bild": "a quick cheerful burst of colorful sparkles and small stars from the center"
-  },
-  {
-   "id": "stufe-mittel",
-   "gruppe": "stufe",
-   "ab": 100,
-   "key": "black",
-   "bild": "a bright explosion of confetti, golden stars and light rays from the center, joyful and bouncy"
-  },
-  {
-   "id": "stufe-gross",
-   "gruppe": "stufe",
-   "ab": 1000,
-   "key": "black",
-   "bild": "a huge fireworks show filling the whole frame, multiple colorful rockets explode, golden glitter rain"
-  },
-  {
-   "id": "stufe-episch",
-   "gruppe": "stufe",
-   "ab": 10000,
-   "key": "black",
-   "bild": "an epic legendary celebration: a golden trophy rises in a pillar of light, massive fireworks, lightning and golden confetti storm, ultimate hype"
-  },
-  {
-   "id": "folgen",
-   "gruppe": "ereignis",
-   "alert": "tiktok-follower",
-   "key": "black",
-   "bild": "a glowing pink plus symbol pops up and transforms into a burst of hearts and stars, welcoming and friendly"
-  },
-  {
-   "id": "teilen",
-   "gruppe": "ereignis",
-   "alert": "tiktok-share",
-   "key": "black",
-   "bild": "a glowing arrow shoots across the frame leaving a rainbow trail, then splits into many small arrows and sparkles flying in all directions"
-  },
-  {
-   "id": "superfan",
-   "gruppe": "ereignis",
-   "alert": "tiktok-superFan",
-   "key": "black",
-   "bild": "a glowing golden star badge with wings rises in the center, light rays and golden confetti, VIP celebration"
-  },
-  {
-   "id": "schatzkiste",
-   "gruppe": "ereignis",
-   "alert": "tiktok-treasureChest",
-   "key": "black",
-   "bild": "an ornate wooden treasure chest bursts open, gold coins, jewels and light rays explode out and rain down"
-  },
-  {
-   "id": "likeziel",
-   "gruppe": "ereignis",
-   "alert": "tiktok-totalLikes",
-   "key": "black",
-   "bild": "a giant glowing heart fills up like a meter and explodes into a storm of hearts and confetti, goal reached celebration"
-  },
-  {
-   "id": "battle-sieg",
-   "gruppe": "ereignis",
-   "alert": "tiktok-battleEnd",
-   "key": "black",
-   "bild": "a golden winner trophy slams down with a shockwave, lightning bolts and fireworks, victory celebration"
-  },
-  {
-   "id": "airhorn",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "a chrome air horn blasts in the center with visible sound shockwaves rings and flying confetti",
-   "ton": "three loud stadium airhorn blasts"
-  },
-  {
-   "id": "torjubel",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "a soccer ball shoots into a goal net, the net bulges, stadium fireworks and confetti explode",
-   "ton": "stadium crowd erupting in a huge goal cheer, whistles and drums"
-  },
-  {
-   "id": "trommelwirbel",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "spotlights sweep and focus on the center with rising tension, then a bright flash and small confetti pop at the end",
-   "ton": "a building snare drum roll ending in a cymbal crash"
-  },
-  {
-   "id": "applaus",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "many cartoon clapping hands and golden stars bounce across the frame with sparkles",
-   "ton": "enthusiastic audience applause and cheering"
-  },
-  {
-   "id": "konfetti",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "a massive confetti explosion from the center, colorful paper confetti and streamers fill the whole frame then flutter down",
-   "ton": "confetti cannon pops and party cheering"
-  },
-  {
-   "id": "verlosung",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "a glowing colorful prize wheel spins fast in the center, slows down, then a golden gift box pops out with fireworks",
-   "ton": "spinning wheel clicks, drumroll and a winner fanfare"
-  },
-  {
-   "id": "fanfare",
-   "gruppe": "knopf",
-   "bild": "golden royal trumpets with flags rise from both sides and blast, golden light rays and a shower of gold confetti and stars",
-   "ton": "a triumphant royal brass fanfare",
-   "key": "black"
-  },
-  {
-   "id": "lacher",
-   "gruppe": "knopf",
-   "bild": "dozens of laughing cartoon emoji faces with tears of joy bounce and roll across the frame",
-   "ton": "a big audience laugh track, people laughing hard",
-   "key": "black"
-  },
-  {
-   "id": "wow",
-   "gruppe": "knopf",
-   "bild": "huge glowing comic-style starburst with sparkles and shining stars pops in the center, amazed and dazzling (no letters)",
-   "ton": "a crowd going 'wooow' in amazement with a magical shimmer",
-   "key": "black"
-  },
-  {
-   "id": "rimshot",
-   "gruppe": "knopf",
-   "bild": "a shiny cartoon drum kit with cymbal bounces into the center, the drums hit and the cymbal flashes with comic impact stars",
-   "ton": "a classic comedy rimshot drum sting ba-dum-tss",
-   "key": "black"
-  },
-  {
-   "id": "herzregen",
-   "gruppe": "knopf",
-   "bild": "a heavy rain of glowing pink and red hearts falls from the top across the whole frame, sparkling",
-   "ton": "soft magical chimes and an audience going 'aww'",
-   "key": "black"
-  },
-  {
-   "id": "partyalarm",
-   "gruppe": "knopf",
-   "bild": "spinning red and blue party police lights flash from the corners, disco ball drops in, lasers and confetti",
-   "ton": "a party siren alarm followed by a heavy bass drop",
-   "key": "black"
-  },
-  {
-   "id": "tw-follow",
-   "gruppe": "twitch",
-   "label": "Twitch: Follow",
-   "key": "black",
-   "format": "quer",
-   "bild": "a glowing purple heart with a plus sign pops up in the center and bursts into purple and pink hearts and stars",
-   "ton": "a cheerful whoosh, sparkle chime and a short happy crowd cheer"
-  },
-  {
-   "id": "tw-sub",
-   "gruppe": "twitch",
-   "label": "Twitch: Sub",
-   "key": "black",
-   "format": "quer",
-   "bild": "a shiny purple star badge spins into the center, explodes into purple confetti, gold sparkles and light rays",
-   "ton": "an epic celebratory synth stinger with a crowd cheering"
-  },
-  {
-   "id": "tw-primesub",
-   "gruppe": "twitch",
-   "label": "Twitch: Prime-Sub",
-   "key": "black",
-   "format": "quer",
-   "bild": "a glowing golden royal crown descends into the center with blue and gold light beams and a shower of gold coins and sparkles",
-   "ton": "a regal brass fanfare with shimmering chimes"
-  },
-  {
-   "id": "tw-resub",
-   "gruppe": "twitch",
-   "label": "Twitch: Resub",
-   "key": "black",
-   "format": "quer",
-   "bild": "a glowing purple calendar flips pages quickly, then a big heart and golden stars burst out with confetti",
-   "ton": "a warm celebratory chime sequence and applause"
-  },
-  {
-   "id": "tw-giftsub",
-   "gruppe": "twitch",
-   "label": "Twitch: Geschenk-Subs",
-   "key": "black",
-   "format": "quer",
-   "bild": "many wrapped purple gift boxes with gold ribbons rain down and pop open releasing stars, confetti and hearts",
-   "ton": "gift boxes popping, sleigh-bell sparkles and an excited crowd cheer"
-  },
-  {
-   "id": "tw-bits-klein",
-   "gruppe": "twitch",
-   "label": "Twitch: Bits klein",
-   "key": "black",
-   "format": "quer",
-   "bild": "a few glowing purple and grey crystal gems bounce in and sparkle",
-   "ton": "a quick sparkling coin chime"
-  },
-  {
-   "id": "tw-bits-mittel",
-   "gruppe": "twitch",
-   "label": "Twitch: Bits mittel",
-   "key": "black",
-   "format": "quer",
-   "bild": "a burst of glowing purple and green crystal gems explodes from the center with sparkles",
-   "ton": "a cascade of gem chimes and a short cheer"
-  },
-  {
-   "id": "tw-bits-gross",
-   "gruppe": "twitch",
-   "label": "Twitch: Bits groß",
-   "key": "black",
-   "format": "quer",
-   "bild": "a fountain of glowing blue and purple crystal gems erupts and rains across the whole frame with light rays",
-   "ton": "a big cascading jackpot chime with crowd cheering"
-  },
-  {
-   "id": "tw-bits-episch",
-   "gruppe": "twitch",
-   "label": "Twitch: Bits episch",
-   "key": "black",
-   "format": "quer",
-   "bild": "a gigantic glowing red crystal gem shatters into thousands of shining gems and fireworks filling the whole frame",
-   "ton": "an epic orchestral hit, jackpot bells and a roaring crowd"
-  },
-  {
-   "id": "tw-hypetrain-start",
-   "gruppe": "twitch",
-   "label": "Twitch: Hype Train Start",
-   "key": "black",
-   "format": "quer",
-   "bild": "a glowing neon purple train races across the frame from left to right leaving a trail of fire, sparks and confetti",
-   "ton": "a train horn blast, rushing train sound and an energetic beat drop"
-  },
-  {
-   "id": "tw-hypetrain-level",
-   "gruppe": "twitch",
-   "label": "Twitch: Hype Train Level",
-   "key": "black",
-   "format": "quer",
-   "bild": "a glowing neon purple train engine bursts through a ring of fire with a level-up flash, sparks and stars",
-   "ton": "a level-up power-up sound with a train horn and cheering"
-  },
-  {
-   "id": "tw-hypetrain-ende",
-   "gruppe": "twitch",
-   "label": "Twitch: Hype Train Ende",
-   "key": "black",
-   "format": "quer",
-   "bild": "a glowing neon train arrives and stops, a huge golden trophy rises with fireworks and confetti",
-   "ton": "a triumphant victory fanfare and a huge crowd cheer"
-  },
-  {
-   "id": "tw-raid",
-   "gruppe": "twitch",
-   "label": "Twitch: Raid",
-   "key": "black",
-   "format": "quer",
-   "bild": "a huge army of glowing purple paper planes and rockets swoops in from the left side filling the frame, sparks and confetti",
-   "ton": "an epic war horn, rushing wind and a massive crowd roar"
-  },
-  {
-   "id": "xmas-schlitten",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "Santa's sleigh with glowing reindeer flies across leaving golden sparkles, snowflakes and gifts",
-   "ton": "sleigh bells, whoosh and a jolly Ho ho ho"
-  },
-  {
-   "id": "xmas-schnee",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "magical burst of glittering snowflakes exploding toward the camera, then drifting like a snow globe",
-   "ton": "icy shimmer, soft wind, twinkling chimes"
-  },
-  {
-   "id": "xmas-geschenke",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "shower of wrapped Christmas presents tumbling down, popping open with confetti, candy canes and stars",
-   "ton": "festive brass fanfare, sleigh bells, cheerful pops"
-  },
-  {
-   "id": "xmas-baum",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "Christmas tree of golden fairy lights grows upward, ornaments light up, star bursts into sparkles",
-   "ton": "glockenspiel arpeggio, magical orchestral swell, choir"
-  },
-  {
-   "id": "xmas-schneemann",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "cheerful cartoon snowman bounces in, waves and spins sending snowballs and sparkles",
-   "ton": "bouncy thud, snowball splats, happy giggle"
-  },
-  {
-   "id": "xmas-rentier",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "glowing red-nosed reindeer leaps across leaving golden sparkles"
-  },
-  {
-   "id": "xmas-lebkuchen",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "gingerbread man dances while sprinkles and candies burst"
-  },
-  {
-   "id": "xmas-kugeln",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "glass ornament baubles bounce in and burst into sparkles"
-  },
-  {
-   "id": "xmas-sternschnuppe",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "golden Christmas shooting star explodes into tiny stars"
-  },
-  {
-   "id": "xmas-elfen",
-   "gruppe": "knopf",
-   "key": "black",
-   "bild": "two cartoon elves juggle presents and throw confetti"
-  },
-  {
-   "id": "xa-folgen",
-   "gruppe": "weihnachten",
-   "key": "black",
-   "bild": "heart of snowflakes and fairy lights bursts into snow (Weihnachts-Version von Neuer Follower)",
-   "fuer": "folgen"
-  },
-  {
-   "id": "xa-teilen",
-   "gruppe": "weihnachten",
-   "key": "black",
-   "bild": "present box spins, lid flies off, gifts fly out (Weihnachts-Version von Live geteilt)",
-   "fuer": "teilen"
-  },
-  {
-   "id": "xa-superfan",
-   "gruppe": "weihnachten",
-   "key": "black",
-   "bild": "golden crown with holly descends with stars and snow (Weihnachts-Version von Superfan)",
-   "fuer": "superfan"
-  },
-  {
-   "id": "xa-likeziel",
-   "gruppe": "weihnachten",
-   "key": "black",
-   "bild": "explosion of hearts, snowflakes and Christmas fireworks (Weihnachts-Version von Like-Ziel)",
-   "fuer": "likeziel"
-  },
-  {
-   "id": "xa-stufe-klein",
-   "gruppe": "weihnachten",
-   "key": "black",
-   "bild": "snow globe bounces and releases sparkling snow (Weihnachts-Version von Stufe klein)",
-   "fuer": "stufe-klein"
-  }
- ]
+  "hinweis": "Je Eintrag eine 5-Sekunden-Animation (9:16, mit Ton) von fal.ai (minimax/h3-max/text-to-video). key = Hintergrund, der im Overlay herausgerechnet wird.",
+  "liste": [
+    {
+      "id": "rose",
+      "gruppe": "geschenk",
+      "match": [
+        "Rose",
+        "Rosa"
+      ],
+      "key": "black",
+      "bild": "a single glowing red rose bursts open in the center and explodes into hundreds of swirling red and pink rose petals, golden sparkles and confetti flying towards the camera"
+    },
+    {
+      "id": "gg",
+      "gruppe": "geschenk",
+      "match": [
+        "GG"
+      ],
+      "key": "black",
+      "bild": "huge shiny chrome letters 'GG' slam into the center with a shockwave, neon blue and pink lightning, sparks and confetti burst outwards"
+    },
+    {
+      "id": "tiktok",
+      "gruppe": "geschenk",
+      "match": [
+        "TikTok"
+      ],
+      "key": "black",
+      "bild": "a glowing neon music note in cyan and hot pink pulses to a beat, then explodes into equalizer bars, light rays and sparkling confetti (no logos)"
+    },
+    {
+      "id": "fingerherz",
+      "gruppe": "geschenk",
+      "match": [
+        "Finger Heart",
+        "Fingerherz"
+      ],
+      "key": "black",
+      "bild": "a small glowing pink heart pops up, multiplies into dozens of cute bouncing pink and red hearts that float up and burst into sparkles"
+    },
+    {
+      "id": "teamherz",
+      "gruppe": "geschenk",
+      "match": [
+        "Team Heart",
+        "Teamherz",
+        "Heart Me"
+      ],
+      "key": "black",
+      "bild": "a big glossy golden-pink heart with a crown forms from swirling light, beats twice with a shockwave, then showers golden glitter and hearts across the whole frame"
+    },
+    {
+      "id": "donut",
+      "gruppe": "geschenk",
+      "match": [
+        "Doughnut",
+        "Donut"
+      ],
+      "key": "black",
+      "bild": "a giant glazed pink donut with colorful sprinkles bounces into the center, spins, and bursts into flying sprinkles and mini donuts"
+    },
+    {
+      "id": "parfuem",
+      "gruppe": "geschenk",
+      "match": [
+        "Perfume",
+        "Parfüm"
+      ],
+      "key": "black",
+      "bild": "an elegant crystal perfume bottle sprays a shimmering cloud of violet and gold glitter mist that swirls through the frame with floating flower petals"
+    },
+    {
+      "id": "handherzen",
+      "gruppe": "geschenk",
+      "match": [
+        "Hand Hearts",
+        "Hand-Herzen"
+      ],
+      "key": "black",
+      "bild": "a rain of glowing red, pink and purple hearts of all sizes pours across the frame, hearts pulse and pop into sparkles"
+    },
+    {
+      "id": "sonnenbrille",
+      "gruppe": "geschenk",
+      "match": [
+        "Sunglasses",
+        "Sonnenbrille"
+      ],
+      "key": "black",
+      "bild": "cool black sunglasses with neon reflections fly in and land in the center with a lens flare, 'deal with it' style, neon pink and cyan light beams and stars"
+    },
+    {
+      "id": "kanone",
+      "gruppe": "geschenk",
+      "match": [
+        "Money Gun",
+        "Confetti",
+        "Kanone",
+        "Konfetti"
+      ],
+      "key": "black",
+      "bild": "two big confetti cannons fire from the bottom corners, massive explosion of colorful confetti, streamers and gold coins filling the whole frame"
+    },
+    {
+      "id": "corgi",
+      "gruppe": "geschenk",
+      "match": [
+        "Corgi"
+      ],
+      "key": "black",
+      "bild": "a cute happy cartoon corgi dog jumps into the frame wearing a party hat, wags its tail, surrounded by bouncing bones, stars and confetti"
+    },
+    {
+      "id": "kueken",
+      "gruppe": "geschenk",
+      "match": [
+        "Baby Chicks",
+        "Küken"
+      ],
+      "key": "black",
+      "bild": "a group of fluffy cute yellow cartoon chicks hatch from glowing eggs and hop around happily, surrounded by small hearts and sparkles"
+    },
+    {
+      "id": "galaxie",
+      "gruppe": "geschenk",
+      "match": [
+        "Galaxy",
+        "Galaxie"
+      ],
+      "key": "black",
+      "bild": "a swirling purple and blue spiral galaxy forms in the center, stars stream towards the camera at warp speed, nebula clouds and glowing planets orbit"
+    },
+    {
+      "id": "loewe",
+      "gruppe": "geschenk",
+      "match": [
+        "Lion",
+        "Löwe"
+      ],
+      "key": "black",
+      "bild": "a majestic golden lion made of fire and light leaps out of the darkness and roars towards the camera, golden flames, crown and sparks explode around it"
+    },
+    {
+      "id": "universum",
+      "gruppe": "geschenk",
+      "match": [
+        "Universe",
+        "Universum"
+      ],
+      "key": "black",
+      "bild": "an epic cosmic explosion: planets align, a supernova blasts rainbow light across the frame, a golden crown and shooting stars, ultimate grand finale"
+    },
+    {
+      "id": "daumenhoch",
+      "gruppe": "geschenk",
+      "label": "Daumen hoch",
+      "match": [
+        "Thumbs Up",
+        "Daumen hoch",
+        "Like"
+      ],
+      "key": "black",
+      "bild": "a giant glossy golden 3D thumbs-up hand pops into the center with a bounce and a shockwave ring, then dozens of small colorful thumbs-up icons and stars burst outwards"
+    },
+    {
+      "id": "lebkuchenherz",
+      "gruppe": "geschenk",
+      "label": "Lebkuchenherz",
+      "match": [
+        "Gingerbread Heart",
+        "Lebkuchenherz",
+        "Gingerbread",
+        "Lebkuchen"
+      ],
+      "key": "black",
+      "bild": "a big shiny gingerbread heart with white icing swirls and colorful sugar decorations swings in like on a ribbon, glows warmly, then bursts into cinnamon sparkles, small cookie hearts and golden fairground lights"
+    },
+    {
+      "id": "herz",
+      "gruppe": "geschenk",
+      "label": "Herz",
+      "match": [
+        "Heart",
+        "Herz"
+      ],
+      "key": "black",
+      "bild": "a single glowing red heart beats twice in the center with pulsing light waves, then splits into a fountain of smaller red and pink hearts that rise and pop into sparkles"
+    },
+    {
+      "id": "eiswaffel",
+      "gruppe": "geschenk",
+      "label": "Eiswaffel",
+      "match": [
+        "Ice Cream Cone",
+        "Ice Cream",
+        "Eiswaffel",
+        "Eistüte",
+        "Eis"
+      ],
+      "key": "black",
+      "bild": "a cute ice cream cone with three colorful scoops (strawberry, mint, vanilla) and rainbow sprinkles drops in, wobbles happily, then sprinkles and tiny ice cream scoops shower across the frame"
+    },
+    {
+      "id": "freundschaftskette",
+      "gruppe": "geschenk",
+      "label": "Freundschaftskette",
+      "match": [
+        "Friendship Necklace",
+        "Freundschaftskette",
+        "Freundschaftsband"
+      ],
+      "key": "black",
+      "bild": "two halves of a shiny golden heart pendant on delicate chains float in from both sides, click together in the center with a bright flash, then golden sparkles and small friendship hearts spiral outwards"
+    },
+    {
+      "id": "kappe",
+      "gruppe": "geschenk",
+      "label": "Kappe",
+      "match": [
+        "Cap",
+        "Kappe",
+        "Basecap"
+      ],
+      "key": "black",
+      "bild": "a cool colorful baseball cap spins into the center, flips with style and lands, then neon graffiti spray splashes, stars and confetti burst around it"
+    },
+    {
+      "id": "hut",
+      "gruppe": "geschenk",
+      "label": "Hut & Schnurrbart",
+      "match": [
+        "Hat and Mustache",
+        "Hut und Schnurrbart",
+        "Hut & Schnurrbart",
+        "Hat & Mustache"
+      ],
+      "key": "black",
+      "bild": "a classy black top hat and a curly gentleman mustache bounce in together, the hat tips politely and a monocle sparkles, then golden confetti and tiny bow ties burst out"
+    },
+    {
+      "id": "schwan",
+      "gruppe": "geschenk",
+      "label": "Schwan",
+      "match": [
+        "Swan",
+        "Schwan"
+      ],
+      "key": "black",
+      "bild": "an elegant glowing white swan made of light glides in, spreads its wings wide with a shimmer, then white and pink feathers, pearls and sparkles drift beautifully across the frame"
+    },
+    {
+      "id": "kranich",
+      "gruppe": "geschenk",
+      "label": "Papierkranich",
+      "match": [
+        "Paper Crane",
+        "Papierkranich",
+        "Kranich"
+      ],
+      "key": "black",
+      "bild": "a colorful origami paper crane folds itself out of a glowing sheet of paper, flaps its wings and flies a loop, leaving a trail of many small paper cranes and light petals"
+    },
+    {
+      "id": "liebdich",
+      "gruppe": "geschenk",
+      "label": "Ich liebe dich",
+      "match": [
+        "Love you",
+        "I love you",
+        "Ich liebe dich",
+        "Hab dich lieb",
+        "Love You"
+      ],
+      "key": "black",
+      "bild": "glowing pink neon heart shapes and floating lipstick kisses swirl together, form one big radiant heart in the center, which bursts into a cloud of tiny hearts and rose sparkles"
+    },
+    {
+      "id": "mikrofon",
+      "gruppe": "geschenk",
+      "label": "Mikrofon",
+      "match": [
+        "Mic",
+        "Microphone",
+        "Mikrofon",
+        "Mikro"
+      ],
+      "key": "black",
+      "bild": "a shiny golden stage microphone rises into a spotlight, sound waves ripple out as rainbow equalizer bars, then golden music notes and confetti explode across the frame"
+    },
+    {
+      "id": "zug",
+      "gruppe": "geschenk",
+      "label": "Zug",
+      "match": [
+        "Train",
+        "Zug"
+      ],
+      "key": "black",
+      "bild": "a colorful cartoon steam train with glowing windows rushes in, puffs big clouds of sparkly rainbow steam, whistles and races across the frame, wagons full of gifts and confetti"
+    },
+    {
+      "id": "feuerwerk",
+      "gruppe": "geschenk",
+      "label": "Feuerwerk",
+      "match": [
+        "Fireworks",
+        "Feuerwerk",
+        "Firework"
+      ],
+      "key": "black",
+      "bild": "Several colorful fireworks rockets shoot up from the bottom with glowing trails and explode into huge gold, pink, blue and green firework bursts and glittering willow sparks"
+    },
+    {
+      "id": "wal",
+      "gruppe": "geschenk",
+      "label": "Wal",
+      "match": [
+        "Whale diving",
+        "Whale Diving",
+        "Whale",
+        "Wal",
+        "Walsprung"
+      ],
+      "key": "black",
+      "bild": "A majestic glowing blue whale made of light swims up from below, leaps through sparkling water splashes and shimmering bubbles, then dives back down leaving a burst of luminous droplets and tiny glowing fish"
+    },
+    {
+      "id": "motorrad",
+      "gruppe": "geschenk",
+      "label": "Motorrad",
+      "match": [
+        "Motorcycle",
+        "Motorrad"
+      ],
+      "key": "black",
+      "bild": "A shiny chrome and neon-red sport motorcycle roars in with glowing headlights, does a wheelie with a trail of fire and sparks, then races through a burst of neon light streaks and smoke"
+    },
+    {
+      "id": "privatjet",
+      "gruppe": "geschenk",
+      "label": "Privatjet",
+      "match": [
+        "Private Jet",
+        "Privatjet",
+        "Jet"
+      ],
+      "key": "black",
+      "bild": "A sleek white and gold private jet flies in through golden clouds, banks elegantly with glowing contrails, then showers golden coins, champagne bubbles and sparkles across the frame"
+    },
+    {
+      "id": "sportwagen",
+      "gruppe": "geschenk",
+      "label": "Sportwagen",
+      "match": [
+        "Sports Car",
+        "Sportwagen",
+        "Sports car",
+        "Auto"
+      ],
+      "key": "black",
+      "bild": "A glossy red generic supercar without any badges drifts into the center with glowing tail lights, tire smoke and sparks, revs, then speeds off leaving neon light trails and confetti"
+    },
+    {
+      "id": "einhorn",
+      "gruppe": "geschenk",
+      "label": "Einhorn",
+      "match": [
+        "Unicorn Fantasy",
+        "Einhorn-Fantasie",
+        "Unicorn",
+        "Einhorn"
+      ],
+      "key": "black",
+      "bild": "A magical white unicorn with a glowing golden horn and flowing rainbow mane gallops in on a rainbow, rears up, then rainbow stars, glitter and pastel clouds swirl across the frame"
+    },
+    {
+      "id": "interstellar",
+      "gruppe": "geschenk",
+      "label": "Interstellar",
+      "match": [
+        "Interstellar"
+      ],
+      "key": "black",
+      "bild": "A futuristic glowing spaceship flies out of a swirling cosmic wormhole, passes colorful planets and asteroids, then a supernova of purple, blue and gold light explodes across the frame"
+    },
+    {
+      "id": "rosanebel",
+      "gruppe": "geschenk",
+      "label": "Rosa Nebel",
+      "match": [
+        "Rosa Nebula",
+        "Rosa Nebel",
+        "Rose Nebula",
+        "Nebula"
+      ],
+      "key": "black",
+      "bild": "A giant glowing rose made of pink cosmic nebula clouds and stars blooms in space, petals unfold slowly with sparkling stardust, then rose petals and stars drift across the frame"
+    },
+    {
+      "id": "falke",
+      "gruppe": "geschenk",
+      "label": "Falke",
+      "match": [
+        "Falcon",
+        "Falke"
+      ],
+      "key": "black",
+      "bild": "A majestic golden falcon with glowing wings swoops down from above, spreads its huge wings wide with a flash of light, then golden feathers and sparks swirl across the frame"
+    },
+    {
+      "id": "shuttle",
+      "gruppe": "geschenk",
+      "label": "Weltraum-Shuttle",
+      "match": [
+        "TikTok Shuttle",
+        "Shuttle",
+        "Space Shuttle",
+        "Weltraum-Shuttle",
+        "Rakete",
+        "Rocket"
+      ],
+      "key": "black",
+      "bild": "A glowing white space shuttle without any logos launches from the bottom with a huge bright exhaust flame and smoke clouds, rockets upward through stars and colorful light rings, then explodes into a galaxy of confetti and stars"
+    },
+    {
+      "id": "stufe-klein",
+      "gruppe": "stufe",
+      "ab": 1,
+      "key": "black",
+      "bild": "a quick cheerful burst of colorful sparkles and small stars from the center"
+    },
+    {
+      "id": "stufe-mittel",
+      "gruppe": "stufe",
+      "ab": 100,
+      "key": "black",
+      "bild": "a bright explosion of confetti, golden stars and light rays from the center, joyful and bouncy"
+    },
+    {
+      "id": "stufe-gross",
+      "gruppe": "stufe",
+      "ab": 1000,
+      "key": "black",
+      "bild": "a huge fireworks show filling the whole frame, multiple colorful rockets explode, golden glitter rain"
+    },
+    {
+      "id": "stufe-episch",
+      "gruppe": "stufe",
+      "ab": 10000,
+      "key": "black",
+      "bild": "an epic legendary celebration: a golden trophy rises in a pillar of light, massive fireworks, lightning and golden confetti storm, ultimate hype"
+    },
+    {
+      "id": "folgen",
+      "gruppe": "ereignis",
+      "alert": "tiktok-follower",
+      "key": "black",
+      "bild": "a glowing pink plus symbol pops up and transforms into a burst of hearts and stars, welcoming and friendly"
+    },
+    {
+      "id": "teilen",
+      "gruppe": "ereignis",
+      "alert": "tiktok-share",
+      "key": "black",
+      "bild": "a glowing arrow shoots across the frame leaving a rainbow trail, then splits into many small arrows and sparkles flying in all directions"
+    },
+    {
+      "id": "superfan",
+      "gruppe": "ereignis",
+      "alert": "tiktok-superFan",
+      "key": "black",
+      "bild": "a glowing golden star badge with wings rises in the center, light rays and golden confetti, VIP celebration"
+    },
+    {
+      "id": "schatzkiste",
+      "gruppe": "ereignis",
+      "alert": "tiktok-treasureChest",
+      "key": "black",
+      "bild": "an ornate wooden treasure chest bursts open, gold coins, jewels and light rays explode out and rain down"
+    },
+    {
+      "id": "likeziel",
+      "gruppe": "ereignis",
+      "alert": "tiktok-totalLikes",
+      "key": "black",
+      "bild": "a giant glowing heart fills up like a meter and explodes into a storm of hearts and confetti, goal reached celebration"
+    },
+    {
+      "id": "battle-sieg",
+      "gruppe": "ereignis",
+      "alert": "tiktok-battleEnd",
+      "key": "black",
+      "bild": "a golden winner trophy slams down with a shockwave, lightning bolts and fireworks, victory celebration"
+    },
+    {
+      "id": "airhorn",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "a chrome air horn blasts in the center with visible sound shockwaves rings and flying confetti",
+      "ton": "three loud stadium airhorn blasts"
+    },
+    {
+      "id": "torjubel",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "a soccer ball shoots into a goal net, the net bulges, stadium fireworks and confetti explode",
+      "ton": "stadium crowd erupting in a huge goal cheer, whistles and drums"
+    },
+    {
+      "id": "trommelwirbel",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "spotlights sweep and focus on the center with rising tension, then a bright flash and small confetti pop at the end",
+      "ton": "a building snare drum roll ending in a cymbal crash"
+    },
+    {
+      "id": "applaus",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "many cartoon clapping hands and golden stars bounce across the frame with sparkles",
+      "ton": "enthusiastic audience applause and cheering"
+    },
+    {
+      "id": "konfetti",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "a massive confetti explosion from the center, colorful paper confetti and streamers fill the whole frame then flutter down",
+      "ton": "confetti cannon pops and party cheering"
+    },
+    {
+      "id": "verlosung",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "a glowing colorful prize wheel spins fast in the center, slows down, then a golden gift box pops out with fireworks",
+      "ton": "spinning wheel clicks, drumroll and a winner fanfare"
+    },
+    {
+      "id": "fanfare",
+      "gruppe": "knopf",
+      "bild": "golden royal trumpets with flags rise from both sides and blast, golden light rays and a shower of gold confetti and stars",
+      "ton": "a triumphant royal brass fanfare",
+      "key": "black"
+    },
+    {
+      "id": "lacher",
+      "gruppe": "knopf",
+      "bild": "dozens of laughing cartoon emoji faces with tears of joy bounce and roll across the frame",
+      "ton": "a big audience laugh track, people laughing hard",
+      "key": "black"
+    },
+    {
+      "id": "wow",
+      "gruppe": "knopf",
+      "bild": "huge glowing comic-style starburst with sparkles and shining stars pops in the center, amazed and dazzling (no letters)",
+      "ton": "a crowd going 'wooow' in amazement with a magical shimmer",
+      "key": "black"
+    },
+    {
+      "id": "rimshot",
+      "gruppe": "knopf",
+      "bild": "a shiny cartoon drum kit with cymbal bounces into the center, the drums hit and the cymbal flashes with comic impact stars",
+      "ton": "a classic comedy rimshot drum sting ba-dum-tss",
+      "key": "black"
+    },
+    {
+      "id": "herzregen",
+      "gruppe": "knopf",
+      "bild": "a heavy rain of glowing pink and red hearts falls from the top across the whole frame, sparkling",
+      "ton": "soft magical chimes and an audience going 'aww'",
+      "key": "black"
+    },
+    {
+      "id": "partyalarm",
+      "gruppe": "knopf",
+      "bild": "spinning red and blue party police lights flash from the corners, disco ball drops in, lasers and confetti",
+      "ton": "a party siren alarm followed by a heavy bass drop",
+      "key": "black"
+    },
+    {
+      "id": "tw-follow",
+      "gruppe": "twitch",
+      "label": "Twitch: Follow",
+      "key": "black",
+      "format": "quer",
+      "bild": "a glowing purple heart with a plus sign pops up in the center and bursts into purple and pink hearts and stars",
+      "ton": "a cheerful whoosh, sparkle chime and a short happy crowd cheer"
+    },
+    {
+      "id": "tw-sub",
+      "gruppe": "twitch",
+      "label": "Twitch: Sub",
+      "key": "black",
+      "format": "quer",
+      "bild": "a shiny purple star badge spins into the center, explodes into purple confetti, gold sparkles and light rays",
+      "ton": "an epic celebratory synth stinger with a crowd cheering"
+    },
+    {
+      "id": "tw-primesub",
+      "gruppe": "twitch",
+      "label": "Twitch: Prime-Sub",
+      "key": "black",
+      "format": "quer",
+      "bild": "a glowing golden royal crown descends into the center with blue and gold light beams and a shower of gold coins and sparkles",
+      "ton": "a regal brass fanfare with shimmering chimes"
+    },
+    {
+      "id": "tw-resub",
+      "gruppe": "twitch",
+      "label": "Twitch: Resub",
+      "key": "black",
+      "format": "quer",
+      "bild": "a glowing purple calendar flips pages quickly, then a big heart and golden stars burst out with confetti",
+      "ton": "a warm celebratory chime sequence and applause"
+    },
+    {
+      "id": "tw-giftsub",
+      "gruppe": "twitch",
+      "label": "Twitch: Geschenk-Subs",
+      "key": "black",
+      "format": "quer",
+      "bild": "many wrapped purple gift boxes with gold ribbons rain down and pop open releasing stars, confetti and hearts",
+      "ton": "gift boxes popping, sleigh-bell sparkles and an excited crowd cheer"
+    },
+    {
+      "id": "tw-bits-klein",
+      "gruppe": "twitch",
+      "label": "Twitch: Bits klein",
+      "key": "black",
+      "format": "quer",
+      "bild": "a few glowing purple and grey crystal gems bounce in and sparkle",
+      "ton": "a quick sparkling coin chime"
+    },
+    {
+      "id": "tw-bits-mittel",
+      "gruppe": "twitch",
+      "label": "Twitch: Bits mittel",
+      "key": "black",
+      "format": "quer",
+      "bild": "a burst of glowing purple and green crystal gems explodes from the center with sparkles",
+      "ton": "a cascade of gem chimes and a short cheer"
+    },
+    {
+      "id": "tw-bits-gross",
+      "gruppe": "twitch",
+      "label": "Twitch: Bits groß",
+      "key": "black",
+      "format": "quer",
+      "bild": "a fountain of glowing blue and purple crystal gems erupts and rains across the whole frame with light rays",
+      "ton": "a big cascading jackpot chime with crowd cheering"
+    },
+    {
+      "id": "tw-bits-episch",
+      "gruppe": "twitch",
+      "label": "Twitch: Bits episch",
+      "key": "black",
+      "format": "quer",
+      "bild": "a gigantic glowing red crystal gem shatters into thousands of shining gems and fireworks filling the whole frame",
+      "ton": "an epic orchestral hit, jackpot bells and a roaring crowd"
+    },
+    {
+      "id": "tw-hypetrain-start",
+      "gruppe": "twitch",
+      "label": "Twitch: Hype Train Start",
+      "key": "black",
+      "format": "quer",
+      "bild": "a glowing neon purple train races across the frame from left to right leaving a trail of fire, sparks and confetti",
+      "ton": "a train horn blast, rushing train sound and an energetic beat drop"
+    },
+    {
+      "id": "tw-hypetrain-level",
+      "gruppe": "twitch",
+      "label": "Twitch: Hype Train Level",
+      "key": "black",
+      "format": "quer",
+      "bild": "a glowing neon purple train engine bursts through a ring of fire with a level-up flash, sparks and stars",
+      "ton": "a level-up power-up sound with a train horn and cheering"
+    },
+    {
+      "id": "tw-hypetrain-ende",
+      "gruppe": "twitch",
+      "label": "Twitch: Hype Train Ende",
+      "key": "black",
+      "format": "quer",
+      "bild": "a glowing neon train arrives and stops, a huge golden trophy rises with fireworks and confetti",
+      "ton": "a triumphant victory fanfare and a huge crowd cheer"
+    },
+    {
+      "id": "tw-raid",
+      "gruppe": "twitch",
+      "label": "Twitch: Raid",
+      "key": "black",
+      "format": "quer",
+      "bild": "a huge army of glowing purple paper planes and rockets swoops in from the left side filling the frame, sparks and confetti",
+      "ton": "an epic war horn, rushing wind and a massive crowd roar"
+    },
+    {
+      "id": "xmas-schlitten",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "Santa's sleigh with glowing reindeer flies across leaving golden sparkles, snowflakes and gifts",
+      "ton": "sleigh bells, whoosh and a jolly Ho ho ho"
+    },
+    {
+      "id": "xmas-schnee",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "magical burst of glittering snowflakes exploding toward the camera, then drifting like a snow globe",
+      "ton": "icy shimmer, soft wind, twinkling chimes"
+    },
+    {
+      "id": "xmas-geschenke",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "shower of wrapped Christmas presents tumbling down, popping open with confetti, candy canes and stars",
+      "ton": "festive brass fanfare, sleigh bells, cheerful pops"
+    },
+    {
+      "id": "xmas-baum",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "Christmas tree of golden fairy lights grows upward, ornaments light up, star bursts into sparkles",
+      "ton": "glockenspiel arpeggio, magical orchestral swell, choir"
+    },
+    {
+      "id": "xmas-schneemann",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "cheerful cartoon snowman bounces in, waves and spins sending snowballs and sparkles",
+      "ton": "bouncy thud, snowball splats, happy giggle"
+    },
+    {
+      "id": "xmas-rentier",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "glowing red-nosed reindeer leaps across leaving golden sparkles"
+    },
+    {
+      "id": "xmas-lebkuchen",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "gingerbread man dances while sprinkles and candies burst"
+    },
+    {
+      "id": "xmas-kugeln",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "glass ornament baubles bounce in and burst into sparkles"
+    },
+    {
+      "id": "xmas-sternschnuppe",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "golden Christmas shooting star explodes into tiny stars"
+    },
+    {
+      "id": "xmas-elfen",
+      "gruppe": "knopf",
+      "key": "black",
+      "bild": "two cartoon elves juggle presents and throw confetti"
+    },
+    {
+      "id": "xa-folgen",
+      "gruppe": "weihnachten",
+      "key": "black",
+      "bild": "heart of snowflakes and fairy lights bursts into snow (Weihnachts-Version von Neuer Follower)",
+      "fuer": "folgen"
+    },
+    {
+      "id": "xa-teilen",
+      "gruppe": "weihnachten",
+      "key": "black",
+      "bild": "present box spins, lid flies off, gifts fly out (Weihnachts-Version von Live geteilt)",
+      "fuer": "teilen"
+    },
+    {
+      "id": "xa-superfan",
+      "gruppe": "weihnachten",
+      "key": "black",
+      "bild": "golden crown with holly descends with stars and snow (Weihnachts-Version von Superfan)",
+      "fuer": "superfan"
+    },
+    {
+      "id": "xa-likeziel",
+      "gruppe": "weihnachten",
+      "key": "black",
+      "bild": "explosion of hearts, snowflakes and Christmas fireworks (Weihnachts-Version von Like-Ziel)",
+      "fuer": "likeziel"
+    },
+    {
+      "id": "xa-stufe-klein",
+      "gruppe": "weihnachten",
+      "key": "black",
+      "bild": "snow globe bounces and releases sparkling snow (Weihnachts-Version von Stufe klein)",
+      "fuer": "stufe-klein"
+    },
+    {
+      "id": "yt-abo",
+      "gruppe": "youtube",
+      "label": "YouTube: neues Abo",
+      "key": "black",
+      "bild": "red notification bell rings, red/white ribbon confetti"
+    },
+    {
+      "id": "yt-mitglied",
+      "gruppe": "youtube",
+      "label": "YouTube: neues Mitglied",
+      "key": "black",
+      "bild": "ruby gem in golden crown badge, rubies and stars"
+    },
+    {
+      "id": "yt-treue",
+      "gruppe": "youtube",
+      "label": "YouTube: Mitglied verlängert",
+      "key": "black",
+      "bild": "gold medal with laurel and red ribbon, coin fountain"
+    },
+    {
+      "id": "yt-geschenk",
+      "gruppe": "youtube",
+      "label": "YouTube: Mitgliedschaften verschenkt",
+      "key": "black",
+      "bild": "red gift boxes burst into gem badges and confetti"
+    },
+    {
+      "id": "yt-sc-klein",
+      "gruppe": "youtube",
+      "label": "YouTube: Super Chat klein",
+      "key": "black",
+      "bild": "small blue speech bubble, a few coins"
+    },
+    {
+      "id": "yt-sc-mittel",
+      "gruppe": "youtube",
+      "label": "YouTube: Super Chat mittel",
+      "key": "black",
+      "bild": "green/teal speech bubble bursts into coins and banknotes"
+    },
+    {
+      "id": "yt-sc-gross",
+      "gruppe": "youtube",
+      "label": "YouTube: Super Chat groß",
+      "key": "black",
+      "bild": "orange/yellow speech bubble, huge coin fountain, fireworks"
+    },
+    {
+      "id": "yt-sc-episch",
+      "gruppe": "youtube",
+      "label": "YouTube: Super Chat episch",
+      "key": "black",
+      "bild": "giant red/magenta bubble, epic coin storm and fireworks"
+    },
+    {
+      "id": "yt-sticker",
+      "gruppe": "youtube",
+      "label": "YouTube: Super Sticker",
+      "key": "black",
+      "bild": "cute heart sticker slaps on, wiggles, flies away"
+    }
+  ]
 }

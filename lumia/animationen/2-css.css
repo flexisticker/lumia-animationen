@@ -103,6 +103,10 @@ body { font-family: 'Baloo 2', system-ui, sans-serif; --c1: #ff3d7f; --c2: #ffb3
 /* Plattform-Schild (TikTok / Twitch) */
 .pf { display: inline-block; font-weight: 800; font-size: 2.1vh; letter-spacing: .04em; padding: .25em .8em; border-radius: 999px; color: #fff; margin: 0 auto .5vh; text-transform: uppercase; }
 .card .pf { display: table; }
+.namezeile { display: flex; align-items: center; justify-content: center; gap: .28em; }
+.namezeile .pf-icon { font-size: 7.2vh; width: .95em; height: .95em; margin: 0; vertical-align: 0; box-shadow: 0 .06em .25em rgba(0,0,0,.5); animation: letter .55s cubic-bezier(.2,1.8,.4,1) both; }
+.namezeile .pf-icon.pf-tiktok { box-shadow: -.05em 0 0 #25f4ee, .05em 0 0 #fe2c55, 0 .06em .25em rgba(0,0,0,.5); }
+.liketag .pf-icon { margin: 0; }
 .pf-tiktok { background: #010101; box-shadow: -3px 0 0 #25f4ee, 3px 0 0 #fe2c55; }
 .pf-twitch { background: #9146ff; box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
 .liketag { position: absolute; right: 4vw; bottom: 26vh; display: flex; align-items: center; gap: .6em; font-weight: 800; font-size: 2.2vh; line-height: 1; color: #fff;

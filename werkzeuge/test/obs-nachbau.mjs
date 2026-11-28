@@ -12,7 +12,14 @@ const alle = []; const srv = http.createServer((req, res) => { const u = new URL
       if (op !== 1) continue; const m = JSON.parse(data);
       if (m.op === 1) send({ op: 2, d: { negotiatedRpcVersion: 1 } });
       if (m.op === 6) { const r = m.d; if (['SetSceneItemEnabled', 'SetCurrentProgramScene', 'SetSceneItemTransform'].includes(r.requestType)) console.log('ANFRAGE', r.requestType, JSON.stringify(r.requestData || {}));
-        if (r.requestType === 'GetSceneList') send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: true, code: 100 }, responseData: { currentProgramSceneName: cur, scenes: szenen.map(sceneName => ({ sceneName })) } } });
+        const ok = d => send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: true, code: 100 }, responseData: d } });
+        // OBS_CANVAS=1: zusätzlich eine Hochkant-Leinwand (wie Aitum Vertical in OBS 32) mit eigener Szene
+        if (r.requestType === 'GetCanvasList') { if (process.env.OBS_CANVAS) ok({ canvases: [{ canvasName: 'Main', canvasUuid: 'main', canvasFlags: { MAIN: true }, canvasVideoSettings: { baseWidth: Number(process.env.OBS_B || 1080), baseHeight: Number(process.env.OBS_H || 1920) } },
+          { canvasName: 'Vertical', canvasUuid: 'v', canvasFlags: { MAIN: false }, canvasVideoSettings: { baseWidth: 1080, baseHeight: 1920 } }] });
+          else send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: false, code: 204, comment: 'unknown request' } } }); }
+        else if (r.requestType === 'GetSceneList' && (r.requestData || {}).canvasUuid === 'v') ok({ scenes: [{ sceneName: 'V-Gaming', sceneUuid: 'u-vg' }] });
+        else if (r.requestType === 'GetSceneItemList' && (r.requestData || {}).sceneUuid === 'u-vg') ok({ sceneItems: [{ sourceName: 'Spiel-Vertikal', sceneItemId: 11 }, { sourceName: 'Drucker-Cam-Vertikal', sceneItemId: 12 }] });
+        else if (r.requestType === 'GetSceneList') send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: true, code: 100 }, responseData: { currentProgramSceneName: cur, scenes: szenen.map(sceneName => ({ sceneName })) } } });
         else if (r.requestType === 'GetInputList') send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: true, code: 100 }, responseData: { inputs: [{ inputName: 'Drucker-Cam' }, { inputName: 'Schreibtisch-Cam' }, { inputName: 'Spiel-Capture' }, { inputName: 'Spiel-Vertikal' }, { inputName: 'Drucker-Cam-Vertikal' }] } } });
         else if (r.requestType === 'GetSceneItemList') { const items = { 'Just Chatting': [['Drucker-Cam', 1], ['Schreibtisch-Cam', 2]], 'Gaming': [['Spiel-Capture', 3], ['Drucker-Cam', 4], ['Hochkant-Gruppe', 5, true]], 'BRB': [], 'Vertikal': [['Drucker-Cam-Vertikal', 7]] }[r.requestData.sceneName] || [];
           send({ op: 7, d: { requestId: r.requestId, requestType: r.requestType, requestStatus: { result: true, code: 100 }, responseData: { sceneItems: items.map(([sourceName, sceneItemId, isGroup]) => ({ sourceName, sceneItemId, isGroup: !!isGroup })) } } }); }

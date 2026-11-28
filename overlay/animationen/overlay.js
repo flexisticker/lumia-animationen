@@ -241,7 +241,7 @@ function ttsText(item) {
     'twitch-giftSubscription': D.ttsGiftsub, 'twitch-bits': D.ttsBits, 'twitch-raid': D.ttsRaid }[a];
   let t = tpl;
   if (a === 'twitch-subscriber') t = item.anim.id === 'tw-primesub' ? D.ttsPrime : item.anim.id === 'tw-resub' ? D.ttsResub : item.anim.id === 'tw-giftsub' ? D.ttsGiftsub : D.ttsSub;
-  if (a.startsWith('youtube-')) t = { abo: D.ttsYtAbo, mitglied: D.ttsYtMitglied, geschenk: D.ttsYtGeschenk, superchat: D.ttsYtSuperchat }[r.art];
+  if (a.startsWith('youtube-')) t = { abo: D.ttsYtAbo, mitglied: D.ttsYtMitglied, geschenk: D.ttsYtGeschenk, superchat: D.ttsYtSuperchat, sticker: D.ttsYtSuperchat }[r.art];
   if (t === undefined) t = /hypetrain|totalLikes|battle/.test(a) ? '' : D.ttsSonst;
   if (!t) return '';
   if (a === 'tiktok-gift' && (r.muenzen || 0) < num(D.ttsMinMuenzen, 1)) return '';
@@ -300,8 +300,11 @@ function showCard(item) {
   const user = String(item.user).slice(0, 24);
   [...user].forEach((ch, i) => { const s = el('span', null, ch === ' ' ? ' ' : ch); s.style.animationDelay = (0.25 + i * 0.045) + 's'; name.append(s); });
   setTimeout(() => name.querySelectorAll('span').forEach(s => s.classList.add('shine')), 900 + user.length * 45);
-  if (item.plattform && on('plattformAn', true)) card.prepend(pfBadge(item.plattform));
-  card.append(name);
+  // Logo der Plattform (TikTok, Twitch, YouTube …) direkt vor dem Namen; unbekannte Plattform → Schild wie bisher
+  if (item.plattform && on('plattformAn', true)) {
+    if (PF_ICON[item.plattform]) { const zeile = el('div', 'namezeile'); zeile.append(pfIcon(item.plattform, 'i'), name); card.append(zeile); }
+    else { card.prepend(pfBadge(item.plattform)); card.append(name); }
+  } else card.append(name);
   if (item.text) {
     const sub = el('div', 'sub'); sub.append(document.createTextNode(item.text));
     if (item.amount > 1 || item.key) { item.countEl = el('span', 'count', '× ' + item.amount); sub.append(item.countEl); }
@@ -309,7 +312,8 @@ function showCard(item) {
   }
   document.getElementById('cards').append(card);
   let size = 7.2;
-  while (name.scrollWidth > innerWidth * 0.86 && size > 3) { size -= 0.3; name.style.fontSize = size + 'vh'; }
+  const breite = () => (name.parentElement.classList.contains('namezeile') ? name.parentElement.scrollWidth : name.scrollWidth);
+  while (breite() > innerWidth * 0.86 && size > 3) { size -= 0.3; name.style.fontSize = size + 'vh'; const ic = card.querySelector('.namezeile .pf-icon'); if (ic) ic.style.fontSize = size + 'vh'; }
   item.card = card;
 }
 // Plattform-Schild (TikTok / Twitch) – nur Schriftzug und Farben, keine Logos
@@ -319,7 +323,7 @@ let likeTagEl = null, likeTagT = null;
 function likeTag(user, n) {
   if (!on('plattformAn', true)) return;
   if (!likeTagEl) { likeTagEl = el('div', 'liketag'); document.body.append(likeTagEl); }
-  likeTagEl.replaceChildren(pfBadge('tiktok'), document.createTextNode((user ? String(user).slice(0, 20) + ' ' : '') + '+' + n + ' ❤'));
+  likeTagEl.replaceChildren(pfIcon('tiktok'), document.createTextNode((user ? String(user).slice(0, 20) + ' ' : '') + '+' + n + ' ❤'));
   likeTagEl.classList.add('show'); clearTimeout(likeTagT); likeTagT = setTimeout(() => likeTagEl.classList.remove('show'), 2500);
 }
 function updateCount(item) {
@@ -396,8 +400,8 @@ function ytArt(a) {
   const k = String(a || '').toLowerCase().replace(/^youtube-/, '');
   if (/gift/.test(k) && /member|sponsor|mitglied/.test(k)) return 'geschenk';
   if (/member|sponsor|mitglied/.test(k)) return 'mitglied';
+  if (/supersticker|sticker/.test(k)) return 'sticker';
   if (/superchat|super-chat|superch/.test(k)) return 'superchat';
-  if (/supersticker|sticker/.test(k)) return 'superchat';
   if (/subscri|abo/.test(k)) return 'abo';
   return '';
 }
@@ -415,15 +419,17 @@ function youtubeAlert(data, s) {
   const user = s.displayname || s.username || s.name || '';
   const base = { user, avatar: s.avatar, amount: 1, plattform: 'youtube', alert: data.alert, roh: { art } };
   const anim = (k, v) => entryById(D[k] || v) || entryById(v);
-  if (art === 'abo') return { ...base, anim: anim('ytAnimAbo', 'folgen'), text: D.ytTextAbo || 'hat abonniert!' };
+  if (art === 'abo') return { ...base, anim: anim('ytAnimAbo', 'yt-abo'), text: D.ytTextAbo || 'hat abonniert!' };
   if (art === 'mitglied') { const mo = Number(s.months || s.memberMonths || dyn.months || 0); base.roh.monate = mo;
-    return { ...base, anim: anim('ytAnimMitglied', 'superfan'), text: mo > 1 ? 'ist seit ' + mo + ' Monaten Mitglied! 💎' : (D.ytTextMitglied || 'ist jetzt Mitglied! 💎').replace('{MONATE}', mo || '') }; }
+    return { ...base, anim: mo > 1 ? anim('ytAnimTreue', 'yt-treue') : anim('ytAnimMitglied', 'yt-mitglied'), text: mo > 1 ? 'ist seit ' + mo + ' Monaten Mitglied! 💎' : (D.ytTextMitglied || 'ist jetzt Mitglied! 💎').replace('{MONATE}', mo || '') }; }
   if (art === 'geschenk') { const n = Number(s.giftAmount || s.amount || dyn.value || 1) || 1;
-    return { ...base, amount: n, key: user + '|ytgift', anim: anim('ytAnimGeschenk', 'schatzkiste'), text: (D.ytTextGeschenk || 'verschenkt {ANZAHL} Mitgliedschaften!').replace('{ANZAHL}', n) }; }
+    return { ...base, amount: n, key: user + '|ytgift', anim: anim('ytAnimGeschenk', 'yt-geschenk'), text: (D.ytTextGeschenk || 'verschenkt {ANZAHL} Mitgliedschaften!').replace('{ANZAHL}', n) }; }
   const b = ytBetrag(s, dyn); base.roh.betrag = b.text; base.roh.euro = b.n;
-  const t = b.n >= num(D.ytScEpisch, 100) ? 'stufe-episch' : b.n >= num(D.ytScGross, 20) ? 'stufe-gross' : b.n >= num(D.ytScMittel, 5) ? 'stufe-mittel' : 'stufe-klein';
+  const stufe = b.n >= num(D.ytScEpisch, 100) ? 'episch' : b.n >= num(D.ytScGross, 20) ? 'gross' : b.n >= num(D.ytScMittel, 5) ? 'mittel' : 'klein';
+  const t = art === 'sticker' ? null : (entryById('yt-sc-' + stufe) && enabled(entryById('yt-sc-' + stufe)) ? 'yt-sc-' + stufe : 'stufe-' + stufe);
   const msg = String(s.message || '').trim();
-  let text = (D.ytTextSuperchat || 'schickt einen Super Chat ({BETRAG})').replace('{BETRAG}', b.text || '♥').replace(' ()', '');
+  let text = (art === 'sticker' ? (D.ytTextSticker || 'schickt einen Super Sticker ({BETRAG})') : (D.ytTextSuperchat || 'schickt einen Super Chat ({BETRAG})')).replace('{BETRAG}', b.text || '♥').replace(' ()', '');
+  if (art === 'sticker') return { ...base, anim: anim('ytAnimSticker', 'yt-sticker'), text };
   if (msg && D.ytNachricht !== false) text += ' – „' + msg.slice(0, 80) + '“';
   return { ...base, anim: entryById(t), text };
 }
@@ -588,8 +594,8 @@ function chatUpdate() {
 }
 // Logos: Simple Icons (CC0, simpleicons.org) – nur die Pfade, Farbe kommt aus der CSS-Klasse
 const PF_ICON = {"tiktok": "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z", "twitch": "M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z", "youtube": "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z", "kick": "M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z", "facebook": "M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"};
-function pfIcon(p) {
-  const s = document.createElement('span'); s.className = 'pf-icon pf-' + p; s.title = PF_NAME[p] || p;
+function pfIcon(p, tag) {
+  const s = document.createElement(tag || 'span'); s.className = 'pf-icon pf-' + p; s.title = PF_NAME[p] || p;
   s.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + PF_ICON[p] + '"/></svg>'; return s;
 }
 function chatAdd(m) {

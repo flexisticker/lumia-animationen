@@ -230,7 +230,8 @@ function ytArt(a) {
   const r = k.slice(8);
   if (/gift/.test(r) && /member|sponsor|mitglied/.test(r)) return 'geschenk';
   if (/member|sponsor|mitglied/.test(r)) return 'mitglied';
-  if (/superchat|super-chat|supersticker|sticker/.test(r)) return 'superchat';
+  if (/supersticker|sticker/.test(r)) return 'sticker';
+  if (/superchat|super-chat/.test(r)) return 'superchat';
   if (/subscri|abo/.test(r)) return 'abo';
   return '';
 }
@@ -299,7 +300,7 @@ function monitorEintrag(a, source) {
   else if (yt === 'abo') { icon = '🔔'; text = 'hat abonniert'; }
   else if (yt === 'mitglied') { icon = '💎'; text = 'ist jetzt Mitglied'; }
   else if (yt === 'geschenk') { icon = '🎁'; text = 'verschenkt ' + (n(s.giftAmount || s.amount || d.value) || 1) + ' Mitgliedschaft(en)'; }
-  else if (yt === 'superchat') { icon = '💬'; const b = ytBetrag(s, d); text = 'Super Chat' + (b ? ' ' + b.toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' ' + (String(s.currency || 'EUR') === 'EUR' ? '€' : s.currency) : ''); }
+  else if (yt === 'superchat' || yt === 'sticker') { icon = yt === 'sticker' ? '💟' : '💬'; const b = ytBetrag(s, d); text = (yt === 'sticker' ? 'Super Sticker' : 'Super Chat') + (b ? ' ' + b.toLocaleString('de-DE', { maximumFractionDigits: 2 }) + ' ' + (String(s.currency || 'EUR') === 'EUR' ? '€' : s.currency) : ''); }
   else return;
   if (!name && !al.startsWith('twitch-hypetrain')) return;
   if (letzte.length && Date.now() - letzte[0].at > streamPause()) letzte.length = 0; // neuer Stream → neue Liste
@@ -435,11 +436,13 @@ async function obsQuellenSync() {
     const sicht = fensterSicht(), soll = {};
     const setz = (namen, an) => { for (const name of quellNamen(namen)) soll[name] = !!(soll[name] || an); };
     setz(q.spiel, sicht[1]); setz(q.drucker, sicht[2]); setz(q.schreibtisch, sicht[3]); setz(q.monitor, sicht['monitor-drucker'] && sicht.monitorMoeglich);
+    let szenen = null;
     for (const [name, an] of Object.entries(soll)) {
       if (quellenStand[name] === an) continue;
-      const vorkommen = await quellVorkommen(name);
-      for (const v of vorkommen) await obsRequest('SetSceneItemEnabled', { ...v, sceneItemEnabled: an });
-      if (!vorkommen.length) remember({ art: 'fehler', quelle: 'obs', text: 'OBS-Quelle „' + name + '“ in keiner Szene gefunden' });
+      szenen ||= await obsSzenenAlle();
+      const vorkommen = await quellVorkommen(name, szenen);
+      for (const v of vorkommen) { const r = await obsRequest('SetSceneItemEnabled', { ...v.ref, sceneItemEnabled: an }); if (!r.ok) remember({ art: 'fehler', quelle: 'obs', text: 'OBS-Quelle „' + name + '“ nicht geschaltet – ' + r.fehler }); }
+      if (!vorkommen.length) remember({ art: 'fehler', quelle: 'obs', text: 'OBS-Quelle „' + name + '“ in keiner Szene gefunden (auch nicht in der Hochkant-Leinwand)' });
       quellenStand[name] = an;
     }
   } finally { quellenLaeuft = false; if (quellenNochmal) { quellenNochmal = false; obsQuellenSync(); } }
@@ -448,41 +451,68 @@ async function obsQuellenSync() {
 // das Spielbild darunter bleibt gleich groß. Gleiche Rechnung wie im Hintergrund-Overlay (rect), in Pixeln der OBS-Arbeitsfläche.
 let lageStand = '', lageLaeuft = false, lageNochmal = false, lageTimer = null;
 const quellNamen = v => String(v || '').split('\n').map(x => x.trim()).filter(Boolean);
-// Alle Vorkommen einer Quelle: Szenen und Gruppen darin (Gruppen werden über ihren Namen als sceneName angesprochen)
-async function quellVorkommen(name) {
+// Alle Szenen in allen OBS-Leinwänden (OBS 32+: z. B. die Hochkant-Leinwand von Aitum Vertical ist eine eigene „Canvas“ mit eigenen Szenen;
+// ältere OBS ohne Leinwände: nur die normalen Szenen). Szenen werden über ihre UUID angesprochen, dann ist die Leinwand egal.
+async function obsSzenenAlle() {
+  const out = [];
+  const cl = await obsRequest('GetCanvasList', {});
+  if (cl.ok && Array.isArray(cl.data.canvases) && cl.data.canvases.length) {
+    for (const c of cl.data.canvases) {
+      const haupt = !!(c.canvasFlags || {}).MAIN, vs = c.canvasVideoSettings || {};
+      const r = await obsRequest('GetSceneList', haupt ? {} : { canvasUuid: c.canvasUuid }); if (!r.ok) continue;
+      for (const sc of r.data.scenes || []) out.push({ ref: sc.sceneUuid ? { sceneUuid: sc.sceneUuid } : { sceneName: sc.sceneName, ...(haupt ? {} : { canvasUuid: c.canvasUuid }) }, name: sc.sceneName,
+        leinwand: { id: c.canvasUuid, name: c.canvasName || '', haupt, w: Number(vs.baseWidth) || 0, h: Number(vs.baseHeight) || 0 } });
+    }
+  } else for (const sceneName of obs.szenen) out.push({ ref: { sceneName }, name: sceneName, leinwand: { id: 'haupt', name: '', haupt: true, w: 0, h: 0 } });
+  return out;
+}
+// Alle Vorkommen einer Quelle: Szenen und Gruppen darin, in allen Leinwänden
+async function quellVorkommen(name, szenen) {
+  szenen ||= await obsSzenenAlle();
   const treffer = [];
-  for (const sceneName of obs.szenen) {
-    const r = await obsRequest('GetSceneItemList', { sceneName }); if (!r.ok) continue;
+  for (const sz of szenen) {
+    const r = await obsRequest('GetSceneItemList', sz.ref); if (!r.ok) continue;
     for (const it of r.data.sceneItems || []) {
-      if (it.sourceName === name) treffer.push({ sceneName, sceneItemId: it.sceneItemId });
-      if (it.isGroup) { const g = await obsRequest('GetGroupSceneItemList', { sceneName: it.sourceName }); if (g.ok) for (const gi of g.data.sceneItems || []) if (gi.sourceName === name) treffer.push({ sceneName: it.sourceName, sceneItemId: gi.sceneItemId }); }
+      if (it.sourceName === name) treffer.push({ ref: { ...sz.ref, sceneItemId: it.sceneItemId }, leinwand: sz.leinwand });
+      if (it.isGroup) {
+        const gref = it.sourceUuid ? { sceneUuid: it.sourceUuid } : { sceneName: it.sourceName, ...(sz.ref.canvasUuid ? { canvasUuid: sz.ref.canvasUuid } : {}) };
+        const g = await obsRequest('GetGroupSceneItemList', gref);
+        if (g.ok) for (const gi of g.data.sceneItems || []) if (gi.sourceName === name) treffer.push({ ref: { ...gref, sceneItemId: gi.sceneItemId }, leinwand: sz.leinwand });
+      }
     }
   }
   return treffer;
 }
+// Je Leinwand bekommt die erste Quelle eines Fensters, die dort vorkommt, Lage & Größe – in der Hochkant-Leinwand nach den Hochkant-Werten, in der Quer-Leinwand nach den Quer-Werten.
 async function obsLageSync() {
   const q = saved.obs.quellen || {};
   if (saved.obs.lage === false || !saved.obs.an || obs.status !== 'verbunden' || !(q.spiel || q.drucker || q.schreibtisch)) return;
   if (lageLaeuft) { lageNochmal = true; return; }
   lageLaeuft = true;
   try {
-    const vs = await obsRequest('GetVideoSettings', {}); if (!vs.ok) return;
-    const BW = vs.data.baseWidth, BH = vs.data.baseHeight, quer = BW > BH, h = settingsFor('hinten');
+    const vs = await obsRequest('GetVideoSettings', {});
+    const hauptW = vs.ok ? vs.data.baseWidth : 1920, hauptH = vs.ok ? vs.data.baseHeight : 1080, h = settingsFor('hinten');
     const num = (v, d) => (v === '' || v === undefined || v === null || isNaN(Number(v)) ? d : Number(v));
     const QK = ['Wann', 'X', 'Y', 'Breite', 'Hoehe', 'Format'];
-    const g = (n, k) => (quer && h['f' + n + 'QuerEigen'] !== false && QK.includes(k) && h['f' + n + 'Q' + k] !== undefined && h['f' + n + 'Q' + k] !== '') ? h['f' + n + 'Q' + k] : h['f' + n + k];
-    const ziele = [[1, quellNamen(q.spiel)[0]], [2, quellNamen(q.drucker)[0]], [3, quellNamen(q.schreibtisch)[0]]].filter(([, name]) => name).map(([n, name]) => {
-      const W = BW * num(g(n, 'Breite'), 80) / 100, fmt = { '16:9': 16 / 9, '4:3': 4 / 3, '9:16': 9 / 16, '1:1': 1 }[g(n, 'Format')];
-      const H = fmt ? W / fmt : BH * num(g(n, 'Hoehe'), 30) / 100;
-      return { name, x: Math.round(BW * num(g(n, 'X'), 50) / 100 - W / 2), y: Math.round(BH * num(g(n, 'Y'), 40) / 100 - H / 2), w: Math.round(W), h: Math.round(H) };
-    });
-    const stand = JSON.stringify([BW, BH, ziele, obs.szenen]); if (stand === lageStand) return;
-    for (const z of ziele) {
-      for (const v of await quellVorkommen(z.name)) {
-          await obsRequest('SetSceneItemTransform', { ...v, sceneItemTransform: { positionX: z.x, positionY: z.y, alignment: 5, rotation: 0,
-            boundsType: 'OBS_BOUNDS_SCALE_OUTER', boundsAlignment: 0, boundsWidth: Math.max(1, z.w), boundsHeight: Math.max(1, z.h) } });
+    const szenen = await obsSzenenAlle();
+    const fenster = [[1, quellNamen(q.spiel)], [2, quellNamen(q.drucker)], [3, quellNamen(q.schreibtisch)]].filter(([, n]) => n.length);
+    const vork = {};
+    for (const [, namen] of fenster) for (const name of namen) vork[name] ||= await quellVorkommen(name, szenen);
+    const plan = [];
+    for (const [n, namen] of fenster) {
+      const gewaehlt = {};   // je Leinwand nur die erste passende Quelle (dort aber in allen Szenen)
+      for (const name of namen) for (const v of vork[name]) {
+        if ((gewaehlt[v.leinwand.id] ||= name) !== name) continue;
+        const BW = v.leinwand.haupt ? hauptW : (v.leinwand.w || 1080), BH = v.leinwand.haupt ? hauptH : (v.leinwand.h || 1920), quer = BW > BH;
+        const g = k => (quer && h['f' + n + 'QuerEigen'] !== false && QK.includes(k) && h['f' + n + 'Q' + k] !== undefined && h['f' + n + 'Q' + k] !== '') ? h['f' + n + 'Q' + k] : h['f' + n + k];
+        const W = BW * num(g('Breite'), 80) / 100, fmt = { '16:9': 16 / 9, '4:3': 4 / 3, '9:16': 9 / 16, '1:1': 1 }[g('Format')];
+        const H = fmt ? W / fmt : BH * num(g('Hoehe'), 30) / 100;
+        plan.push({ ref: v.ref, x: Math.round(BW * num(g('X'), 50) / 100 - W / 2), y: Math.round(BH * num(g('Y'), 40) / 100 - H / 2), w: Math.round(W), h: Math.round(H) });
       }
     }
+    const stand = JSON.stringify([hauptW, hauptH, plan]); if (stand === lageStand) return;
+    for (const z of plan) await obsRequest('SetSceneItemTransform', { ...z.ref, sceneItemTransform: { positionX: z.x, positionY: z.y, alignment: 5, rotation: 0,
+      boundsType: 'OBS_BOUNDS_SCALE_OUTER', boundsAlignment: 0, boundsWidth: Math.max(1, z.w), boundsHeight: Math.max(1, z.h) } });
     lageStand = stand;
   } finally { lageLaeuft = false; if (lageNochmal) { lageNochmal = false; obsLageSync(); } }
 }
@@ -789,7 +819,7 @@ hueTaktStarten();
 function hueRuhe() { hueGrundStart = Date.now(); hueGesendet = {}; hueTick(); }   // Grundlicht/Ansage neu ansetzen (Modus-, Kanal-, Einstellungswechsel)
 function hueKat(id, info = {}) {
   const a = String(info.alert || ''), g = String(info.gruppe || ''), m = Number(info.muenzen) || 0;
-  const yt = ytArt(a); if (yt) return yt === 'abo' ? 'yt-abo' : yt === 'superchat' ? 'yt-superchat' : 'yt-mitglied';
+  const yt = ytArt(a); if (yt) return yt === 'abo' ? 'yt-abo' : yt === 'superchat' || yt === 'sticker' ? 'yt-superchat' : 'yt-mitglied';
   if (id.startsWith('tw-')) return id === 'tw-follow' ? 'follow' : id.startsWith('tw-bits') ? 'tw-bits' : id.startsWith('tw-hypetrain') ? 'tw-hype' : id === 'tw-raid' ? 'tw-raid' : 'tw-sub';
   const ev = { folgen: 'follow', teilen: 'teilen', superfan: 'superfan', schatzkiste: 'schatzkiste', likeziel: 'likeziel', 'battle-sieg': 'battle' }[id]; if (ev && a) return ev;
   if (a === 'tiktok-gift' || ((g === 'geschenk' || g === 'stufe') && a)) return m >= 10000 ? 'g-episch' : m >= 1000 ? 'g-gross' : m >= 100 ? 'g-mittel' : 'g-klein';
@@ -1073,7 +1103,7 @@ const server = http.createServer(async (req, res) => {
         hueAlert = { def, start: Date.now(), bis: Date.now() + 6000, spur: null, blitz: false, kat: 'test' }; hueGesendet = {}; hueTick(); return json(res, 200, { ok: true }); }
       if (b.kat && HUE_KAT.some(x => x[0] === b.kat)) {
         if (b.kat.startsWith('a-')) { hueSzene = b.kat.slice(2); hueRuhe(); setTimeout(() => { if (hueSzene === b.kat.slice(2)) { hueSzene = null; hueRuhe(); } }, 6000); }   // Ansage 6 s vorführen
-        else hueStarteEffekt(b.kat, String(b.anim || { 'g-klein': 'rose', 'g-mittel': 'handherzen', 'g-gross': 'galaxie', 'g-episch': 'loewe', 'tw-sub': 'tw-sub', 'tw-bits': 'tw-bits-mittel', 'tw-hype': 'tw-hypetrain-start', 'tw-raid': 'tw-raid', 'yt-abo': 'folgen', 'yt-mitglied': 'superfan', 'yt-superchat': 'stufe-mittel', knopf: 'konfetti' }[b.kat] || ''));
+        else hueStarteEffekt(b.kat, String(b.anim || { 'g-klein': 'rose', 'g-mittel': 'handherzen', 'g-gross': 'galaxie', 'g-episch': 'loewe', 'tw-sub': 'tw-sub', 'tw-bits': 'tw-bits-mittel', 'tw-hype': 'tw-hypetrain-start', 'tw-raid': 'tw-raid', 'yt-abo': 'yt-abo', 'yt-mitglied': 'yt-mitglied', 'yt-superchat': 'yt-sc-mittel', knopf: 'konfetti' }[b.kat] || ''));
       } else if (b.anim) { hueLetzteAnim = { id: '', at: 0 }; hueAnimation(String(b.anim), { alert: 'tiktok-gift', muenzen: 1000 }); }
       else if (b.farbe && /^#[0-9a-f]{6}$/i.test(b.farbe)) hueStarteEffekt('likes', null, 2500);
       return json(res, 200, { ok: true });

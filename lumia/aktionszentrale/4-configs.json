@@ -42,20 +42,26 @@
     "label": "Bereich „Weihnachten“ (Animationen + Sounds) zeigen",
     "value": true
   },
-  "spieleAn": {
+  "youtubeAn": {
     "order": 8,
+    "type": "checkbox",
+    "label": "Bereich „YouTube-Sounds“ zeigen",
+    "value": true
+  },
+  "spieleAn": {
+    "order": 9,
     "type": "checkbox",
     "label": "Spiele-Leiste „Was läuft gerade?“ zeigen",
     "value": true
   },
   "testKnoepfe": {
-    "order": 9,
+    "order": 10,
     "type": "checkbox",
     "label": "Test-Knöpfe für Geschenke und Ereignisse zeigen",
     "value": true
   },
   "nameFeld": {
-    "order": 10,
+    "order": 11,
     "type": "checkbox",
     "label": "Feld für Namen (z. B. Gewinner) zeigen",
     "value": true

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const R = new URL('..', import.meta.url).pathname;
 const read = p => fs.readFileSync(R + p, 'utf8');
 const list = JSON.parse(read('animationen.json')).liste;
-const GROUP = { twitch: 'Twitch', geschenk: 'Geschenke', stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe', weihnachten: 'Weihnachts-Alerts' };
+const GROUP = { twitch: 'Twitch', youtube: 'YouTube', geschenk: 'Geschenke', stufe: 'Stufen (alle anderen Geschenke)', ereignis: 'Ereignisse', knopf: 'Aktionsknöpfe', weihnachten: 'Weihnachts-Alerts' };
 const LABEL = {
   rose: 'Rose', gg: 'GG', tiktok: 'TikTok', fingerherz: 'Fingerherz', teamherz: 'Teamherz', donut: 'Donut', parfuem: 'Parfüm',
   handherzen: 'Hand-Herzen', sonnenbrille: 'Sonnenbrille', kanone: 'Konfetti-Kanone', corgi: 'Corgi', kueken: 'Küken',
@@ -164,12 +164,15 @@ add('twBitsEpisch', { type: 'number', label: 'Bits: Stufe episch ab', value: 500
 // YouTube (über Lumia): Abo, Mitgliedschaft, verschenkte Mitgliedschaften, Super Chat / Super Sticker
 const ytAnimOpt = Object.fromEntries(items.filter(a => a.gruppe !== 'knopf').map(a => [a.id, a.label]));
 add('ytAn', { type: 'checkbox', label: 'YouTube-Ereignisse zeigen', value: true, ...vis('youtube') });
-add('ytAnimAbo', { type: 'dropdown', label: 'Animation: neues Abo', value: 'folgen', options: ytAnimOpt, ...vis('youtube') });
+add('ytAnimAbo', { type: 'dropdown', label: 'Animation: neues Abo', value: 'yt-abo', options: ytAnimOpt, ...vis('youtube') });
 add('ytTextAbo', { type: 'input', label: 'Text: neues Abo', value: 'hat abonniert!', ...vis('youtube') });
-add('ytAnimMitglied', { type: 'dropdown', label: 'Animation: neues Mitglied', value: 'superfan', options: ytAnimOpt, ...vis('youtube') });
+add('ytAnimMitglied', { type: 'dropdown', label: 'Animation: neues Mitglied', value: 'yt-mitglied', options: ytAnimOpt, ...vis('youtube') });
 add('ytTextMitglied', { type: 'input', label: 'Text: neues Mitglied ({MONATE} bei Verlängerung)', value: 'ist jetzt Mitglied! 💎', ...vis('youtube') });
-add('ytAnimGeschenk', { type: 'dropdown', label: 'Animation: verschenkte Mitgliedschaften', value: 'schatzkiste', options: ytAnimOpt, ...vis('youtube') });
+add('ytAnimGeschenk', { type: 'dropdown', label: 'Animation: verschenkte Mitgliedschaften', value: 'yt-geschenk', options: ytAnimOpt, ...vis('youtube') });
 add('ytTextGeschenk', { type: 'input', label: 'Text: verschenkte Mitgliedschaften', value: 'verschenkt {ANZAHL} Mitgliedschaften!', ...vis('youtube') });
+add('ytAnimTreue', { type: 'dropdown', label: 'Animation: Mitgliedschaft verlängert', value: 'yt-treue', options: ytAnimOpt, ...vis('youtube') });
+add('ytAnimSticker', { type: 'dropdown', label: 'Animation: Super Sticker', value: 'yt-sticker', options: ytAnimOpt, ...vis('youtube') });
+add('ytTextSticker', { type: 'input', label: 'Text: Super Sticker', value: 'schickt einen Super Sticker ({BETRAG})', ...vis('youtube') });
 add('ytTextSuperchat', { type: 'input', label: 'Text: Super Chat / Super Sticker', value: 'schickt einen Super Chat ({BETRAG})', ...vis('youtube') });
 add('ytScMittel', { type: 'number', label: 'Super Chat: Stufe mittel ab … €', value: 5, ...vis('youtube') });
 add('ytScGross', { type: 'number', label: 'Super Chat: Stufe groß ab … €', value: 20, ...vis('youtube') });
@@ -213,6 +216,7 @@ aadd('modus2Ico', { type: 'input', label: 'Symbol Modus 2', value: '🎮' });
 aadd('knoepfe', { type: 'textarea', rows: 14, label: 'Knöpfe (je Zeile: Animation | Beschriftung | Symbol)', value:
   knoepfe.filter(a => a.gruppe === 'knopf' && !a.id.startsWith('xmas-')).map(a => `${a.id} | ${a.label} | ${ICON[a.id] || '✨'}`).join('\n') });
 aadd('weihnachtAn', { type: 'checkbox', label: 'Bereich „Weihnachten“ (Animationen + Sounds) zeigen', value: true });
+aadd('youtubeAn', { type: 'checkbox', label: 'Bereich „YouTube-Sounds“ zeigen', value: true });
 aadd('spieleAn', { type: 'checkbox', label: 'Spiele-Leiste „Was läuft gerade?“ zeigen', value: true });
 aadd('testKnoepfe', { type: 'checkbox', label: 'Test-Knöpfe für Geschenke und Ereignisse zeigen', value: true });
 aadd('nameFeld', { type: 'checkbox', label: 'Feld für Namen (z. B. Gewinner) zeigen', value: true });

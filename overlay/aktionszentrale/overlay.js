@@ -51,6 +51,12 @@ const XMAS_SOUNDS = [['sound:hohoho', 'Ho ho ho!', '🎅'], ['sound:schlitten', 
 if (D.weihnachtAn === false) { document.getElementById('xmasTitel').style.display = 'none'; }
 else { const xb = document.getElementById('xmas'); [...(window.MM_LIST || []).filter(a => /^xmas-/.test(a.id)).map(a => [a.id, a.label, a.ico || '🎄']), ...XMAS_SOUNDS].forEach(([id, label, ico]) => button(xb, { id, label, ico })); }
 
+// YouTube-Sounds (reine Sound-Knöpfe)
+const YT_SOUNDS = [['sound:yt-glocke', 'Glocke (Abo)', '🔔'], ['sound:yt-kasse', 'Kasse (Super Chat)', '💰'], ['sound:yt-fanfare', 'Fanfare (Mitglied)', '🎺'],
+  ['sound:yt-sticker', 'Sticker-Plopp', '💟'], ['sound:yt-applaus', 'Applaus & Jubel', '👏']];
+if (D.youtubeAn === false || !document.getElementById('ytSounds')) { const t = document.getElementById('ytTitel'); if (t) t.style.display = 'none'; }
+else YT_SOUNDS.forEach(([id, label, ico]) => button(document.getElementById('ytSounds'), { id, label, ico }));
+
 const tests = window.MM_TESTS || [];
 if (D.testKnoepfe === false || !tests.length) { document.getElementById('testTitle').style.display = 'none'; }
 else tests.forEach(t => {
@@ -60,12 +66,19 @@ else tests.forEach(t => {
 });
 const TEST_NAMEN = ['Anna_Star', 'GamerJoe', 'Lisa💖', 'MichaFan99', 'Kevin_der_Große', 'SuperSandra', 'Tom aus Berlin', 'PixelPaul'];
 const EREIGNIS_ALERT = { folgen: 'tiktok-follower', teilen: 'tiktok-share', superfan: 'tiktok-superFan', schatzkiste: 'tiktok-treasureChest', likeziel: 'tiktok-totalLikes', 'battle-sieg': 'tiktok-battleEnd' };
+const YT_TEST = { 'yt-abo': ['youtube-subscriber'], 'yt-mitglied': ['youtube-member'], 'yt-treue': ['youtube-member', { months: 12 }], 'yt-geschenk': ['youtube-giftMembership', { giftAmount: 5 }],
+  'yt-sc-klein': ['youtube-superchat', { amount: 2, currency: 'EUR', message: 'Test-Super-Chat' }], 'yt-sc-mittel': ['youtube-superchat', { amount: 10, currency: 'EUR' }],
+  'yt-sc-gross': ['youtube-superchat', { amount: 50, currency: 'EUR' }], 'yt-sc-episch': ['youtube-superchat', { amount: 100, currency: 'EUR' }], 'yt-sticker': ['youtube-supersticker', { amount: 5, currency: 'EUR' }] };
+const TW_TEST = { 'tw-follow': ['twitch-follower'], 'tw-sub': ['twitch-subscriber', { subPlan: '1000' }], 'tw-primesub': ['twitch-subscriber', { subPlan: 'Prime' }], 'tw-resub': ['twitch-subscriber', { subPlan: '1000', subMonths: 12 }],
+  'tw-giftsub': ['twitch-giftSubscription', { giftAmount: 5, amount: 5 }], 'tw-bits-klein': ['twitch-bits', { amount: 50 }], 'tw-bits-mittel': ['twitch-bits', { amount: 500 }], 'tw-bits-gross': ['twitch-bits', { amount: 2000 }],
+  'tw-bits-episch': ['twitch-bits', { amount: 10000 }], 'tw-hypetrain-start': ['twitch-hypetrainStarted'], 'tw-hypetrain-level': ['twitch-hypetrainLevelProgressed', { level: 3 }], 'tw-hypetrain-ende': ['twitch-hypetrainEnded', { level: 4 }], 'tw-raid': ['twitch-raid', { viewers: 42 }] };
 async function testEreignis(t, btn) {
   btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit');
   const name = nameIn.value.trim() || TEST_NAMEN[Math.floor(Math.random() * TEST_NAMEN.length)];
-  const alert = t.gruppe === 'ereignis' ? EREIGNIS_ALERT[t.id] : 'tiktok-gift';
+  const yt = YT_TEST[t.id], tw = TW_TEST[t.id];
+  const alert = yt ? yt[0] : tw ? tw[0] : t.gruppe === 'ereignis' ? EREIGNIS_ALERT[t.id] : t.gruppe === 'geschenk' || t.gruppe === 'stufe' ? 'tiktok-gift' : '';
   if (!alert) return send({ id: t.id, label: t.label, name, text: 'Test' }, btn);
-  const extra = { username: name, avatar: '/icon.png' };
+  const extra = { username: name, avatar: '/icon.png', ...((yt || tw || [])[1] || {}) };
   if (alert === 'tiktok-gift') Object.assign(extra, { giftName: t.geschenk, coins: Math.max(1, Number(t.ab) || 1), giftAmount: 1 });
   try {
     const r = await fetch('/api/test', { method: 'POST', headers: { 'content-type': 'application/json', 'x-mm': '1' }, body: JSON.stringify({ alert, extraSettings: extra }) });
