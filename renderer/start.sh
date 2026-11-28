@@ -39,7 +39,7 @@ Xvfb :1 -screen 0 "${AUFL}x24" -nolisten tcp -extension MIT-SHM &
 sleep 1
 su obs -s /bin/bash -c 'openbox' >/dev/null 2>&1 &
 if [ -n "$VNCPW" ]; then x11vnc -storepasswd "$VNCPW" /tmp/vncpw >/dev/null; VNCOPT="-rfbauth /tmp/vncpw"; else VNCOPT="-nopw"; fi
-x11vnc -display :1 -forever -shared -quiet -localhost -rfbport 5900 $VNCOPT >/dev/null 2>&1 &
+x11vnc -display :1 -forever -shared -noshm -localhost -rfbport 5900 $VNCOPT >/tmp/x11vnc.log 2>&1 &   # -noshm: Bildschirm ohne MIT-SHM (siehe Xvfb)
 websockify --web /usr/share/novnc 6080 localhost:5900 >/dev/null 2>&1 &
 # Grafik-Prüfung fürs Protokoll (docker logs): welcher OpenGL-Treiber zeichnet
 su obs -s /bin/bash -c "glxinfo -B 2>&1 | grep -E 'OpenGL renderer|direct rendering'" || echo "glxinfo: kein OpenGL"

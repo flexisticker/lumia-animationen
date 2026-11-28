@@ -319,3 +319,4 @@
   Gedacht: mit NDI vom Render-Server Ruhe aus (alles läuft weiter), ohne NDI an. Geprüft (Headless): an/aus, nach Neuladen, Tablet-Kachel.
 - 28.11.2026: Render-Server läuft bei Michael (CEF startet, Ton/Bild). NDI-Name = „<HOSTNAME> (Live-Studio …)“ – ohne festen Hostnamen wechselt er bei jedem Neuanlegen (Container-ID) → `--hostname live-studio-renderer`
   in Vorlage und `docker run`. Michael tippte die IP in „Quellname“ der NDI-Quelle → muss den Eintrag aus der Liste wählen.
+- 28.11.2026: Michael: keine VNC-Verbindung mehr (nach Xvfb ohne MIT-SHM). `x11vnc … -noshm`, Log nach /tmp/x11vnc.log im Container. Lokal geprüft: Xvfb ohne MIT-SHM + x11vnc -noshm antwortet (RFB 003.008). Eigentliche Ursache offen (Container-Log angefragt).
