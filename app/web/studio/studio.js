@@ -117,7 +117,7 @@ async function renderPage(m) {
   const srtPort = h('input', { type: 'number', value: R.srtPort || 9710 });
   const kbps = h('input', { type: 'number', min: 5000, max: 120000, step: 1000, value: R.kbps || 40000 });
   const codec = h('select', {}, ...[['hevc', 'HEVC (H.265) – bessere Qualität'], ['h264', 'H.264 – falls HEVC nicht geht']].map(([v, l]) => h('option', { value: v, ...(R.codec === v ? { selected: '' } : {}) }, l)));
-  const srtBox = h('div', {}, field('Stream-PC (Ziel)', ziel), field('SRT-Port (UDP)', srtPort), field('Bitrate (kbit/s)', kbps), field('Codec', codec));
+  const srtBox = h('div', {}, field('SRT-Port (UDP)', srtPort), field('Bitrate (kbit/s)', kbps), field('Codec', codec));
   const sichtbar = () => { srtBox.style.display = modus.value === 'srt' ? '' : 'none'; };
   modus.onchange = sichtbar; sichtbar();
   const zeige = (r, titel) => { ausgabe.style.display = ''; ausgabe.innerHTML = ''; ausgabe.append(h('div', {}, r.ok ? '✓ ' + titel : '⚠️ ' + r.fehler), ...(r.log || []).map(l => h('div', {}, l))); };
@@ -145,7 +145,7 @@ async function renderPage(m) {
       h('p', {}, '1. In deinem OBS am PC zwei kostenlose Plugins installieren (beide von exeldro, obsproject.com → Plugins): „Shaderfilter“ (obs-shaderfilter) und „Source Clone“. Danach OBS neu starten.'),
       h('p', {}, '2. „Empfang einrichten“ legt in deinem OBS die Szene „Live-Studio Empfang“ an: eine Medienquelle, die den Stream empfängt, und vier Quellen „LS vorne-hoch“, „LS hinten-hoch“, „LS vorne-quer“, „LS hinten-quer“ (gleiche Größe wie bisher, mit Durchsichtigkeit).'),
       h('p', {}, '3. „NDI-Quellen ersetzen“ setzt in allen Szenen (auch Hochkant) die passende LS-Quelle an die Stelle der NDI-Quelle und blendet NDI nur aus – zurück geht jederzeit mit „Zurück zu NDI“.'),
-      h('p', { class: 'hint' }, 'Windows-Firewall: Beim ersten Empfang fragt Windows evtl. nach – OBS im privaten Netz erlauben (UDP-Port wie oben).'),
+      h('p', { class: 'hint' }, 'Dein OBS wählt sich beim Render-Server ein und verbindet sich nach einem Abbruch selbst neu. Reihenfolge egal – beide Knöpfe dürfen jederzeit wiederholt werden.'),
       h('div', { class: 'row' },
         h('button', { class: 'b p', onclick: async () => { await speichern(); zeige(await post('/api/render/empfang', {}).then(x => x.json()), 'Empfang am PC eingerichtet'); } }, 'Empfang einrichten'),
         h('button', { class: 'b', onclick: async () => { await speichern(); zeige(await post('/api/render/empfang', { umstellen: true }).then(x => x.json()), 'Empfang eingerichtet und NDI-Quellen ersetzt'); } }, 'Empfang einrichten + NDI-Quellen ersetzen'),

@@ -335,9 +335,9 @@
   (aus dem Bridge-Netz kam es nicht ins VLAN; zweites Netz per `docker network connect` brach den Weg zum PC). NDI damit besser, aber weiter Stocken durch CPU.
   **Neu: Übertragung „SRT über die Grafikkarte“** (`saved.render.modus` srt|ndi, `ziel` (leer = `saved.obs.host`), `srtPort` 9710, `kbps` 40000, `codec` hevc|h264, `aktiv`):
   Render-OBS Arbeitsfläche 4080×3240 (`ATLAS`): Szene „LS Farbe“ (vorne-hoch 0/0, hinten-hoch 1080/0, vorne-quer 2160/0, hinten-quer 2160/1080), Szene „LS Maske“ (= LS Farbe + Shaderfilter `SHADER_MASKE`: Alpha → Grau),
-  Programm „Live-Studio Atlas“ = Farbe oben + Maske halb so groß ab y 2160. Ton nur von den Hochkant-Quellen (Quer stumm). Einfacher Ausgang NVENC (`nvenc_hevc`/`nvenc`), `rtmp_custom` mit `srt://<PC>:9710?mode=caller`,
+  Programm „Live-Studio Atlas“ = Farbe oben + Maske halb so groß ab y 2160. Ton nur von den Hochkant-Quellen (Quer stumm). Einfacher Ausgang NVENC (`nvenc_hevc`/`nvenc`), `rtmp_custom` mit `srt://0.0.0.0:9710?mode=listener` (Render-Server lauscht),
   Wächter alle 30 s startet den Ausgang neu. NDI-Filter im SRT-Modus aus. Image: `renderer/shaderfilter-get.sh` installiert exeldro/obs-shaderfilter (deb oder Archiv).
-  PC (`/api/render/empfang`, über die bestehende OBS-Verbindung): Szene „Live-Studio Empfang“ mit Medienquelle „Live-Studio Atlas (SRT)“ (`srt://0.0.0.0:9710?mode=listener`, hw_decode) + 4 Quellen „LS <format>“
+  PC (`/api/render/empfang`, über die bestehende OBS-Verbindung): Szene „Live-Studio Empfang“ mit Medienquelle „Live-Studio Atlas (SRT)“ (`srt://<Render-Server>:9710?mode=caller`, hw_decode; PC wählt sich ein, ab 28.11. abends) + 4 Quellen „LS <format>“
   (Source Clone + Shaderfilter `shaderZusammen()` (Farbe / Maske, ent-vormultipliziert) + Zuschnitt `crop_filter`), Ton auf dem ersten Hochkant-Klon. `umstellen` bzw. `nurTauschen` ersetzt NDI-Quellen von Live-Studio
   in allen Szenen/Leinwänden/Gruppen (gleiche Lage, Ebene darüber, NDI nur ausgeblendet), „Zurück zu NDI“ umgekehrt. PC braucht Plugins Shaderfilter + Source Clone (Michael hat beide).
   Getestet nur mit Nachbauten (render-nachbau: Stream/Video/Shader, obs-nachbau: Empfang + NDI-Tausch, `OBS_OHNE_CLONE`/`OHNE_SHADER`), Gesamttest ALLES OK. **Ungetestet:** echtes NVENC im Container (Encoder-Name „nvenc_hevc“ im einfachen Modus),

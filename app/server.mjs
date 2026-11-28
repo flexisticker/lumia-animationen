@@ -847,7 +847,6 @@ async function renderEinrichten(basisUrl) {
 async function atlasEinrichten(s, R, log, fps) {
   const fk = await s.anfrage('GetSourceFilterKindList');
   if (!((fk.data && fk.data.sourceFilterKinds) || []).includes('shader_filter')) return { ok: false, fehler: 'Im Render-OBS fehlt das Plugin „Shaderfilter“ – Render-Server-Image aktualisieren' };
-  const ziel = pcZiel(); if (!ziel) return { ok: false, fehler: 'Adresse des Stream-PCs fehlt (OBS-Verbindung einrichten oder „Ziel“ eintragen)' };
   const mk = async n => { const r = await s.anfrage('CreateScene', { sceneName: n }); if (!r.ok && r.code !== 601) log.push('Szene ' + n + ': ' + r.fehler); };
   const item = async (szene, quelle) => { let id = await s.anfrage('GetSceneItemId', { sceneName: szene, sourceName: quelle });
     if (!id.ok) { const c = await s.anfrage('CreateSceneItem', { sceneName: szene, sourceName: quelle }); if (!c.ok) { log.push(quelle + ' → ' + szene + ': ' + c.fehler); return null; } return c.data.sceneItemId; }
@@ -873,15 +872,16 @@ async function atlasEinrichten(s, R, log, fps) {
   const prof = [['Output', 'Mode', 'Simple'], ['SimpleOutput', 'StreamEncoder', R.codec === 'h264' ? 'nvenc' : 'nvenc_hevc'], ['SimpleOutput', 'VBitrate', String(R.kbps)],
     ['SimpleOutput', 'ABitrate', '192'], ['SimpleOutput', 'UseAdvanced', 'false'], ['SimpleOutput', 'NVENCPreset2', 'p4']];
   for (const [parameterCategory, parameterName, parameterValue] of prof) await s.anfrage('SetProfileParameter', { parameterCategory, parameterName, parameterValue });
-  const url = `srt://${ziel}:${R.srtPort}?mode=caller&latency=200000&pkt_size=1316`;
+  // Der Render-Server lauscht, das OBS am PC wählt sich ein (verbindet sich nach jedem Abbruch selbst neu, keine Firewall-Freigabe am PC nötig)
+  const url = `srt://0.0.0.0:${R.srtPort}?mode=listener&latency=200000&pkt_size=1316`;
   const ss = await s.anfrage('SetStreamServiceSettings', { streamServiceType: 'rtmp_custom', streamServiceSettings: { server: url, key: '', use_auth: false } });
   if (!ss.ok) return { ok: false, fehler: 'Stream-Ziel nicht setzbar: ' + ss.fehler };
   const go = await s.anfrage('StartStream');
   await new Promise(r => setTimeout(r, 3000));
   const st = await s.anfrage('GetStreamStatus');
   const laeuft = st.ok && st.data.outputActive;
-  log.push((laeuft ? '✓ ' : '⚠️ ') + 'SRT über die Grafikkarte (' + (R.codec === 'h264' ? 'H.264' : 'HEVC') + ', ' + Math.round(R.kbps / 1000) + ' Mbit/s, ' + fps + ' Bilder/s) → ' + ziel + ':' + R.srtPort +
-    (laeuft ? '' : ' – startet nicht' + (go.ok ? ' (wartet auf den PC – Empfang am PC einrichten)' : ': ' + go.fehler)));
+  log.push((laeuft ? '✓ ' : '⚠️ ') + 'SRT über die Grafikkarte (' + (R.codec === 'h264' ? 'H.264' : 'HEVC') + ', ' + Math.round(R.kbps / 1000) + ' Mbit/s, ' + fps + ' Bilder/s) – wartet auf Port ' + R.srtPort +
+    (laeuft ? ' (PC verbunden)' : go.ok ? ' auf den PC (jetzt „Empfang einrichten“)' : ' – startet nicht: ' + go.fehler));
   return { ok: true };
 }
 // Empfang am PC einrichten: Medienquelle (SRT, lauscht), je Bild eine Kopie (Source Clone) mit Shader + Zuschnitt;
@@ -895,11 +895,12 @@ async function pcEmpfang(umstellen) {
   if (fehlt.length) return { ok: false, fehler: 'Im OBS am PC fehlt: ' + fehlt.join(' und ') + '. Bitte installieren und OBS neu starten.' };
   const hilfe = 'Live-Studio Empfang', atlas = 'Live-Studio Atlas (SRT)';
   const cs = await obsRequest('CreateScene', { sceneName: hilfe }); if (!cs.ok && !/exist|601/i.test(cs.fehler)) log.push('Szene: ' + cs.fehler);
-  const ms = { is_local_file: false, input: `srt://0.0.0.0:${R.srtPort}?mode=listener&latency=200000`, input_format: 'mpegts', hw_decode: true, close_when_inactive: false,
+  if (!R.host) return { ok: false, fehler: 'Adresse des Render-Servers fehlt' };
+  const ms = { is_local_file: false, input: `srt://${R.host}:${R.srtPort}?mode=caller&latency=200000`, input_format: 'mpegts', hw_decode: true, close_when_inactive: false,
     restart_on_activate: false, clear_on_media_end: false, buffering_mb: 1, reconnect_delay_sec: 1 };
   const ci = await obsRequest('CreateInput', { sceneName: hilfe, inputName: atlas, inputKind: 'ffmpeg_source', inputSettings: ms, sceneItemEnabled: true });
   if (!ci.ok) await obsRequest('SetInputSettings', { inputName: atlas, inputSettings: ms, overlay: true });
-  log.push('✓ Empfang „' + atlas + '“ lauscht auf Port ' + R.srtPort + ' (UDP)');
+  log.push('✓ Empfang „' + atlas + '“ holt den Stream von ' + R.host + ':' + R.srtPort);
   // Ton über das erste genutzte Hochkant-Bild (der Stream hat nur eine Tonspur)
   const tonF = R.formate.find(f => /hoch/.test(f)) || R.formate[0];
   for (const f of Object.keys(RENDER_FORMATE)) {
